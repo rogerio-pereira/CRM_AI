@@ -1,4 +1,4 @@
-# Ralph Loop in GoViral
+# Ralph Loop — Internal CRM
 
 This project uses the **Ralph Loop** in two ways:
 
@@ -101,7 +101,7 @@ There is **no** built-in automatic loop in the IDE. The "loop" is: run the agent
 
 - **Features (specs):** `docs/FDRs/ToDo/*.md` (one FDR per feature).
 - **Architecture:** `docs/ADRs/*.md`.
-- **Product and design:** `docs/01 - Product Requirement Document.md`, `docs/02 - High Level Design.md`, `docs/04 - Features.md`, `docs/03 - Branding Manual.md`.
+- **Product and design:** `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/05 - Feature List.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`.
 
 The agent treats these as sources of truth; there is no separate top-level `specs/` folder.
 

@@ -6,28 +6,29 @@ description: Project initialization guide for Cursor/Codex
 
 ## Overview
 
-GoViral is a micro SaaS product designed to provide fast, AI-powered
-TikTok profile analysis for beginner and small creators.
+Internal AI-assisted CRM for freelance lead generation, opportunity management, sales pipeline tracking, and AI-assisted prospecting automation.
 
-The product analyzes user-provided profile information and generates
-actionable recommendations focused on growth and monetization. It is
-positioned as an affordable, impulse-buy entry product rather than a
-marketing consultancy.
+The platform is for **internal operational use** and prioritizes simplicity, automation, and AI-assisted workflows over traditional enterprise CRM complexity.
 
-Primary value proposition: 
-- Fast AI-driven analysis 
-- Clear, practical recommendations 
-- 30-day action plan 
-- No learning curve required
+Primary goals:
+
+- Unified lead/client management
+- Opportunity and Kanban pipeline tracking
+- Follow-ups and tasks
+- AI-assisted prospecting, qualification, and proposals
+- Operational dashboard and integrations (Slack, Google Calendar)
+
+Sources of truth: `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/05 - Feature List.md`, `docs/ADRs/`, `docs/FDRs/`.
 
 ## Stack
 
 - PHP 8.5
-- Laravel 12
-- Inertia (Vue3) With Vuetify
+- Laravel 13
+- Laravel Livewire (+ Flux UI components per starter kit)
 - Pest PHP tests with 90% minimum coverage
 - Laravel Pint for linting
 - Docker via Laravel Sail
+- PostgreSQL, Redis, Laravel Horizon
 
 ## Standards
 
@@ -45,9 +46,9 @@ Primary value proposition:
 - Prefer Form Requests for validation.
 - Use interfaces for services when appropriate.
 - Every Eloquent model must have an equivalent factory in `database/factories`.
-- All frontend pages must use Vuetify only (components and styling primitives); do not use Tailwind, Bootstrap, or other UI component libraries.
+- UI: **Livewire** for interactive pages and **Flux** (`flux:*`) for components; follow `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` (dark mode, Tailwind tokens, CRM-first layouts).
 - All pages must have dedicated browser tests and be included in smoke route checks (`tests/Browser/WebRoutesTest.php`).
-- Every new public page (ignore Core Routes (Admin) Group) must also have translation coverage tests (en/es/pt), preferably via Feature tests asserting Inertia props.
+- All pages must also have translation coverage tests (if applicable), preferably via Feature tests asserting language.
 - Critical user journeys must include at least one end-to-end browser test covering validation, successful submit, and expected persistence/redirect outcomes.
 - For browser automation reliability, interactive UI elements used in E2E tests should expose stable selectors: prefer **`data-test="..."`** (Pest Browser resolves `@name` to `[data-test="name"]`) and/or explicit form `name` attributes.
 - Browser automation in this project uses **Pest Browser** only. **Do not** add or use Laravel Dusk (`dusk` attributes, Dusk tests, or Dusk-only flows).
@@ -81,7 +82,7 @@ The project uses **Redis** as the queue driver (`QUEUE_CONNECTION=redis`). Redis
 Use a process manager (supervisor, systemd, or Laravel Cloud) to keep the worker alive:
 
 ```
-php artisan queue:work redis --queue=default --tries=12 --backoff=300 --timeout=300 --sleep=3
+php artisan queue:work redis --queue=default --tries=3 --timeout=120 --sleep=3
 ```
 
 Key flags:
@@ -91,6 +92,7 @@ Key flags:
 - `--sleep=3` — poll interval when queue is empty
 
 The `retry_after` in `config/queue.php` (Redis connection) is set to **600 s** so Redis does not re-queue a job that is still running within the 300 s timeout window.
+Tune `tries`, `timeout`, and `backoff` per job type and ADRs.
 
 ### Laravel Horizon (Redis queue dashboard)
 
@@ -107,4 +109,4 @@ When a feature is complete and the branch is pushed, **create the PR using the G
 
 ## Notes
 
-- Use docs in `docs/` for project and setup details
+- Use `docs/` for product, architecture, feature and setup specifications.

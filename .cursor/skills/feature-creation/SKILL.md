@@ -18,10 +18,11 @@ Use this skill when the user wants to **define and document a new feature** with
 ## Phase 1 — Orient
 
 1. Read project documentation to understand the product and architecture:
-   - `docs/01 - Product Requirement Document.md`
-   - `docs/02 - High Level Design.md`
-   - `docs/04 - Features.md`
+   - `docs/01 PRD.md`
+   - `docs/02 HLD.md`
+   - `docs/05 - Feature List.md`
    - `docs/03 - Branding Manual.md`
+   - `docs/04 - Design System.md`
 2. Read all ADRs in `docs/ADRs/` (naming, status, context/decision/consequences pattern).
 3. Read existing FDRs in `docs/FDRs/ToDo/` and a few in `docs/FDRs/Done/` to learn the FDR format (How it works, How to test, Acceptance criteria, Deployment notes).
 4. Skim `docs/FDRs/IMPLEMENTATION_PLAN.md` and `.cursor/ralph/PROMPT_plan.md` to understand the Ralph Planning flow.
@@ -65,8 +66,8 @@ If the user’s answers are vague, ask one or two follow-ups. Do not invent scop
 3. **Create FDR (ToDo)**
    - File: `docs/FDRs/ToDo/FDR_XXX_<short_snake_case_title>.md`
    - Pick the next free FDR number by scanning filenames in `docs/FDRs/ToDo/`, `docs/FDRs/Done/`, and `docs/FDRs/Closed/` to avoid collisions. **`Closed/`** holds **human-archived discarded** specs only; agents do **not** move work there and do **not** treat it as part of the ToDo→Done delivery path.
-   - Structure: **Feature** (number), **Reference** (e.g. docs/04 - Features.md, ADR-XXX), **How it works**, **How to test**, **Acceptance criteria** (checkboxes), **Deployment notes** (if any).
-   - Add the feature to `docs/04 - Features.md` in the right place (dependency order) with **Objective**, **Scope**, **Dependencies**, and **Related to** (if needed). Update the **Feature dependency summary** table at the bottom if applicable.
+   - Structure: **Feature** (number), **Reference** (e.g. `docs/05 - Feature List.md`, ADR-XXX), **How it works**, **How to test**, **Acceptance criteria** (checkboxes), **Deployment notes** (if any).
+   - Add the feature to `docs/05 - Feature List.md` in the right place (dependency order) with **Objective**, **Dependencies**, **Related to**, and **ADRs** as in existing entries. Update the **feature index** (with FDR link) and **Features relationship** table if applicable.
 
 If anything is ambiguous, ask the user before writing. Do not assume technical details (e.g. table names, endpoints) unless they are already fixed in docs or ADRs.
 
@@ -86,7 +87,7 @@ If anything is ambiguous, ask the user before writing. Do not assume technical d
 Make **separate commits** by logical context, for example:
 
 1. **First commit:** New ADR (if created). Message e.g. `docs(adr): add ADR-XXX <short title>`
-2. **Second commit:** New FDR + update `docs/04 - Features.md`. Message e.g. `docs(fdr): add FDR-XXX <short title> and feature entry in Features.md`
+2. **Second commit:** New FDR + update `docs/05 - Feature List.md`. Message e.g. `docs(fdr): add FDR-XXX <short title> and feature entry in Feature List`
 3. **Third commit:** Updated `docs/FDRs/IMPLEMENTATION_PLAN.md` after Ralph Planning. Message e.g. `docs(ralph): update implementation plan for FDR-XXX`
 
 If there is no ADR, only two commits (FDR + plan). Keep commit messages concise and in English.
@@ -118,8 +119,8 @@ Ask the user: **“Do you want to create another feature? (yes/no)”**
 
 | What              | Where |
 |-------------------|--------|
-| Product/features  | `docs/01 - Product Requirement Document.md`, `docs/04 - Features.md` |
-| Architecture      | `docs/02 - High Level Design.md`, `docs/ADRs/` |
+| Product/features  | `docs/01 PRD.md`, `docs/05 - Feature List.md` |
+| Architecture      | `docs/02 HLD.md`, `docs/ADRs/` |
 | Feature specs     | `docs/FDRs/ToDo/*.md`, `docs/FDRs/Done/*.md` (`Closed/` = archived only) |
 | Plan              | `docs/FDRs/IMPLEMENTATION_PLAN.md` |
 | Ralph Planning    | `.cursor/ralph/PROMPT_plan.md` |
@@ -131,7 +132,7 @@ Ask the user: **“Do you want to create another feature? (yes/no)”**
 
 1. Read all docs → understand project.  
 2. Interview user → clarify goal, scope, constraints, naming.  
-3. Create branch → ADR (if needed) → FDR (ToDo) → update Features.md.  
+3. Create branch → ADR (if needed) → FDR (ToDo) → update Feature List.  
 4. Run Ralph Planning → update IMPLEMENTATION_PLAN only.  
 5. Commit incrementally (ADR, FDR+Features, plan).  
 6. Push → open PR → checkout main → delete local branch.  

@@ -47,7 +47,7 @@ Run Pint:
 ## Phase 2 — Update plan and repo
 
 1. Update `docs/FDRs/IMPLEMENTATION_PLAN.md`: mark the task you did as done (e.g. strikethrough or "- [x]"), keep the feature→branch mapping updated, and add any discoveries or follow-up tasks.
-2. If an entire FDR is now complete (all acceptance criteria met), **move** that FDR file from `docs/FDRs/ToDo/` to `docs/FDRs/Done/` (e.g. move `FDR_001_configure_vue_vuetify_branding.md` to `docs/FDRs/Done/`). Do **not** move specs to `docs/FDRs/Closed/`; that folder is for human-archived discarded work only.
+2. If an entire FDR is now complete (all acceptance criteria met), **move** that FDR file from `docs/FDRs/ToDo/` to `docs/FDRs/Done/` (e.g. move `FDR-001-platform-foundation.md` to `docs/FDRs/Done/`). Do **not** move specs to `docs/FDRs/Closed/`; that folder is for human-archived discarded work only.
 3. If you learned something operational (how to run/build/test), update `.cursor/AGENTS.md` briefly.
 
 ### Phase 2.1 — Commits (order matters)
