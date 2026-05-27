@@ -86,7 +86,7 @@ php artisan queue:work redis --queue=default --tries=3 --timeout=120 --sleep=3
 ```
 
 Key flags:
-- `--tries=12` — max 12 attempts per job (ADR-011)
+- `--tries=12` — max 12 attempts per job 
 - `--backoff=300` — 5-minute delay between retries
 - `--timeout=300` — kill a job after 300 s (LLM + email ceiling)
 - `--sleep=3` — poll interval when queue is empty
@@ -101,7 +101,7 @@ The project uses **Laravel Horizon** for Redis queue workers and a dashboard. Ho
 - **Dashboard (local):** `http://localhost/horizon` (or your app URL + `/horizon`). In non-local environments, access is restricted by the gate in `App\Providers\HorizonServiceProvider` using `config('horizon.allowed_emails')` from env `HORIZON_ALLOWED_EMAILS` (comma-separated emails).
 - **Manual run (dev):** `./vendor/bin/sail artisan horizon`
 - **Terminate (deploy):** `./vendor/bin/sail artisan horizon:terminate` so the process manager restarts Horizon with new code.
-- **Config:** `config/horizon.php` (environments, tries, timeout, backoff). Default supervisor uses `tries=12`, `timeout=330`, `backoff=300` to align with `ProcessAnalysisRequest`.
+- **Config:** `config/horizon.php` (environments, tries, timeout, backoff). Tune per job type and ADRs.
 
 ## Pull requests
 

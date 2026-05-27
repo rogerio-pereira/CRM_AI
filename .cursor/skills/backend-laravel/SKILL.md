@@ -8,14 +8,14 @@ description: >
   requirements.
 ---
 
-# Backend Development (Laravel) — Internal CRM
+# Backend Development (Laravel)
 
 Design and implement backend features aligned with project conventions.
 
-Combine this skill with:
+Combine this skill with the stack the project uses:
 
-- `laravel-livewire-crud` for full CRUD flows.
-- `frontend-livewire-flux` for UI concerns.
+- **Livewire + Flux:** `laravel-livewire-crud`, `frontend-livewire-flux`
+- **Vue + Inertia + Vuetify:** `laravel-vue-crud`, `frontend-vue-vuetify`
 
 All backend code must be in **English** and follow PSRs.
 
@@ -85,9 +85,16 @@ All backend code must be in **English** and follow PSRs.
 
 ## Validation and Form Requests
 
-- Store Form Requests in `app/Http/Requests`.
+- Always use **Form Request classes** for non-trivial validation:
+  - Store them in `app/Http/Requests`.
+  - Use meaningful names (e.g. `StoreLeadRequest`, `UpdateLeadRequest`).
+- In Form Requests:
+  - Implement `rules()` to fully describe expected input.
+  - Implement `messages()` for custom messages when helpful.
   - Implement `authorize()` to restrict access, or explicitly return `true`
-- Type-hint Form Requests in controller actions.
+    when handled elsewhere.
+- Controllers should type-hint Form Requests:
+  - Example: `public function store(StoreLeadRequest $request)`.
 
 ---
 
@@ -103,7 +110,7 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
   - Use `softDeletes()` when the domain calls for soft deletion.
   - Add indexes and constraints where appropriate (foreign keys, uniques).
 
-  ### Models
+### Models
 
 - Place models in `app/Models`.
 - For each model:
@@ -141,8 +148,7 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
 
 - Store services under `app/Services` (or a similar organized namespace).
 - Each service should:
-  - Encapsulate a clear unit of behavior (e.g. processing analysis requests,
-    computing metrics).
+  - Encapsulate a clear unit of behavior (e.g. qualifying a lead, moving an opportunity stage, computing dashboard metrics).
   - Be dependency-injection friendly (inject repositories/clients instead of
     using facades everywhere).
 - When appropriate, define an interface and bind it in a service provider.
@@ -162,8 +168,7 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
 ### Events and listeners
 
 - Use events/listeners to decouple side effects:
-  - Example: dispatch event when a report is generated; listeners send emails,
-    update stats, etc.
+  - Example: dispatch event when a report is generated; listeners send emails, update stats, etc.
 - Place events under `app/Events` and listeners under `app/Listeners`.
 
 ---
