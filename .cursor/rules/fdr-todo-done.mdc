@@ -1,0 +1,12 @@
+---
+description: Feature specs live in docs/FDRs/ToDo; when complete, move FDR to docs/FDRs/Done.
+alwaysApply: true
+---
+
+# FDR ToDo and Done
+
+- **Feature specs (FDRs)** live in `docs/FDRs/ToDo/`. Each file describes one feature with "How it works", "How to test", and "Acceptance criteria".
+- When a feature is **fully implemented** (all acceptance criteria satisfied), **move** the FDR file from `docs/FDRs/ToDo/` to `docs/FDRs/Done/` (keep the same filename). That is the only workflow transition agents should use for **delivered** work.
+- **Do not delete** FDRs; do not duplicate them. For active delivery, **ToDo → Done** is the only transition.
+- **`docs/FDRs/Closed/`** (if present) holds **archived / discarded** specs that were **not** developed to completion. It is **not** a step toward Done and agents must **not** move work there as part of implementation. Humans may park rejected ideas there to avoid re-numbering conflicts; agents only use **ToDo** and **Done** for the live lifecycle.
+- Dependencies between features are in `docs/04 - Features.md`; implement in dependency order when possible.

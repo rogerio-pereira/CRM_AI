@@ -1,0 +1,70 @@
+---
+description: Standard procedure for starting the environment and running tests via Sail.
+alwaysApply: true
+---
+
+# Starting Sail and testing
+
+- When the user asks to "start the environment," use commands via Sail.
+- Execute everything within Sail (e.g., `sail <command>`).
+- Ensure that the tests pass before finalizing the task.
+- All code must be in English.
+- Keep code clean and follow PSRs (one instruction per line).
+- Do **not** use ternary operators (`condition ? a : b`) in PHP; use explicit `if` / `else` or early returns.
+- If `vendor` does not exist, install with the container `laravelsail/php85-composer:latest`
+(do not use local PHP/Composer).
+
+
+## Useful Commands
+
+### Starting Containers
+```
+test -d ./vendor || \
+    docker run --rm -u "$(id -u):$(id -g)" \
+        -v "$(pwd):/var/www/html" \
+        -w /var/www/html \
+        laravelsail/php85-composer:latest \
+        composer install --ignore-platform-reqs --no-interaction --prefer-dist --optimize-autoloader
+
+./vendor/bin/sail up -d
+
+test -f .env || \
+    cp .env.example .env
+
+grep -q "^APP_KEY=" .env || \
+    ./vendor/bin/sail artisan key:generate
+
+grep -q "^APP_KEY=$" .env && \
+    ./vendor/bin/sail artisan key:generate
+
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
+./vendor/bin/sail npm run dev
+```
+
+### Running tests
+```
+./vendor/bin/sail artisan test --parallel --coverage --min=90
+./vendor/bin/sail artisan test --type-coverage --min=90 --parallel
+```
+
+**Before running tests:** the full suite (including Browser tests per `phpunit.xml`) needs the frontend built or the dev server running. Either run `./vendor/bin/sail npm run build` once, or run `./vendor/bin/sail npm run dev` in a separate terminal and keep it running, then run the test commands above.
+
+### Testing policy (mandatory)
+- Use **Pest Browser** for browser / E2E tests. **Do not** add or use Laravel Dusk.
+- Prefer stable selectors for interactive elements in E2E tests: **`data-test="..."`** (Pest Browser maps `@name` to `[data-test="name"]`) and/or explicit form `name` attributes.
+- Keep smoke coverage in `tests/Browser/WebRoutesTest.php` for public and authenticated routes.
+- Add a dedicated browser test file for each page (for example, Landing, Form, Thank You).
+- Add translation tests for each page (en/es/pt), preferably in Feature tests asserting Inertia translations.
+- Ensure at least one complete E2E flow for critical journeys (landing -> form with validation -> success -> DB -> thank you).
+
+### Running Linter
+```
+./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
+```
+
+
+### Stopping Containers
+```
+./vendor/bin/sail down
+```

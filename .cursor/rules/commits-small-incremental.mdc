@@ -1,0 +1,35 @@
+---
+description: Commit rules – always make small, incremental, well-scoped commits.
+alwaysApply: true
+---
+
+# Commit Rules – Small, Incremental, Contextual
+
+- **Commit size**
+  - Prefer **small, self-contained commits** (single concern or a tiny group of closely related changes).
+  - Avoid "mega commits" that bundle migration, backend, frontend, tests, and docs together.
+  - If you can only describe the change as one long sentence joined by many "and"s, it is probably **several commits**.
+
+- **Commit boundaries**
+  - Separate, whenever possible:
+    - **DB / migrations** (schema).
+    - **Models / services / controllers** (backend).
+    - **Frontend / Vue / Vuetify** (UI and behavior).
+    - **Tests** (Feature, Browser, unit).
+    - **Docs / FDR / IMPLEMENTATION_PLAN**.
+  - Each commit must **build and pass ALL relevant tests and linter** (see `.cursor/rules/starting-environment.mdc`).
+
+- **Commit messages (Conventional Commits)**
+  - Use clear, consistent type prefixes, for example:
+    - `chore(db): …` – migrations, structural data changes.
+    - `feat(core): …` – domain functionality.
+    - `fix(…): …` – bug fixes.
+    - `test(…): …` – tests only.
+    - `docs(…): …` – documentation only / FDR / implementation plan.
+  - The subject line states **what** and **why**; use the body for bullets when needed.
+
+- **Ralph Building flow**
+  - For each plan task:
+    - Implement in small commits following the rules above.
+    - Ensure the last implementation commit for the task leaves the repo healthy (build + tests + linter OK).
+  - After that, update `IMPLEMENTATION_PLAN.md` (e.g. `[x]` checkboxes) and move FDR to `docs/FDRs/Done` in a **separate** `docs(...)` commit from application code.
