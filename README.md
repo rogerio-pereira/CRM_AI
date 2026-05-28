@@ -32,7 +32,7 @@ grep -q "^APP_KEY=$" .env && ./vendor/bin/sail artisan key:generate
 - Queue: Redis (`QUEUE_CONNECTION=redis`)
 - Cache/session: Redis
 - Queue monitoring: Laravel Horizon (`/horizon`)
-- Timezone: set `APP_TIMEZONE` to the deployment region (required for weekday **08:00** prospecting per ADR-007)
+- Timezone: `America/New_York` in `config/app.php` (required for weekday **08:00** prospecting per ADR-007)
 
 ## Daily development commands
 
@@ -108,7 +108,7 @@ Run scheduler once:
 Production requirement:
 
 - Configure cron to run `php artisan schedule:run` every minute
-- Ensure `APP_TIMEZONE` matches the business region before enabling prospecting (FDR-010)
+- Application timezone is fixed in `config/app.php` before enabling prospecting (FDR-010)
 
 ## Laravel Cloud deployment
 
@@ -117,12 +117,12 @@ Baseline for production on [Laravel Cloud](https://cloud.laravel.com):
 1. **Application** — deploy the Laravel app with build step `./vendor/bin/npm run build` (or equivalent) so Vite assets are compiled.
 2. **PostgreSQL** — managed database; set `DB_*` secrets to match the cluster.
 3. **Redis** — managed Redis for `QUEUE_CONNECTION`, `CACHE_STORE`, and `SESSION_DRIVER`.
-4. **Environment** — set `APP_KEY`, `APP_URL`, `APP_TIMEZONE`, `HORIZON_ALLOWED_EMAILS` (comma-separated operator emails), and mail credentials for password reset.
+4. **Environment** — set `APP_KEY`, `APP_URL`, `HORIZON_ALLOWED_EMAILS` (comma-separated operator emails), and mail credentials for password reset.
 5. **Dedicated workers** — run `php artisan horizon` (Horizon supervises Redis queue workers; tries/timeout in `config/horizon.php`).
 6. **Scheduler** — Cloud scheduler or cron every minute: `php artisan schedule:run`.
 7. **Registration** — keep `REGISTRATION_ENABLED=false` in production (local-only admin seeding; see Authentication below).
 
-After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows `prospecting:scheduled` on weekdays at 08:00.
+After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows scheduled tasks (example: `inspire` until FDR-010).
 
 ## Test and quality gates
 

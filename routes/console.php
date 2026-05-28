@@ -8,11 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('prospecting:scheduled', function () {
-    $this->comment('Prospecting schedule placeholder (FDR-010 / ADR-007). No agents run yet.');
-})->purpose('Weekday 08:00 automated prospecting placeholder until FDR-010');
-
-Schedule::command('prospecting:scheduled')
-    ->weekdays()
-    ->at('08:00')
-    ->description('Automated prospecting placeholder (ADR-007)');
+// Remove this example scheduler when real scheduled commands are implemented (FDR-010 / ADR-007).
+Schedule::command('inspire')->daily();
