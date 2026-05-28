@@ -48,7 +48,7 @@ Install frontend dependencies:
 ./vendor/bin/sail npm install
 ```
 
-Build frontend assets:
+Build frontend assets (required after CSS or design-token changes, and before browser tests):
 
 ```bash
 ./vendor/bin/sail npm run build

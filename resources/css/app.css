@@ -9,31 +9,43 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    --color-app: #0F172A;
+    --color-app-sidebar: #111827;
+    --color-app-surface: #1E293B;
+    --color-app-elevated: #273449;
+    --color-app-hover: #334155;
+    --color-app-active: #3730A3;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
-}
+    --color-primary: #6366F1;
+    --color-primary-hover: #4F46E5;
+    --color-primary-active: #4338CA;
+    --color-primary-focus: #818CF8;
 
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
-    }
+    --color-accent: #0EA5E9;
+    --color-accent-hover: #0284C7;
+    --color-accent-soft: #38BDF8;
+
+    --color-ai: #8B5CF6;
+    --color-ai-hover: #7C3AED;
+    --color-ai-soft: #A78BFA;
+
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #CBD5E1;
+    --color-text-muted: #94A3B8;
+    --color-text-disabled: #64748B;
+
+    --color-border-subtle: #1E293B;
+    --color-border: #334155;
+    --color-border-strong: #475569;
+    --color-border-focus: #818CF8;
+
+    --color-status-success: #10B981;
+    --color-status-warning: #F59E0B;
+    --color-status-danger: #EF4444;
+    --color-status-info: #0EA5E9;
+    --color-status-neutral: #94A3B8;
 }
 
 @layer base {
@@ -43,7 +55,40 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-border, currentColor);
+    }
+
+    body {
+        @apply font-light text-text-secondary antialiased;
+    }
+
+    .dark [data-flux-control] {
+        @apply border-border bg-app-surface text-text-primary shadow-none;
+    }
+
+    .dark [data-flux-control]::placeholder {
+        @apply text-text-muted;
+    }
+
+    .dark [data-flux-label] {
+        @apply text-text-secondary;
+    }
+
+    .dark [data-flux-subheading] {
+        @apply text-text-secondary;
+    }
+
+    .dark [data-flux-link] {
+        @apply text-primary-focus;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    flux\:heading,
+    [data-flux-heading] {
+        @apply font-bold text-text-primary;
     }
 }
 
@@ -58,9 +103,17 @@
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-primary-focus ring-offset-2 ring-offset-app;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/*
+ * Flux maps primary buttons to --color-accent; align with CRM primary (indigo)
+ * without changing the informational accent token in @theme above.
+ */
+@layer theme {
+    .dark {
+        --color-accent: #6366F1;
+        --color-accent-content: #6366F1;
+        --color-accent-foreground: #F8FAFC;
+    }
+}
