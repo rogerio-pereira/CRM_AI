@@ -15,13 +15,20 @@ Implementation plans are **temporary state files** for the current build cycle (
 
 ## Phase 0 — Orient
 
-1. Study the project documentation (see `.cursor/AGENTS.md`), typically:
-   - `docs/05 - Feature List.md` — waves and dependencies
-   - PRD, HLD, Branding, Design System under `docs/`
-2. Study all ADRs in `docs/ADRs/`.
-3. Study FDRs in `docs/FDRs/ToDo/` for the scope you are planning (wave or single feature).
-4. Study existing **local** plans in `docs/FDRs/ImplementationPlans/` if present.
-5. Study the codebase (`app/`, `resources/`, `routes/`, config) to see what is already implemented.
+**Read these files in full before gap analysis or writing tasks** (mandatory):
+
+1. `docs/01 PRD.md`
+2. `docs/02 HLD.md`
+3. `docs/03 - Branding Manual.md`
+4. `docs/04 - Design System.md`
+5. `docs/05 - Feature List.md` — waves, dependencies, and in-scope features
+
+Then:
+
+6. Study all ADRs in `docs/ADRs/`.
+7. Study FDRs in `docs/FDRs/ToDo/` for the scope you are planning (wave or single feature).
+8. Study existing **local** plans in `docs/FDRs/ImplementationPlans/` if present.
+9. Study the codebase (`app/`, `resources/`, `routes/`, config) to see what is already implemented.
 
 ## Phase 1 — Gap analysis and plan
 
@@ -33,6 +40,7 @@ Implementation plans are **temporary state files** for the current build cycle (
 
 ## Rules
 
+- **Do not invent product scope.** Planning must not add features, screens, flows, fields, integrations, or acceptance criteria that are not already defined in the five mandatory docs above, the in-scope FDR(s), or relevant ADRs. Every planned task must trace to an existing FDR (or an explicit wave/feature entry in `docs/05 - Feature List.md`). If something is missing from the specs, record it as a **gap or blocker**—do not expand scope in the plan.
 - **Plan only.** No application code changes. No git commits (plans are gitignored).
 - `docs/FDRs/Closed/` is not part of delivery workflow; agents use **ToDo → Done** only.
 - FDRs and ADRs are specs/decisions; **`docs/05 - Feature List.md`** is the product roadmap (including wave completion status).

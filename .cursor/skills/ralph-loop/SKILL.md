@@ -9,7 +9,7 @@ Use this skill when the user wants to run **Planning** or **Building** for the R
 
 ## What the Ralph Loop is here
 
-- **Planning:** Gap analysis vs FDRs and code; write/update **local** plan files under `docs/FDRs/ImplementationPlans/` only. No code changes, no commits (folder is gitignored).
+- **Planning:** Read in full `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`, and `docs/05 - Feature List.md`; then gap analysis vs in-scope FDRs, ADRs, and code. Write/update **local** plan files under `docs/FDRs/ImplementationPlans/` only. **Do not invent features** beyond committed product docs and FDRs—note gaps as blockers instead. No code changes, no commits (folder is gitignored).
 - **Building:** One task from the active feature plan; implement, test, Pint; update local plan; move FDR to `Done` when complete; commit code and committed docs only. Delete plan files when feature/wave finishes; set wave `Done` in `docs/05 - Feature List.md`.
 - **Branching:** One branch per feature (reuse across tasks), not one branch per task.
 - **PR flow:** After a feature is complete, push and open PR to `main` (GitHub MCP).
@@ -35,6 +35,7 @@ Use this skill when the user wants to run **Planning** or **Building** for the R
 
 ## Rules to respect
 
+- **Planning:** mandatory product docs (PRD, HLD, Branding, Design System, Feature List) before planning; no scope invention.
 - One task per Building run.
 - Never commit `docs/FDRs/ImplementationPlans/`.
 - `docs/05 - Feature List.md` is the source of truth for waves; implementation plans are throwaway state.

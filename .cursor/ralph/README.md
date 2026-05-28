@@ -71,7 +71,7 @@ There is **no** built-in automatic loop in the IDE. The "loop" is: run the agent
 
 | File | Purpose |
 |------|---------|
-| `PROMPT_plan.md` | **Planning** instructions. The agent reads docs/FDRs/ADRs/code and updates the plan only. |
+| `PROMPT_plan.md` | **Planning** instructions. The agent reads PRD, HLD, Branding, Design System, Feature List, FDRs, ADRs, and code; updates the plan only (no invented features). |
 | `PROMPT_build.md` | **Building** instructions. The agent picks **one** task, implements it, tests, updates the plan, and commits. |
 | `loop.sh` | Runs Planning or Building in a CLI loop (Claude or Cursor). |
 | Plan state (gitignored) | `docs/FDRs/ImplementationPlans/*.md` — local task progress only. **Planning** creates/updates; **Building** consumes; **delete** when feature/wave is done. |
@@ -83,7 +83,7 @@ There is **no** built-in automatic loop in the IDE. The "loop" is: run the agent
 1. **First time or stale plan**
    - Open an agent chat in your IDE.
    - Paste `.cursor/ralph/PROMPT_plan.md` or ask for **Ralph Planning**.
-   - The agent reviews `docs/FDRs/ToDo/`, `docs/ADRs/`, and code, then fills/updates local plans in `docs/FDRs/ImplementationPlans/`. No implementation and no commits.
+   - The agent reads `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`, and `docs/05 - Feature List.md`, then reviews in-scope FDRs, ADRs, and code, and fills/updates local plans in `docs/FDRs/ImplementationPlans/`. Planning must not invent features beyond those sources. No implementation and no commits.
 
 2. **Implement tasks (Building)**
    - Open an agent chat.

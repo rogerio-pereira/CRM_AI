@@ -9,6 +9,7 @@ alwaysApply: false
 ## Ralph Loop
 
 - **Prompts:** Planning uses `.cursor/ralph/PROMPT_plan.md`; Building uses `.cursor/ralph/PROMPT_build.md`.
+- **Planning scope (mandatory reads):** Before gap analysis, read in full: `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`, `docs/05 - Feature List.md`. Do **not** invent features or acceptance criteria beyond those docs, in-scope FDRs, and ADRs.
 - **Ephemeral plan state:** Local files in `docs/FDRs/ImplementationPlans/` (gitignored). Not long-lived docs; never commit. Delete feature plans when the feature is done; delete all wave plans when the wave is done.
 - **One task per Building run.** After each run: update local plan state, run tests and linter, then commit per `.cursor/rules/commits-small-incremental.mdc` (code + committed docs only—never plan files).
 - **One branch per feature.** Reuse the same branch for all tasks of that feature; do not create one branch per subtask.
