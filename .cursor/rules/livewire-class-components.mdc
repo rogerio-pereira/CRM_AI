@@ -1,0 +1,47 @@
+---
+description: Livewire components must be class-based (PHP class + Blade view), not SFC/MFC.
+globs: app/Livewire/**/*,resources/views/livewire/**/*,routes/**/*.php,config/livewire.php
+alwaysApply: false
+---
+
+# Livewire — class-based components
+
+Project default is configured in `config/livewire.php` (`make_command.type` => `class`, `class_namespace` => `App\Livewire`, `class_path`, `view_path`).
+
+## Required for new work
+
+- **Always** create **class-based** Livewire components (dedicated PHP class + Blade view).
+- Generate with Sail:
+  ```bash
+  ./vendor/bin/sail artisan make:livewire Path/ComponentName
+  ```
+  (`--type=class` is the default; do not pass `sfc` or `mfc`.)
+- **Class:** `app/Livewire/{Path}/{ComponentName}.php` (`App\Livewire\...` namespace).
+- **View:** `resources/views/livewire/{path}/{component-name}.blade.php` (kebab-case file name).
+- Put markup and Flux UI in the Blade view; keep properties, validation, and actions in the PHP class.
+- Prefer Pest tests targeting the component class (e.g. `Livewire::test(Index::class)`).
+
+## Do not use for new components
+
+- **Single-file components (SFC):** `resources/views/pages/**/⚡*.blade.php` with anonymous `class extends Component` in Blade.
+- **Multi-file view-only components (MFC)** without a class under `app/Livewire/`.
+- Creating new `⚡` prefixed page files for interactive Livewire UI.
+
+## Routing
+
+- Full pages: register the component class, for example:
+  ```php
+  Route::livewire('leads', \App\Livewire\Leads\Index::class)->name('leads.index');
+  ```
+  or `Route::get('leads', \App\Livewire\Leads\Index::class)` when appropriate.
+- Do **not** add new `Route::livewire(..., 'pages::...')` entries for new CRM/features; use the class FQCN instead.
+
+## Legacy (existing code)
+
+- All Livewire components use class-based structure under `app/Livewire/` with views in `resources/views/livewire/`.
+- Do not reintroduce SFC (`⚡*.blade.php`) or MFC-only components.
+
+## Related docs
+
+- `.cursor/skills/frontend-livewire-flux/SKILL.md`
+- `.cursor/skills/laravel-livewire-crud/SKILL.md`

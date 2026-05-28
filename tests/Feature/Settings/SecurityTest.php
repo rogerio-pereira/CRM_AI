@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Livewire\Settings\Security;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -82,7 +83,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Livewire::test('pages::settings.security');
+        $component = Livewire::test(Security::class);
 
         $component->assertSet('twoFactorEnabled', false);
 
@@ -101,7 +102,7 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.security')
+        $response = Livewire::test(Security::class)
             ->set('current_password', 'password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
@@ -120,12 +121,89 @@ class SecurityTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.security')
+        $response = Livewire::test(Security::class)
             ->set('current_password', 'wrong-password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
             ->call('updatePassword');
 
         $response->assertHasErrors(['current_password']);
+    }
+
+    public function test_passkey_can_be_deleted(): void
+    {
+        $user = User::factory()->create();
+
+        $passkey = $user->passkeys()->create([
+            'name' => 'Test Device',
+            'credential_id' => 'test-credential-id-1',
+            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+            'last_used_at' => now(),
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Security::class)
+            ->call('confirmDelete', $passkey->id)
+            ->assertSet('showDeleteModal', true)
+            ->assertSet('deletingPasskeyId', $passkey->id)
+            ->call('deletePasskey')
+            ->assertSet('showDeleteModal', false);
+
+        $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
+    }
+
+    public function test_close_delete_modal_resets_state(): void
+    {
+        $user = User::factory()->create();
+
+        $passkey = $user->passkeys()->create([
+            'name' => 'Test Device',
+            'credential_id' => 'test-credential-id-2',
+            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Security::class)
+            ->call('confirmDelete', $passkey->id)
+            ->call('closeDeleteModal')
+            ->assertSet('showDeleteModal', false)
+            ->assertSet('deletingPasskeyId', null);
+    }
+
+    public function test_delete_passkey_without_selection_does_nothing(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Security::class)
+            ->call('deletePasskey')
+            ->assertHasNoErrors();
+    }
+
+    public function test_two_factor_can_be_disabled(): void
+    {
+        $user = User::factory()->withTwoFactor()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Security::class)
+            ->assertSet('twoFactorEnabled', true)
+            ->call('disable')
+            ->assertSet('twoFactorEnabled', false);
+    }
+
+    public function test_two_factor_enabled_event_updates_state(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Security::class)
+            ->assertSet('twoFactorEnabled', false)
+            ->call('onTwoFactorEnabled')
+            ->assertSet('twoFactorEnabled', true);
     }
 }

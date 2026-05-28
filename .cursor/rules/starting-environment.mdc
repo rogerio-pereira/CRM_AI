@@ -48,7 +48,6 @@ grep -q "^APP_KEY=$" .env && \
 ./vendor/bin/sail artisan test --type-coverage --min=90 --parallel
 ```
 
-
 ### Running linter
 ```
 ./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
@@ -63,11 +62,6 @@ grep -q "^APP_KEY=$" .env && \
 - Add dedicated browser tests for each new screen or Livewire page (e.g. lead list, opportunity Kanban, settings).
 - If using translation, create tests for each language, preferably in Feature tests asserting translations.
 - Ensure at least one complete E2E or Feature flow for critical CRM journeys (e.g. create lead → opportunity → pipeline stage).
-
-### Running Linter
-```
-./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
-```
 
 
 ### Stopping Containers
