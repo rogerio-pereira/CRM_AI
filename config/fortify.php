@@ -158,11 +158,10 @@ return [
     | by removing them from this array. You're free to only remove some of
     | these features, or you can even remove all of these if you need to.
     |
-    | Public registration is disabled; provision users via seeding or admin tools.
-    |
     */
 
     'features' => [
+        // Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
