@@ -120,7 +120,7 @@ Baseline for production on [Laravel Cloud](https://cloud.laravel.com):
 4. **Environment** — set `APP_KEY`, `APP_URL`, `HORIZON_ALLOWED_EMAILS` (comma-separated operator emails), and mail credentials for password reset.
 5. **Dedicated workers** — run `php artisan horizon` (Horizon supervises Redis queue workers; tries/timeout in `config/horizon.php`).
 6. **Scheduler** — Cloud scheduler or cron every minute: `php artisan schedule:run`.
-7. **Registration** — keep `REGISTRATION_ENABLED=false` in production (local-only admin seeding; see Authentication below).
+7. **Users** — public registration is disabled; provision internal users via seeding or admin tools (see Authentication below).
 
 After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows scheduled tasks (example: `inspire` until FDR-010).
 
@@ -155,7 +155,7 @@ Seed the default admin user:
 
 Local credentials (from `UserSeeder`): `admin@admin.com` / `password` — **change or disable before production**.
 
-Public registration is disabled unless `REGISTRATION_ENABLED=true` or `APP_ENV=local`.
+Public registration is disabled. Use `db:seed` for local admin access (see above).
 
 ### Production mail (password reset)
 
