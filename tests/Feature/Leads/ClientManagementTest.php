@@ -265,4 +265,153 @@ class ClientManagementTest extends TestCase
 
         $this->assertDatabaseMissing('clients', ['id' => $client->id]);
     }
+
+    public function test_user_can_delete_client_without_opportunities(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDeleteModal', $client->id)
+            ->call('confirmDelete')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('clients', ['id' => $client->id]);
+    }
+
+    public function test_confirm_delete_does_nothing_when_delete_client_id_is_null(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete');
+
+        $this->assertDatabaseHas('clients', ['id' => $client->id]);
+    }
+
+    public function test_detail_and_delete_computed_properties_are_null_by_default(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class);
+
+        $this->assertNull($component->instance()->detailClient);
+        $this->assertNull($component->instance()->deleteClient);
+    }
+
+    public function test_open_detail_modal_loads_client_with_opportunities(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['company_name' => 'Detail Co']);
+        Opportunity::factory()->for($client)->create(['title' => 'Big deal']);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openDetailModal', $client->id);
+
+        $this->assertSame($client->id, $component->get('detailClientId'));
+        $this->assertTrue($component->get('showDetailModal'));
+        $this->assertSame('Detail Co', $component->instance()->detailClient?->company_name);
+        $this->assertCount(1, $component->instance()->detailClient?->opportunities ?? []);
+    }
+
+    public function test_open_edit_modal_with_null_social_links_initializes_empty_row(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'company_name' => 'No Social Co',
+            'social_links' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openEditModal', $client->id);
+
+        $this->assertSame([
+            ['platform' => '', 'url' => ''],
+        ], $component->get('social_links'));
+    }
+
+    public function test_open_edit_modal_with_existing_social_links(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'social_links' => [
+                ['platform' => 'Twitter', 'url' => 'https://twitter.com/acme'],
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openEditModal', $client->id);
+
+        $this->assertSame([
+            ['platform' => 'Twitter', 'url' => 'https://twitter.com/acme'],
+        ], $component->get('social_links'));
+    }
+
+    public function test_add_and_remove_social_link_rows(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->call('addSocialLinkRow')
+            ->call('removeSocialLinkRow', 99);
+
+        $this->assertCount(2, $component->get('social_links'));
+
+        $component->call('removeSocialLinkRow', 0);
+
+        $this->assertCount(1, $component->get('social_links'));
+    }
+
+    public function test_save_client_omits_blank_social_link_rows(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('company_name', 'Sparse Social Co')
+            ->set('social_links', [
+                ['platform' => '', 'url' => ''],
+                ['platform' => 'Blog', 'url' => 'blog.example.com'],
+            ])
+            ->call('saveClient')
+            ->assertHasNoErrors();
+
+        $client = Client::where('company_name', 'Sparse Social Co')->first();
+
+        $this->assertNotNull($client);
+        $this->assertCount(1, $client->social_links);
+        $this->assertSame('Blog', $client->social_links[0]['platform']);
+    }
+
+    public function test_open_delete_modal_sets_delete_client_computed(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['company_name' => 'Delete Me Co']);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openDeleteModal', $client->id);
+
+        $this->assertTrue($component->get('showDeleteModal'));
+        $this->assertSame('Delete Me Co', $component->instance()->deleteClient?->company_name);
+    }
 }
