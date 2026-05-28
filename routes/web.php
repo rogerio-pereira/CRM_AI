@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Leads\Index as LeadsIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -7,11 +8,7 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    Route::view('leads', 'pages.crm.stub', [
-        'title' => 'Leads / Clients',
-        'heading' => 'Leads / Clients',
-        'message' => 'Lead and client management arrives in wave 2 (FDR-004).',
-    ])->name('leads.index');
+    Route::livewire('leads', LeadsIndex::class)->name('leads.index');
 
     Route::view('opportunities', 'pages.crm.stub', [
         'title' => 'Opportunities',

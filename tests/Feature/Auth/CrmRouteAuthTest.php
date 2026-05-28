@@ -20,7 +20,7 @@ class CrmRouteAuthTest extends TestCase
             'dashboard' => ['/dashboard'],
             'settings profile' => ['/settings/profile'],
             'settings security' => ['/settings/security'],
-            'leads stub' => ['/leads'],
+            'leads' => ['/leads'],
             'opportunities stub' => ['/opportunities'],
             'follow-ups stub' => ['/follow-ups'],
             'tasks stub' => ['/tasks'],
@@ -32,7 +32,7 @@ class CrmRouteAuthTest extends TestCase
         return [
             'dashboard' => ['/dashboard'],
             'settings profile' => ['/settings/profile'],
-            'leads stub' => ['/leads'],
+            'leads' => ['/leads'],
             'opportunities stub' => ['/opportunities'],
             'follow-ups stub' => ['/follow-ups'],
             'tasks stub' => ['/tasks'],
