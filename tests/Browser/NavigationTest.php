@@ -16,7 +16,7 @@ function crmSidebarRoutes(): array
         'leads' => [
             'nav' => 'nav-leads',
             'path' => '/leads',
-            'marker' => 'crm-stub-page',
+            'marker' => 'leads-page',
         ],
         'opportunities' => [
             'nav' => 'nav-opportunities',
