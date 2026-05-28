@@ -3,6 +3,7 @@
 namespace Tests\Feature\Clients;
 
 use App\Enums\ClientStatus;
+use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +30,7 @@ class ClientCrudTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('company_name', 'Acme Corp')
             ->set('lead_source', 'Referral')
@@ -43,6 +44,15 @@ class ClientCrudTest extends TestCase
             'lead_source' => 'Referral',
             'status' => ClientStatus::Active->value,
         ]);
+
+        $this->assertDatabaseHas('client_contacts', [
+            'name' => 'Jane Doe',
+            'email' => 'jane@acme.test',
+        ]);
+
+        $this->assertDatabaseHas('client_ai_insights', [
+            'summary' => null,
+        ]);
     }
 
     public function test_client_can_be_updated_via_livewire(): void
@@ -54,7 +64,7 @@ class ClientCrudTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('openEditModal', $client->id)
             ->set('company_name', 'New Name')
             ->call('saveClient')
@@ -72,7 +82,7 @@ class ClientCrudTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('company_name', '')
             ->call('saveClient')
@@ -85,7 +95,7 @@ class ClientCrudTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('company_name', 'Acme Corp')
             ->set('website', 'not-a-url')
@@ -102,7 +112,7 @@ class ClientCrudTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->set('search', 'Alpha')
             ->assertSee('Alpha Industries')
             ->assertDontSee('Beta Solutions');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Leads\Index;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -7,7 +8,7 @@ Route::view('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    Route::livewire('leads', 'pages::leads.index')->name('leads.index');
+    Route::livewire('leads', Index::class)->name('leads.index');
 
     Route::view('opportunities', 'pages.crm.stub', [
         'title' => 'Opportunities',

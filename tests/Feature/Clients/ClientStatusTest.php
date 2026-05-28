@@ -3,9 +3,10 @@
 namespace Tests\Feature\Clients;
 
 use App\Enums\ClientStatus;
+use App\Http\Controllers\ClientController;
+use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\User;
-use App\Services\ClientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -14,29 +15,29 @@ class ClientStatusTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_client_can_be_archived_via_service(): void
+    public function test_client_can_be_archived_via_controller(): void
     {
         $client = Client::factory()->create();
 
-        app(ClientService::class)->archive($client);
+        app(ClientController::class)->archive($client);
 
         $this->assertSame(ClientStatus::Archived, $client->fresh()->status);
     }
 
-    public function test_client_can_be_ignored_via_service(): void
+    public function test_client_can_be_ignored_via_controller(): void
     {
         $client = Client::factory()->create();
 
-        app(ClientService::class)->ignore($client);
+        app(ClientController::class)->ignore($client);
 
         $this->assertSame(ClientStatus::Ignored, $client->fresh()->status);
     }
 
-    public function test_client_can_be_marked_as_contact_intent_via_service(): void
+    public function test_client_can_be_marked_as_contact_intent_via_controller(): void
     {
         $client = Client::factory()->create();
 
-        app(ClientService::class)->markContactIntent($client);
+        app(ClientController::class)->markContactIntent($client);
 
         $this->assertSame(ClientStatus::ContactIntent, $client->fresh()->status);
     }
@@ -50,7 +51,7 @@ class ClientStatusTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->set('statusFilter', ClientStatus::Archived->value)
             ->assertSee('Archived Co')
             ->assertDontSee('Active Co');
@@ -63,7 +64,7 @@ class ClientStatusTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('archiveClient', $client->id);
 
         $this->assertSame(ClientStatus::Archived, $client->fresh()->status);
