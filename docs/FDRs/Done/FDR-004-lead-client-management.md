@@ -35,11 +35,11 @@ flowchart LR
 
 ## Acceptance criteria
 
-- [ ] Single entity represents lead and client per ADR-004.
-- [ ] Table + modal UI per PRD and Design System.
-- [ ] Archive/ignore states persisted and filterable.
-- [ ] Factory/seed for development data.
-- [ ] Pest feature tests for CRUD and validation.
+- [x] Single entity represents lead and client per ADR-004.
+- [x] Table + modal UI per PRD and Design System.
+- [x] Archive/ignore states persisted and filterable.
+- [x] Factory/seed for development data.
+- [x] Pest feature tests for CRUD and validation.
 
 ---
 
