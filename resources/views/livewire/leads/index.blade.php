@@ -84,6 +84,14 @@
                                     >
                                         {{ __('Edit') }}
                                     </flux:menu.item>
+                                    @if ($client->status !== \App\Enums\ClientStatus::Active)
+                                        <flux:menu.item
+                                            wire:click="setActive({{ $client->id }})"
+                                            data-test="leads-active-{{ $client->id }}"
+                                        >
+                                            {{ __('Mark as active') }}
+                                        </flux:menu.item>
+                                    @endif
                                     <flux:menu.item
                                         wire:click="setContactIntent({{ $client->id }})"
                                         data-test="leads-contact-intent-{{ $client->id }}"

@@ -41,8 +41,8 @@
         <flux:input
             wire:model="website"
             name="website"
-            type="url"
             :label="__('Website')"
+            :placeholder="__('example.com')"
             data-test="leads-form-website"
         />
 
@@ -60,8 +60,8 @@
                         <div class="flex-1">
                             <flux:input
                                 wire:model="social_links.{{ $index }}.url"
-                                type="url"
                                 :label="__('URL')"
+                                :placeholder="__('example.com')"
                                 data-test="leads-form-social-url-{{ $index }}"
                             />
                         </div>

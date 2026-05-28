@@ -20,7 +20,7 @@ it('displays the leads page and creates a lead', function () {
         ->click('@leads-form-submit')
         ->assertSee('Browser Test Co');
 
-    expect(Client::query()->where('company_name', 'Browser Test Co')->exists())->toBeTrue();
+    expect(Client::where('company_name', 'Browser Test Co')->exists())->toBeTrue();
 });
 
 it('opens detail modal and archives a lead from the actions menu', function () {

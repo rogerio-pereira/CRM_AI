@@ -6,6 +6,7 @@ use App\Enums\ClientStatus;
 use App\Http\Requests\ClientRequest;
 use App\Models\Client;
 use App\Services\ClientService;
+use App\Support\UrlNormalizer;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -67,9 +68,7 @@ class Index extends Component
             return null;
         }
 
-        return Client::query()
-            ->with('opportunities')
-            ->find($this->detailClientId);
+        return Client::with('opportunities')->find($this->detailClientId);
     }
 
     #[Computed]
@@ -79,7 +78,7 @@ class Index extends Component
             return null;
         }
 
-        return Client::query()->find($this->deleteClientId);
+        return Client::find($this->deleteClientId);
     }
 
     public function openCreateModal(): void
@@ -91,7 +90,7 @@ class Index extends Component
 
     public function openEditModal(int $clientId): void
     {
-        $client = Client::query()->findOrFail($clientId);
+        $client = Client::findOrFail($clientId);
 
         $this->editingClientId = $client->id;
         $this->company_name = $client->company_name;
@@ -139,6 +138,8 @@ class Index extends Component
 
     public function saveClient(ClientService $clientService): void
     {
+        $this->normalizeUrlsBeforeValidation();
+
         $validated = $this->validate(ClientRequest::formRules());
 
         $attributes = $validated;
@@ -149,7 +150,7 @@ class Index extends Component
             $clientService->create($attributes);
             Flux::toast(variant: 'success', text: __('Lead created.'));
         } else {
-            $client = Client::query()->findOrFail($this->editingClientId);
+            $client = Client::findOrFail($this->editingClientId);
             $clientService->update($client, $attributes);
             Flux::toast(variant: 'success', text: __('Lead updated.'));
         }
@@ -161,7 +162,7 @@ class Index extends Component
 
     public function setContactIntent(int $clientId, ClientService $clientService): void
     {
-        $client = Client::query()->findOrFail($clientId);
+        $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::ContactIntent);
         Flux::toast(variant: 'success', text: __('Marked as contact intent.'));
         unset($this->clients);
@@ -169,7 +170,7 @@ class Index extends Component
 
     public function setIgnored(int $clientId, ClientService $clientService): void
     {
-        $client = Client::query()->findOrFail($clientId);
+        $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Ignored);
         Flux::toast(variant: 'success', text: __('Lead ignored.'));
         unset($this->clients);
@@ -177,9 +178,17 @@ class Index extends Component
 
     public function setArchived(int $clientId, ClientService $clientService): void
     {
-        $client = Client::query()->findOrFail($clientId);
+        $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Archived);
         Flux::toast(variant: 'success', text: __('Lead archived.'));
+        unset($this->clients);
+    }
+
+    public function setActive(int $clientId, ClientService $clientService): void
+    {
+        $client = Client::findOrFail($clientId);
+        $clientService->setStatus($client, ClientStatus::Active);
+        Flux::toast(variant: 'success', text: __('Lead marked as active.'));
         unset($this->clients);
     }
 
@@ -189,7 +198,7 @@ class Index extends Component
             return;
         }
 
-        $client = Client::query()->findOrFail($this->deleteClientId);
+        $client = Client::findOrFail($this->deleteClientId);
 
         if (! $clientService->canDelete($client)) {
             $this->addError('delete', __('Cannot delete a lead with open opportunities.'));
@@ -225,6 +234,27 @@ class Index extends Component
             ],
         ];
         $this->resetValidation();
+    }
+
+    private function normalizeUrlsBeforeValidation(): void
+    {
+        $website = UrlNormalizer::normalize($this->website);
+
+        if ($website === null) {
+            $this->website = '';
+        } else {
+            $this->website = $website;
+        }
+
+        foreach ($this->social_links as $index => $link) {
+            $url = UrlNormalizer::normalize($link['url'] ?? null);
+
+            if ($url === null) {
+                $this->social_links[$index]['url'] = '';
+            } else {
+                $this->social_links[$index]['url'] = $url;
+            }
+        }
     }
 
     /**

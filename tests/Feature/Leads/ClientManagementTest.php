@@ -68,9 +68,71 @@ class ClientManagementTest extends TestCase
         Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('company_name', 'Acme Corp')
-            ->set('website', 'not-a-url')
+            ->set('website', 'not a valid url')
             ->call('saveClient')
             ->assertHasErrors(['website']);
+    }
+
+    public function test_website_without_scheme_is_normalized_to_https(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('company_name', 'Acme Corp')
+            ->set('website', 'acme.com')
+            ->call('saveClient')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'Acme Corp',
+            'website' => 'https://acme.com',
+        ]);
+    }
+
+    public function test_social_link_without_scheme_is_normalized_to_https(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('company_name', 'Social Co')
+            ->set('social_links', [
+                [
+                    'platform' => 'LinkedIn',
+                    'url' => 'linkedin.com/company/social-co',
+                ],
+            ])
+            ->call('saveClient')
+            ->assertHasNoErrors();
+
+        $client = Client::where('company_name', 'Social Co')->first();
+
+        $this->assertNotNull($client);
+        $this->assertSame(
+            'https://linkedin.com/company/social-co',
+            $client->social_links[0]['url'] ?? null,
+        );
+    }
+
+    public function test_user_can_mark_client_as_active(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->archived()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('setActive', $client->id);
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $client->id,
+            'status' => ClientStatus::Active->value,
+        ]);
     }
 
     public function test_user_can_update_a_lead(): void

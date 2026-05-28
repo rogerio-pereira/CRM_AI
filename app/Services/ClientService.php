@@ -14,7 +14,7 @@ class ClientService
      */
     public function create(array $attributes): Client
     {
-        return Client::query()->create($attributes);
+        return Client::create($attributes);
     }
 
     /**
@@ -22,8 +22,7 @@ class ClientService
      */
     public function update(Client $client, array $attributes): Client
     {
-        $client->fill($attributes);
-        $client->save();
+        $client->update($attributes);
 
         return $client;
     }
@@ -61,7 +60,7 @@ class ClientService
      */
     public function listForIndex(?string $search, ?string $statusFilter): Collection
     {
-        $query = Client::query()->orderBy('company_name');
+        $query = Client::orderBy('company_name');
 
         if ($search !== null && $search !== '') {
             $query->whereRaw('lower(company_name) like ?', ['%'.strtolower($search).'%']);
