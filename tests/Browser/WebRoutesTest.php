@@ -40,5 +40,7 @@ it('can collapse the sidebar on desktop', function () {
 
     $page->assertNoSmoke()
         ->click('[data-flux-sidebar-collapse]')
-        ->assertPresent('[data-flux-sidebar-collapsed-desktop]');
+        ->assertPresent('[data-flux-sidebar-collapsed-desktop]')
+        ->assertPresent('[data-test="nav-dashboard"]')
+        ->assertPresent('[data-test="nav-leads"]');
 });
