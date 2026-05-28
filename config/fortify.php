@@ -2,11 +2,6 @@
 
 use Laravel\Fortify\Features;
 
-$registrationEnabled = filter_var(
-    env('REGISTRATION_ENABLED', env('APP_ENV') === 'local'),
-    FILTER_VALIDATE_BOOLEAN
-);
-
 return [
 
     /*
@@ -156,18 +151,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Registration
-    |--------------------------------------------------------------------------
-    |
-    | Public registration is disabled in production. Enable locally via
-    | APP_ENV=local or set REGISTRATION_ENABLED=true (see README).
-    |
-    */
-
-    'registration_enabled' => $registrationEnabled,
-
-    /*
-    |--------------------------------------------------------------------------
     | Features
     |--------------------------------------------------------------------------
     |
@@ -175,22 +158,21 @@ return [
     | by removing them from this array. You're free to only remove some of
     | these features, or you can even remove all of these if you need to.
     |
+    | Public registration is disabled; provision users via seeding or admin tools.
+    |
     */
 
-    'features' => array_merge(
-        $registrationEnabled ? [Features::registration()] : [],
-        [
-            Features::resetPasswords(),
-            Features::emailVerification(),
-            Features::twoFactorAuthentication([
-                'confirm' => true,
-                'confirmPassword' => false,
-                // 'window' => 0
-            ]),
-            Features::passkeys([
-                'confirmPassword' => false,
-            ]),
-        ],
-    ),
+    'features' => [
+        Features::resetPasswords(),
+        Features::emailVerification(),
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => false,
+            // 'window' => 0
+        ]),
+        Features::passkeys([
+            'confirmPassword' => false,
+        ]),
+    ],
 
 ];

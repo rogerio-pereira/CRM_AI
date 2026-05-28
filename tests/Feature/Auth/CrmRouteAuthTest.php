@@ -17,10 +17,10 @@ class CrmRouteAuthTest extends TestCase
     public static function protectedCrmRoutesProvider(): array
     {
         return [
-            'dashboard' => [route('dashboard')],
-            'settings profile' => [route('profile.edit')],
-            'settings appearance' => [route('appearance.edit')],
-            'settings security' => [route('security.edit')],
+            'dashboard' => ['/dashboard'],
+            'settings profile' => ['/settings/profile'],
+            'settings appearance' => ['/settings/appearance'],
+            'settings security' => ['/settings/security'],
         ];
     }
 
@@ -35,8 +35,14 @@ class CrmRouteAuthTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user);
+        $session = [];
+        if ($url === '/settings/security') {
+            $session['auth.password_confirmed_at'] = time();
+        }
 
-        $this->get($url)->assertOk();
+        $this->actingAs($user)
+            ->withSession($session)
+            ->get($url)
+            ->assertOk();
     }
 }
