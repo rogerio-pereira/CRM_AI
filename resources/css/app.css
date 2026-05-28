@@ -62,6 +62,26 @@
         @apply font-light text-text-secondary antialiased;
     }
 
+    .dark [data-flux-control] {
+        @apply border-border bg-app-surface text-text-primary shadow-none;
+    }
+
+    .dark [data-flux-control]::placeholder {
+        @apply text-text-muted;
+    }
+
+    .dark [data-flux-label] {
+        @apply text-text-secondary;
+    }
+
+    .dark [data-flux-subheading] {
+        @apply text-text-secondary;
+    }
+
+    .dark [data-flux-link] {
+        @apply text-primary-focus;
+    }
+
     h1,
     h2,
     h3,
@@ -84,4 +104,16 @@ input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-primary-focus ring-offset-2 ring-offset-app;
+}
+
+/*
+ * Flux maps primary buttons to --color-accent; align with CRM primary (indigo)
+ * without changing the informational accent token in @theme above.
+ */
+@layer theme {
+    .dark {
+        --color-accent: #6366F1;
+        --color-accent-content: #6366F1;
+        --color-accent-foreground: #F8FAFC;
+    }
 }

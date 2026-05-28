@@ -3,21 +3,22 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-neutral-100 antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
-        <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+    <body class="min-h-screen bg-app antialiased">
+        <div class="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div class="flex w-full max-w-md flex-col gap-6">
-                <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 font-medium" wire:navigate>
-                    <span class="flex h-9 w-9 items-center justify-center rounded-md">
-                        <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
+                <a
+                    href="{{ route('home') }}"
+                    class="flex flex-col items-center gap-3 font-medium text-text-primary"
+                    wire:navigate
+                >
+                    <span class="flex size-10 items-center justify-center rounded-md bg-primary">
+                        <x-app-logo-icon class="size-6 fill-current text-white" />
                     </span>
-
-                    <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
+                    <flux:heading size="lg" class="!mb-0">{{ config('app.name') }}</flux:heading>
                 </a>
 
-                <div class="flex flex-col gap-6">
-                    <div class="rounded-xl border bg-white dark:bg-stone-950 dark:border-stone-800 text-stone-800 shadow-xs">
-                        <div class="px-10 py-8">{{ $slot }}</div>
-                    </div>
+                <div class="rounded-lg border border-border-subtle bg-app-surface shadow-sm">
+                    <div class="px-8 py-8 md:px-10">{{ $slot }}</div>
                 </div>
             </div>
         </div>
