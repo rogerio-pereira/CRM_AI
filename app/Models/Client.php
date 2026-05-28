@@ -48,4 +48,12 @@ class Client extends Model
     {
         return $this->hasMany(Opportunity::class);
     }
+
+    /**
+     * @return HasMany<FollowUp, $this>
+     */
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(FollowUp::class);
+    }
 }
