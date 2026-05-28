@@ -41,17 +41,19 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Node Dependencies
-        run: npm i
-
-      - name: Update playwright
-        run: npm install playwright@latest && npx playwright install
-
-      - name: Add Flux Credentials Loaded From ENV
-        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: Install dependencies (Node and Composer in parallel)
+        run: |
+          set -e
+          (
+            npm i
+            npm install playwright@latest
+            npx playwright install
+          ) &
+          (
+            composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          ) &
+          wait
 
       - name: Copy Environment File
         run: cp .env.example .env
