@@ -31,6 +31,8 @@ You are running **one iteration** of the Ralph Loop in **PLANNING** mode. Your j
 - If an FDR is fully implemented (all acceptance criteria met), note in the plan that the FDR can be moved to `docs/FDRs/Done/` as a separate task.
 - `docs/FDRs/Closed/` is **not** part of the agent workflow; only humans archive discarded specs there. Agents use **ToDo → Done** only.
 - Single source of truth: FDRs in `docs/FDRs/ToDo/` are the specs; ADRs in `docs/ADRs/` are the decisions.
+- If human ask to plan a wave that contains multiple features, each feature should have it's own implementation plan. DO NOT merge everything in one implementation phase. This is important because when running in build mode each feature should have it's own branch
+- If human ask to plan a wave, include `_wave_x` in file name, eg: `docs/FDRs/IMPLEMENTATION_PLAN_wave_3.md`
 
 ## Output
 
