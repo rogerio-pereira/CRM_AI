@@ -119,6 +119,10 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
   - Add relationships with clear method names (`user`, `discountCoupons`, etc.).
   - Use `$casts` for booleans, dates, enums, JSON, etc.
 - Keep heavy business rules in services, not in the model.
+- **Eloquent calls:** do not wrap simple operations in `Model::query()`. Use direct static or instance methods (see `.cursor/rules/laravel-eloquent-models.mdc`):
+  - Prefer `User::create(...)`, `User::firstOrCreate(...)`, `$model->update(...)`, `$model->delete()`.
+  - Avoid `User::query()->create(...)` and similar when no query chain is needed.
+  - Use `where()` / query builder only for scoped or bulk operations.
 
 ### Factories
 

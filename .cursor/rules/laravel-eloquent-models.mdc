@@ -1,0 +1,46 @@
+---
+description: Eloquent model usage — prefer direct static/instance methods over unnecessary ::query().
+globs: app/**/*.php,database/**/*.php,tests/**/*.php
+alwaysApply: false
+---
+
+# Eloquent models — direct methods
+
+Do **not** wrap simple Eloquent operations in `Model::query()` when the static or instance API is enough.
+
+## Prefer
+
+```php
+User::create($attributes);
+User::firstOrCreate($match, $values);
+User::updateOrCreate($match, $values);
+
+$model->update($attributes);
+$model->delete();
+```
+
+## Avoid (unnecessary)
+
+```php
+User::query()->create($attributes);
+User::query()->firstOrCreate($match, $values);
+User::query()->updateOrCreate($match, $values);
+```
+
+## When `::query()` is still appropriate
+
+Use the query builder when you need to **scope or filter** before the operation:
+
+```php
+User::query()->where('active', true)->orderBy('name')->get();
+User::where('status', 'pending')->update(['status' => 'archived']);
+User::where('expired_at', '<', now())->delete();
+```
+
+For these cases, `Model::where(...)` and `Model::query()->where(...)` are equivalent; pick whichever reads better in context.
+
+## Summary
+
+- **Create / firstOrCreate / updateOrCreate:** call directly on the model class.
+- **Update / delete on a loaded record:** call on the instance (`$model->update()`, `$model->delete()`).
+- **Bulk or conditional operations:** use `where()` chains; `::query()` is optional, not required.
