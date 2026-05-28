@@ -6,10 +6,10 @@ You are running **one iteration** of the Ralph Loop in **BUILDING** mode. Do **e
 
 1. Study the project context from `.cursor/AGENTS.md` (stack, standards, commands).
 2. Study `docs/FDRs/ToDo/` (feature specs) and `docs/ADRs/` (decisions). Use `.cursor/rules/starting-environment.mdc` for environment and test commands.
-3. Read `docs/FDRs/IMPLEMENTATION_PLAN.md` and choose the **single most important** task that is not yet done.
+3. Read `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md` and choose the **single most important** task that is not yet done.
 4. Before implementing: search the codebase to confirm the current state. Do **not** assume something is not implemented — verify first.
 5. Before implementing: sync the default branch first (e.g. `git checkout main && git fetch && git pull`).
-6. Before implementing: use **one branch per feature** (not per task). If the feature branch already exists in `docs/FDRs/IMPLEMENTATION_PLAN.md`, switch to it. If not, create it from updated `main` (e.g. `feat/<feature-name>`), switch to it, and register it in the plan before coding.
+6. Before implementing: use **one branch per feature** (not per task). If the feature branch already exists in `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md`, switch to it. If not, create it from updated `main` (e.g. `feat/<feature-name>`), switch to it, and register it in the plan before coding.
 
 ## Phase 1 — Implement
 
@@ -46,7 +46,7 @@ Run Pint:
 
 ## Phase 2 — Update plan and repo
 
-1. Update `docs/FDRs/IMPLEMENTATION_PLAN.md`: mark the task you did as done (e.g. strikethrough or "- [x]"), keep the feature→branch mapping updated, and add any discoveries or follow-up tasks.
+1. Update `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md`: mark the task you did as done (e.g. strikethrough or "- [x]"), keep the feature→branch mapping updated, and add any discoveries or follow-up tasks.
 2. If an entire FDR is now complete (all acceptance criteria met), **move** that FDR file from `docs/FDRs/ToDo/` to `docs/FDRs/Done/` (e.g. move `FDR-001-platform-foundation.md` to `docs/FDRs/Done/`). Do **not** move specs to `docs/FDRs/Closed/`; that folder is for human-archived discarded work only.
 3. If you learned something operational (how to run/build/test), update `.cursor/AGENTS.md` briefly.
 
@@ -54,8 +54,8 @@ Run Pint:
 
 Follow `.cursor/rules/commits-small-incremental.mdc`:
 
-1. **Implementation:** Commit all application code and test changes in one or more **small, conventional** commits (`feat`, `fix`, `test`, `chore`, etc.). Do **not** include `docs/FDRs/IMPLEMENTATION_PLAN.md`, FDR moves, or `.cursor/AGENTS.md` updates in these commits when you can avoid it.
-2. **Docs / plan:** After implementation commits, create a **separate** `docs(...)` commit for updates to `docs/FDRs/IMPLEMENTATION_PLAN.md`, any FDR file move (ToDo → Done), and `.cursor/AGENTS.md` if touched. Example: `docs(ralph): mark task done and move FDR to Done`.
+1. **Implementation:** Commit all application code and test changes in one or more **small, conventional** commits (`feat`, `fix`, `test`, `chore`, etc.). Do **not** include `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md`, FDR moves, or `.cursor/AGENTS.md` updates in these commits when you can avoid it.
+2. **Docs / plan:** After implementation commits, create a **separate** `docs(...)` commit for updates to `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md`, any FDR file move (ToDo → Done), and `.cursor/AGENTS.md` if touched. Example: `docs(ralph): mark task done and move FDR to Done`.
 
 3. Keep working on the feature branch from Phase 0. Do not create a new branch for another task of the same feature. Do not commit directly on `main`.
 
@@ -66,7 +66,7 @@ Follow `.cursor/rules/commits-small-incremental.mdc`:
 - One task per run. Do not start the next task in the same conversation.
 - Do not assume "not implemented" — always search/read the code first.
 - Resolve test failures before committing. No placeholder or stub-only implementations.
-- Keep `docs/FDRs/IMPLEMENTATION_PLAN.md` up to date so the next run knows what is left.
+- Keep `docs/FDRs/IMPLEMENTATION_PLAN<_wave_X>.md` up to date so the next run knows what is left.
 - If you find spec inconsistencies or bugs unrelated to this task, add them to the plan or document in the plan; do not expand scope beyond the one chosen task.
 - Do not consider the Building run finished until Phase 2 is fully executed: FDR moved to Done (when applicable), commits done (implementation then docs), feature branch pushed, PR created (or clearly documented when MCP is unavailable), `main` checked out, and the local feature branch deleted.
 
