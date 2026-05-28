@@ -9,11 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('leads', 'pages::leads.index')->name('leads.index');
 
-    Route::view('opportunities', 'pages.crm.stub', [
-        'title' => 'Opportunities',
-        'heading' => 'Opportunities',
-        'message' => 'Kanban pipeline view arrives in wave 2 (FDR-005).',
-    ])->name('opportunities.index');
+    Route::livewire('opportunities', 'pages::opportunities.index')->name('opportunities.index');
 
     Route::view('follow-ups', 'pages.crm.stub', [
         'title' => 'Follow-ups',
