@@ -21,7 +21,7 @@ function crmSidebarRoutes(): array
         'opportunities' => [
             'nav' => 'nav-opportunities',
             'path' => '/opportunities',
-            'marker' => 'crm-stub-page',
+            'marker' => 'opportunities-page',
         ],
         'follow-ups' => [
             'nav' => 'nav-follow-ups',
@@ -126,8 +126,7 @@ it('opens the sidebar and navigates on mobile', function () {
         ->click('@mobile-menu-toggle')
         ->click('@nav-opportunities')
         ->assertPathIs('/opportunities')
-        ->assertPresent('[data-test="crm-stub-page"]')
-        ->assertSee('Kanban pipeline view arrives in wave 2');
+        ->assertPresent('[data-test="opportunities-page"]');
 });
 
 it('navigates between profile and security settings', function () {
