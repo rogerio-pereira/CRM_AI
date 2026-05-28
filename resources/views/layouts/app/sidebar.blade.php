@@ -3,38 +3,82 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen bg-app">
+        <flux:sidebar
+            sticky
+            collapsible
+            class="border-e border-border-subtle bg-app-sidebar !w-60 data-flux-sidebar-collapsed-desktop:!w-[4.5rem]"
+        >
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                <flux:sidebar.group :heading="__('CRM')" class="grid">
+                    <flux:sidebar.item
+                        icon="home"
+                        :href="route('dashboard')"
+                        :current="request()->routeIs('dashboard')"
+                        wire:navigate
+                        data-test="nav-dashboard"
+                    >
                         {{ __('Dashboard') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="users"
+                        :href="route('leads.index')"
+                        :current="request()->routeIs('leads.*')"
+                        wire:navigate
+                        data-test="nav-leads"
+                    >
+                        {{ __('Leads / Clients') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="view-columns"
+                        :href="route('opportunities.index')"
+                        :current="request()->routeIs('opportunities.*')"
+                        wire:navigate
+                        data-test="nav-opportunities"
+                    >
+                        {{ __('Opportunities') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="calendar-days"
+                        :href="route('follow-ups.index')"
+                        :current="request()->routeIs('follow-ups.*')"
+                        wire:navigate
+                        data-test="nav-follow-ups"
+                    >
+                        {{ __('Follow-ups') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="clipboard-document-list"
+                        :href="route('tasks.index')"
+                        :current="request()->routeIs('tasks.*')"
+                        wire:navigate
+                        data-test="nav-tasks"
+                    >
+                        {{ __('Tasks') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item
+                        icon="cog-6-tooth"
+                        :href="route('profile.edit')"
+                        :current="request()->routeIs('profile.edit', 'security.edit')"
+                        wire:navigate
+                        data-test="nav-settings"
+                    >
+                        {{ __('Settings') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
             <flux:spacer />
 
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>
 
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
+        <flux:header class="border-b border-border-subtle bg-app-sidebar lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
@@ -88,7 +132,11 @@
             </flux:dropdown>
         </flux:header>
 
-        {{ $slot }}
+        <div class="flex min-h-screen flex-col bg-app lg:ms-60 lg:data-flux-sidebar-collapsed-desktop:ms-[4.5rem]">
+            @include('layouts.app.header-bar', ['title' => $title ?? null])
+
+            {{ $slot }}
+        </div>
 
         @persist('toast')
             <flux:toast.group>

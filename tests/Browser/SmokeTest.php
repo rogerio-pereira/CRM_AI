@@ -28,10 +28,11 @@ it('runs smoke checks for authenticated web routes without JavaScript errors', f
 
     $pages = visit([
         '/dashboard',
-        '/settings',
-        '/settings',
+        '/leads',
+        '/opportunities',
+        '/follow-ups',
+        '/tasks',
         '/settings/profile',
-        '/settings/appearance',
         '/settings/security',
     ]);
 
