@@ -2,8 +2,13 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Livewire\Settings\DeleteUserModal;
+use App\Livewire\Settings\Profile;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Laravel\Fortify\Features;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -24,7 +29,7 @@ class ProfileUpdateTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.profile')
+        $response = Livewire::test(Profile::class)
             ->set('name', 'Test User')
             ->set('email', 'test@example.com')
             ->call('updateProfileInformation');
@@ -44,7 +49,7 @@ class ProfileUpdateTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.profile')
+        $response = Livewire::test(Profile::class)
             ->set('name', 'Test User')
             ->set('email', $user->email)
             ->call('updateProfileInformation');
@@ -60,7 +65,7 @@ class ProfileUpdateTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.delete-user-modal')
+        $response = Livewire::test(DeleteUserModal::class)
             ->set('password', 'password')
             ->call('deleteUser');
 
@@ -78,12 +83,41 @@ class ProfileUpdateTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = Livewire::test('pages::settings.delete-user-modal')
+        $response = Livewire::test(DeleteUserModal::class)
             ->set('password', 'wrong-password')
             ->call('deleteUser');
 
         $response->assertHasErrors(['password']);
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_verification_notification_can_be_resent(): void
+    {
+        $this->skipUnlessFortifyHas(Features::emailVerification());
+
+        Notification::fake();
+
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Profile::class)
+            ->call('resendVerificationNotification');
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_resend_verification_redirects_verified_user(): void
+    {
+        $this->skipUnlessFortifyHas(Features::emailVerification());
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Profile::class)
+            ->call('resendVerificationNotification')
+            ->assertRedirect(route('dashboard', absolute: false));
     }
 }
