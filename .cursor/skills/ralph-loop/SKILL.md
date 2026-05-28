@@ -5,14 +5,14 @@ description: Run the Ralph Loop (Planning or Building) using docs/FDRs/ToDo and 
 
 # Ralph Loop
 
-Use this skill when the user wants to run **Planning** or **Building** for the Ralph workflow, or when they refer to "Ralph", "Ralph Loop", or "one task from the plan". For **hands-off continuous execution** (no monitoring between tasks), use the **Claude CLI** with the project's `loop.sh` script instead of interactive chat; see `.cursor/ralph/README.md`.
+Use this skill when the user wants to run **Planning** or **Building** for the Ralph workflow, or when they refer to "Ralph", "Ralph Loop", or "one task from the plan". For **hands-off continuous execution** (no monitoring between tasks), run `.cursor/ralph/loop.sh` (Claude or Cursor CLI) instead of interactive chat; see `.cursor/ralph/README.md`.
 
 ## What the Ralph Loop is here
 
 - **Planning:** Analyze the gap between FDRs in `docs/FDRs/ToDo/` and the codebase; output is an updated `docs/FDRs/IMPLEMENTATION_PLAN.md` only (no code changes, no commits).
 - **Building:** Pick the single most important task from `docs/FDRs/IMPLEMENTATION_PLAN.md`, implement it, run tests and Pint, update the plan, move the FDR to `docs/FDRs/Done/` if the whole feature is done, then commit per `.cursor/rules/commits-small-incremental.mdc`. One task per agent run.
 - **Branching:** Use **one branch per feature** (reuse across tasks of that feature), not one branch per task.
-- **PR flow:** After a feature is marked complete, push the feature branch and open a pull request to `main` after local checks pass (GitHub MCP when available).
+- **PR flow:** After a feature is marked complete, push the feature branch and open a pull request to the default branch after local checks pass (GitHub MCP).
 
 ## How to run
 
@@ -30,7 +30,7 @@ Use this skill when the user wants to run **Planning** or **Building** for the R
 
 3. **Finalize feature (when complete)**
    - Ensure the branch is pushed to the remote.
-   - Open a PR targeting `main` using the **GitHub MCP server** (MCP tools), not the `gh` CLI. Use a concise summary and test plan.
+   - Open a PR targeting the project's default branch (usually `main`) via **GitHub MCP**. Use a concise summary and test plan.
    - After push + PR, checkout `main` and delete the local feature branch.
    - Confirm lint and test checks passed before merge.
 

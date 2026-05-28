@@ -5,11 +5,11 @@ You are running **one iteration** of the Ralph Loop in **BUILDING** mode. Do **e
 ## Phase 0 — Orient
 
 1. Study the project context from `.cursor/AGENTS.md` (stack, standards, commands).
-2. Study `docs/FDRs/ToDo/` (feature specs) and `docs/ADRs/` (decisions). Use the rule in `.cursor/rules/starting-environment.mdc` for Sail and test commands.
+2. Study `docs/FDRs/ToDo/` (feature specs) and `docs/ADRs/` (decisions). Use `.cursor/rules/starting-environment.mdc` for environment and test commands.
 3. Read `docs/FDRs/IMPLEMENTATION_PLAN.md` and choose the **single most important** task that is not yet done.
 4. Before implementing: search the codebase to confirm the current state. Do **not** assume something is not implemented — verify first.
-5. Before implementing: sync `main` first (`git checkout main && git fetch && git pull`).
-6. Before implementing: use **one branch per feature** (not per task). If the feature branch already exists in `docs/FDRs/IMPLEMENTATION_PLAN.md`, switch to it. If not, create it from updated `main` (for example `feat/<feature-name>`), switch to it, and register it in the plan before coding.
+5. Before implementing: sync the default branch first (e.g. `git checkout main && git fetch && git pull`).
+6. Before implementing: use **one branch per feature** (not per task). If the feature branch already exists in `docs/FDRs/IMPLEMENTATION_PLAN.md`, switch to it. If not, create it from updated `main` (e.g. `feat/<feature-name>`), switch to it, and register it in the plan before coding.
 
 ## Phase 1 — Implement
 

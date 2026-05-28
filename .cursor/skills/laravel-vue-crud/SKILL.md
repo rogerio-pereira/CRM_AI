@@ -2,17 +2,17 @@
 name: laravel-vue-crud
 description: >
   Guides the creation and maintenance of full Laravel + Vue (Inertia + Vuetify)
-  CRUDs in this project. Use this skill when implementing or updating
+  CRUDs in Laravel projects using this workflow. Use when implementing or updating
   CRUD-style resources, ensuring consistent backend workflow (migration, model,
   factory, seed, routes, controller, form requests, tests) and frontend
   workflow (Vue 3 + Vuetify 3 pages, shared snackbar, delete dialog, menu
   integration) with complete automated test coverage (Pest Browser for E2E; no Dusk).
 ---
 
-# Laravel + Vue CRUD Workflow (GoViral)
+# Laravel + Vue CRUD Workflow
 
 This skill defines the standard end-to-end process for building CRUD features
-in this project, from database to frontend and tests.
+in the repository, from database to frontend and tests.
 
 Always keep code in **English**, follow PSRs, and respect the existing
 branding and frontend standards (see `frontend-vue-vuetify` skill).
@@ -184,7 +184,7 @@ provided by Pest/Laravel.
 - Follow:
   - Vue 3 (Composition API preferred).
   - Vuetify 3 only (for all UI elements).
-  - GoViral branding (dark mode, neon accents, typography, microcopy).
+  - Project branding (dark mode, colors, typography, microcopy per Branding Manual).
   - No native `alert`/`confirm`/`prompt` (use snackbar/dialog, etc.).
   - Pest Browser tests for all frontend flows.
 

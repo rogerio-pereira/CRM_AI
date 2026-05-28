@@ -1,16 +1,15 @@
 ---
 name: frontend-livewire-flux
 description: >
-  Guides all frontend development in the project using Laravel Livewire and Flux
-  UI aligned with the Design System and Branding Manual. Use this skill whenever
-  creating, changing or reviewing screens, Livewire components, Blade layouts,
-  navigation, or UI tests, ensuring Flux components, dark CRM theme, Pest Browser
-  tests only (no Laravel Dusk), and stable E2E selectors.
+  Guides frontend development using Laravel Livewire and Flux UI aligned with the
+  project's Design System and Branding Manual. Use when creating or reviewing
+  screens, Livewire components, Blade layouts, navigation, or UI tests—Flux
+  components, project theme, Pest Browser only (no Laravel Dusk), stable E2E selectors.
 ---
 
-# Frontend Livewire + Flux (Internal CRM)
+# Frontend Livewire + Flux
 
-This skill defines how to build and maintain UI in this project.
+This skill defines how to build and maintain UI when the project uses **Livewire + Flux**.
 
 ---
 
@@ -32,15 +31,15 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 1. **Stack**
    - **Livewire** for interactive UI and form handling.
    - **Flux** (`flux:*` components) for buttons, inputs, tables, modals, toasts, navigation.
-   - **Tailwind CSS** tokens per `docs/04 - Design System.md` (do not invent colors or spacing).
+   - **Tailwind CSS** tokens per the project's Design System (do not invent colors or spacing).
 
 2. **Design System**
-   - Read `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` before building screens.
-   - Dark mode only; soft dark theme; CRM-first layouts (pipeline, leads, tasks).
-   - AI insights as labeled support, not the central UI.
+   - Read the project's Design System and Branding docs before building screens (e.g. `docs/04 - Design System.md`, `docs/03 - Branding Manual.md` — adapt paths).
+   - Follow the project's theme (e.g. dark-only, density, layout patterns for lists, boards, dashboards).
+   - Secondary insights (e.g. AI labels) should support the main task UI, not replace it.
 
 3. **Routing**
-   - Prefer `Route::livewire('path', 'pages::name')` for full pages (see `routes/settings.php`).
+   - Prefer `Route::livewire('path', 'pages::name')` for full pages (see existing routes such as `routes/settings.php` when present).
    - Use Livewire layouts under `resources/views/layouts/`.
 
 4. **Feedback**
@@ -85,7 +84,7 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 ## Quick checklist
 
 - [ ] Livewire + Flux (no raw HTML where a Flux component exists)?
-- [ ] Matches Design System (dark, CRM density, tokens)?
+- [ ] Matches Design System (theme, density, tokens)?
 - [ ] Toasts/modals via Flux (no native dialogs)?
 - [ ] `data-test` on elements used in tests?
 - [ ] Pest Browser / Feature tests updated?

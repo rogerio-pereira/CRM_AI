@@ -14,7 +14,7 @@ alwaysApply: true
   - Separate, whenever possible:
     - **DB / migrations** (schema).
     - **Models / services / controllers** (backend).
-    - **Frontend / Livewire / Flux** (UI and behavior).
+    - **Frontend** (UI and behavior—Livewire/Flux, Vue/Vuetify, or project stack).
     - **Tests** (Feature, Browser, unit).
     - **Docs / FDR / IMPLEMENTATION_PLAN**.
   - Each commit must **build and pass ALL relevant tests and linter** (see `.cursor/rules/starting-environment.mdc`).

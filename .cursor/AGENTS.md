@@ -1,60 +1,88 @@
 ---
-description: Project initialization guide for Cursor/Codex
+description: Default agent orientation for repositories using this .cursor setup
 ---
 
-# Project Initialization
+# Agent guide
 
-## Overview
+Reusable defaults for agents working in any repository that includes this `.cursor` folder. **Product scope, domain rules, and feature specs** live under `docs/`—read them before implementing.
 
-Internal AI-assisted CRM for freelance lead generation, opportunity management, sales pipeline tracking, and AI-assisted prospecting automation.
+Workflow details (Ralph loop, FDR lifecycle, commits, skills): `.cursor/rules/` and `.cursor/skills/`.
 
-The platform is for **internal operational use** and prioritizes simplicity, automation, and AI-assisted workflows over traditional enterprise CRM complexity.
+---
 
-Primary goals:
+## Documentation layout
 
-- Unified lead/client management
-- Opportunity and Kanban pipeline tracking
-- Follow-ups and tasks
-- AI-assisted prospecting, qualification, and proposals
-- Operational dashboard and integrations (Slack, Google Calendar)
+| Topic | Path |
+|-------|------|
+| Product requirements | `docs/01 PRD.md` |
+| High-level design | `docs/02 HLD.md` |
+| Branding | `docs/03 - Branding Manual.md` |
+| Design system | `docs/04 - Design System.md` |
+| Feature list and dependencies | `docs/05 - Feature List.md` |
+| Architecture decisions | `docs/ADRs/` |
+| Feature specs (todo / done) | `docs/FDRs/ToDo/`, `docs/FDRs/Done/` |
+| Implementation plan (Ralph) | `docs/FDRs/IMPLEMENTATION_PLAN.md` |
 
-Sources of truth: `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/05 - Feature List.md`, `docs/ADRs/`, `docs/FDRs/`.
+Do not invent requirements that contradict these documents.
 
-## Stack
+---
 
-- PHP 8.5
-- Laravel 13
-- Laravel Livewire (+ Flux UI components per starter kit)
-- Pest PHP tests with 90% minimum coverage
-- Laravel Pint for linting
-- Docker via Laravel Sail
-- PostgreSQL, Redis, Laravel Horizon
+## Stack (team default)
 
-## Standards
+Typical stack across repositories using this setup:
 
-- All code must be in English.
-- Follow PSR standards (one statement per line).
-- Do **not** use ternary operators (`condition ? a : b`) in PHP; use explicit `if` / `else` or early returns.
-- For fluent chains, put one method call per line and keep indentation consistent.
-- For assigned fluent chains, use a deeper continuation indent for `->` lines.
-- For standalone fluent chains, use a single continuation indent level for `->` lines.
-- In tests, chained expectations are allowed when each method call is on its own line.
-- Follow Clean Code and treat this motto as non‑negotiable:
-    > Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
+- PHP 8.5+
+- Laravel 13+
+- Livewire + Flux UI (or Vue + Inertia + Vuetify) — use the matching skill under `.cursor/skills/`
+- Pest PHP (including Browser tests; coverage thresholds in `phpunit.xml`)
+- Laravel Pint
+- Laravel Sail (Docker)
+- PostgreSQL, Redis, Laravel Horizon (when async work is in scope)
+
+---
+
+## Coding standards
+
+### PHP
+
+- All code in **English**.
+- PSR style: one statement per line.
+- No ternary operators in PHP (`condition ? a : b`); use `if` / `else` or early returns.
+- Fluent chains: one method call per line; consistent indentation (extra indent for `->` or `.` after assignment).
+- For standalone fluent chains, use a single continuation indent level for `->` or `.` lines.
+- Thin controllers; business logic in services; Form Requests for validation; service interfaces when useful.
+- Every Eloquent model has a factory in `database/factories`.
 - Prefer readable code over cleverness.
 - Keep controllers thin and move business logic to services.
 - Prefer Form Requests for validation.
 - Use interfaces for services when appropriate.
 - Every Eloquent model must have an equivalent factory in `database/factories`.
 - UI: **Livewire** for interactive pages and **Flux** (`flux:*`) for components; follow `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` (dark mode, Tailwind tokens, CRM-first layouts).
-- All pages must have dedicated browser tests and be included in smoke route checks (`tests/Browser/WebRoutesTest.php`).
-- All pages must also have translation coverage tests (if applicable), preferably via Feature tests asserting language.
-- Critical user journeys must include at least one end-to-end browser test covering validation, successful submit, and expected persistence/redirect outcomes.
-- For browser automation reliability, interactive UI elements used in E2E tests should expose stable selectors: prefer **`data-test="..."`** (Pest Browser resolves `@name` to `[data-test="name"]`) and/or explicit form `name` attributes.
-- Browser automation in this project uses **Pest Browser** only. **Do not** add or use Laravel Dusk (`dusk` attributes, Dusk tests, or Dusk-only flows).
-- Natural-language instructions to the agent may be Portuguese or English; **all code** must be in English.
+- **ALWAYS** Follow Clean Code and treat this motto as non‑negotiable:
+    > Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
 
-## Environment and Commands
+### UI
+
+- Follow `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` (theme, tokens, layout patterns).
+- Feedback via toasts (check stack).
+
+### Tests
+
+- **Pest Browser** for E2E; **do not** use Laravel Dusk.
+- Stable selectors: `data-test="..."` (Pest maps `@name` to `[data-test="name"]`) and/or form `name` attributes.
+- Each new screen: dedicated browser tests; add routes to smoke coverage (e.g. `tests/Browser/WebRoutesTest.php`).
+- Translation tests when the app is localized.
+- At least one E2E or Feature test per critical journey—for example: create a record → validate → submit → assert persistence or redirect (e.g. lead → opportunity → pipeline stage).
+
+### Readability
+
+> Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
+
+Prefer clear code over clever shortcuts.
+
+---
+
+## Environment and commands
 
 All commands must run inside Sail. Use the rule in `.cursor/rules/starting-environment.mdc` as the source of truth for setup and test commands.
 
@@ -67,34 +95,37 @@ Key commands:
 ./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
 ```
 
-## Queue Worker
+Before the full suite (including browser tests): `./vendor/bin/sail npm run build` once, or keep `./vendor/bin/sail npm run dev` running.
 
-The project uses **Redis** as the queue driver (`QUEUE_CONNECTION=redis`). Redis runs as a Sail service (`redis` in `compose.yaml`).
+---
 
-### Running the worker (development / Sail)
+## Queues and background jobs
 
-```
+Default: **Redis** queue driver (`QUEUE_CONNECTION=redis`), Redis as a Sail service when defined in `compose.yaml`.
+
+**Development (Sail):**
+
+```bash
 ./vendor/bin/sail artisan queue:work redis --queue=default
 ```
 
-### Running the worker (production)
+**Production:** Use a process manager (supervisor, systemd, or Laravel Cloud) to keep the worker alive. Example flags (tune per job type and ADRs):
 
-Use a process manager (supervisor, systemd, or Laravel Cloud) to keep the worker alive:
-
-```
+```bash
 php artisan queue:work redis --queue=default --tries=3 --timeout=120 --sleep=3
 ```
 
-Key flags:
-- `--tries=12` — max 12 attempts per job 
-- `--backoff=300` — 5-minute delay between retries
-- `--timeout=300` — kill a job after 300 s (LLM + email ceiling)
-- `--sleep=3` — poll interval when queue is empty
+Preferred tuning reference (adjust per workload):
 
-The `retry_after` in `config/queue.php` (Redis connection) is set to **600 s** so Redis does not re-queue a job that is still running within the 300 s timeout window.
-Tune `tries`, `timeout`, and `backoff` per job type and ADRs.
+| Flag / setting | Example | Purpose |
+|----------------|---------|---------|
+| `--tries` | `3` | Max attempts per job |
+| `--backoff` | `300` | Seconds between retries |
+| `--timeout` | `120` | Kill job after N seconds (e.g. long external API calls) |
+| `--sleep` | `3` | Poll interval when queue is empty |
+| `retry_after` in `config/queue.php` | `600` | Avoid re-queueing a job still running within the timeout window |
 
-### Laravel Horizon (Redis queue dashboard)
+### Horizon (when installed)
 
 The project uses **Laravel Horizon** for Redis queue workers and a dashboard. Horizon is started by Supervisor inside the Sail container (see `docker/8.5/supervisord.conf`).
 
@@ -103,10 +134,19 @@ The project uses **Laravel Horizon** for Redis queue workers and a dashboard. Ho
 - **Terminate (deploy):** `./vendor/bin/sail artisan horizon:terminate` so the process manager restarts Horizon with new code.
 - **Config:** `config/horizon.php` (environments, tries, timeout, backoff). Tune per job type and ADRs.
 
+---
+
 ## Pull requests
 
+When a feature branch is complete and pushed:
+
 When a feature is complete and the branch is pushed, **create the PR using the GitHub MCP server** (MCP tools), not the `gh` CLI. If MCP is unavailable, push the branch and tell the user to open the PR manually (branch name + repo URL).
+
+Target the repository’s default branch (usually `main`).
+
+---
 
 ## Notes
 
 - Use `docs/` for product, architecture, feature and setup specifications.
+- Update this guide only when **team-wide** defaults change (stack versions, coverage gates, queue conventions, PR workflow).

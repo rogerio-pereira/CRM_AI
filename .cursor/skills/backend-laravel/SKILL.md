@@ -1,7 +1,7 @@
 ---
 name: backend-laravel
 description: >
-  Guides all backend development in this Laravel project. Use this skill when
+  Guides backend development in Laravel projects using this workflow. Use when
   creating or updating backend features, including routes, controllers,
   services, models, database structure, validation, queues, and tests, ensuring
   consistency with project architecture, coding standards, and testing
@@ -87,14 +87,14 @@ All backend code must be in **English** and follow PSRs.
 
 - Always use **Form Request classes** for non-trivial validation:
   - Store them in `app/Http/Requests`.
-  - Use meaningful names (e.g. `StoreLeadRequest`, `UpdateLeadRequest`).
+  - Use meaningful names (e.g. `StoreResourceRequest`, `UpdateResourceRequest`).
 - In Form Requests:
   - Implement `rules()` to fully describe expected input.
   - Implement `messages()` for custom messages when helpful.
   - Implement `authorize()` to restrict access, or explicitly return `true`
     when handled elsewhere.
 - Controllers should type-hint Form Requests:
-  - Example: `public function store(StoreLeadRequest $request)`.
+  - Example: `public function store(StoreResourceRequest $request)`.
 
 ---
 
@@ -148,7 +148,7 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
 
 - Store services under `app/Services` (or a similar organized namespace).
 - Each service should:
-  - Encapsulate a clear unit of behavior (e.g. qualifying a lead, moving an opportunity stage, computing dashboard metrics).
+  - Encapsulate a clear unit of behavior (e.g. processing a record, transitioning workflow state, computing dashboard metrics).
   - Be dependency-injection friendly (inject repositories/clients instead of
     using facades everywhere).
 - When appropriate, define an interface and bind it in a service provider.

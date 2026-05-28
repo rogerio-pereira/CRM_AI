@@ -17,12 +17,12 @@ Use this skill when the user wants to **define and document a new feature** with
 
 ## Phase 1 — Orient
 
-1. Read project documentation to understand the product and architecture:
-   - `docs/01 PRD.md`
-   - `docs/02 HLD.md`
-   - `docs/05 - Feature List.md`
-   - `docs/03 - Branding Manual.md`
-   - `docs/04 - Design System.md`
+1. Read project documentation to understand the product and architecture (adapt paths to this repo; typical layout):
+   - Product: `docs/01 PRD.md` or `docs/01 - PRD.md`
+   - Architecture: `docs/02 HLD.md`
+   - Feature list: `docs/05 - Feature List.md`
+   - Branding: `docs/03 - Branding Manual.md`
+   - Design System: `docs/04 - Design System.md`
 2. Read all ADRs in `docs/ADRs/` (naming, status, context/decision/consequences pattern).
 3. Read existing FDRs in `docs/FDRs/ToDo/` and a few in `docs/FDRs/Done/` to learn the FDR format (How it works, How to test, Acceptance criteria, Deployment notes).
 4. Skim `docs/FDRs/IMPLEMENTATION_PLAN.md` and `.cursor/ralph/PROMPT_plan.md` to understand the Ralph Planning flow.

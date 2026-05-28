@@ -1,14 +1,16 @@
 ---
 name: frontend-vue-vuetify
 description: >
-  Guides all frontend development in the project using Vue 3 and Vuetify 3
-  aligned with the branding manual. Use this skill whenever creating, changing
-  or reviewing screens, Vue components, layouts, frontend navigation or UI
-  tests, ensuring exclusive use of Vuetify components, respect for GoViral’s
-  dark neon theme, Pest Browser tests only (no Laravel Dusk), and stable E2E selectors.
+  Guides frontend development using Vue 3 and Vuetify 3 aligned with the project's
+  branding manual. Use when creating or reviewing screens, Vue components, layouts,
+  navigation or UI tests—Vuetify only, project theme, Pest Browser only (no Dusk), stable E2E selectors.
 ---
 
-# Frontend Vue 3 + Vuetify 3 (GoViral)
+# Frontend Vue 3 + Vuetify 3
+
+Use this skill when the project uses **Vue 3 + Vuetify 3** (often with Inertia).
+
+---
 
 ## When to use this skill
 
@@ -30,32 +32,24 @@ If the task touches UI/UX, Vue, Vuetify or navigation, follow these instructions
    - Always use **Vuetify 3** for ALL UI elements.
 
 2. **Branding**
-   - Follow the manual in `docs/03 - Branding Manual.md`.
-   - Base UI in **dark mode** with:
-     - Main background: `#121212`.
-     - Neon accents using:
-       - **Primary Pink**: `#FE2C55`
-       - **Primary Teal**: `#25F4EE`
-   - Visual style:
+   - Follow the manual in the project's Branding doc (e.g. `docs/03 - Branding Manual.md`).
+   - Apply the project's palette and theme. **Example palette (replace with your brand):**
+     - Main background: `#121212`
+     - Accents: Primary Pink `#FE2C55`, Primary Teal `#25F4EE`
+   - Visual style (adapt to brand):
      - **High contrast** layouts.
      - **Smooth hover transitions**.
-     - **Subtle glow** on interactive elements (buttons, CTAs).
-     - Modern micro-interactions with minimal clutter.
-   - Typography:
-     - Headline: **Space Grotesk**.
-     - Body: **Inter**.
-     - Strong CTAs may use UPPERCASE, but sparingly.
+     - **Subtle glow** on interactive elements when on-brand.
+   - Typography **example:** Headline Space Grotesk, Body Inter — use whatever the Branding Manual specifies.
 
 3. **Voice & microcopy**
-   - Modern, tech-forward, friendly, energetic.
-   - Avoid “guru” language or exaggerated promises.
-   - Prefer the suggested microcopy:
-     - Instead of "Submit": **"Start My Growth"**.
-     - Instead of "Generate Report": **"Generate My Growth Blueprint"**.
-     - Instead of "Processing": **"Analyzing Your Growth Potential..."**.
+   - Match tone defined in the Branding Manual (e.g. modern, direct, friendly).
+   - **Example microcopy** (replace per product):
+     - Instead of "Submit": **"Start My Growth"**
+     - Instead of "Generate Report": **"Generate My Growth Blueprint"**
+     - Instead of "Processing": **"Analyzing Your Growth Potential..."**
 
-Whenever in doubt about colors, tone or style, read
-`docs/03 - Branding Manual.md` again before proposing a solution.
+Whenever in doubt about colors, tone or style, read the Branding Manual again before proposing a solution. Don't asume anything, in doubt **ALWAYS** ask human.
 
 ---
 
@@ -93,8 +87,7 @@ For any tabular listing:
   - Pagination, sorting and display props (e.g. `items-per-page`, `items`,
     `headers`).
   - Slots (`item.<field>`, `top`, `bottom`) for actions, filters or CTAs.
-- Style it respecting the dark theme (dark background, soft contrast between rows
-  and hovers with a light glow/highlight).
+- Style it respecting the project theme (contrast, row hovers per Design System).
 
 ---
 
@@ -102,11 +95,10 @@ For any tabular listing:
 
 - Base everything on a root layout (`AppLayout`, etc.) that:
   - Uses `v-app` and `v-main`.
-  - Keeps the dark background (`#121212`).
-  - Applies primary colors according to branding.
+  - Applies background and primary colors from branding.
 - For key CTAs:
-  - Use `v-btn` with `color` bound to the primary colors (Pink/Teal).
-  - Include micro-interactions (hover, ripple, light shadow/glow).
+  - Use `v-btn` with `color` bound to brand primaries.
+  - Include micro-interactions (hover, ripple, shadow/glow) when on-brand.
 - Navigation:
   - Use appropriate Vuetify components: `v-app-bar`, `v-navigation-drawer`,
     `v-tabs`, etc., when needed.
@@ -142,21 +134,18 @@ All frontend flows/screens must have **Browser tests** using **Pest Browser** on
       and validates important elements.
   - When there are forms:
     - Fill fields with `fill` / `type`.
-    - Submit (e.g. `click('Start My Growth')`).
+    - Submit (e.g. `click('Submit')` or branded CTA text).
     - Validate results: messages, redirects, data presence.
 - Maintain at least:
-  - **Navigation smoke tests** between main pages (landing,
-    forms, dashboards, etc.).
+  - **Navigation smoke tests** between all pages.
   - **Basic accessibility smoke tests** when appropriate
-    (`assertNoSmoke` or `assertNoAccessibilityIssues`) if they are
-    configured.
+    (`assertNoSmoke` or `assertNoAccessibilityIssues`) if configured.
 
 ### Examples of common scenarios (high level)
 
 - Page opens correctly:
   - Visit the route.
-  - See a headline aligned with branding (e.g. "Engineered for Viral Growth.").
-  - See the main CTA (e.g. "Start My Growth").
+  - See expected headline and main CTA.
 - Form flow:
   - Fill in required fields.
   - Validate validation errors when fields are missing.
@@ -177,9 +166,9 @@ When implementing or reviewing frontend work:
    - Check that there is no raw HTML that could be replaced by Vuetify in key elements.
 
 2. **Apply branding**
-   - Ensure dark mode and use of primary Pink/Teal colors.
-   - Review text to follow the modern, direct and friendly tone.
-   - Prefer the microcopy suggested by the Branding Manual for CTAs.
+   - Ensure theme and primary colors match the Branding Manual.
+   - Review text for the project's tone.
+   - Use approved microcopy for CTAs.
 
 3. **Check prohibitions**
    - Ensure there is **no** `alert`, `confirm`, `prompt`.
@@ -199,8 +188,7 @@ When implementing or reviewing frontend work:
 
 6. **Review overall experience**
    - Check focus, basic accessibility and clear feedback.
-   - Avoid clutter and keep the experience fast, clear and smart,
-     aligned with the brand positioning.
+   - Keep the experience aligned with brand positioning.
 
 ---
 
@@ -211,10 +199,9 @@ When implementing or reviewing frontend work:
 - [ ] No native `alert` / `confirm` / `prompt`?
 - [ ] Confirmations via `v-dialog`?
 - [ ] Feedback via `v-snackbar` / `v-tooltip` / `v-alert` etc.?
-- [ ] Dark mode `#121212` with highlights `#FE2C55` and `#25F4EE`?
-- [ ] Typography aligned (Space Grotesk + Inter) and CTAs with brand microcopy?
+- [ ] Theme and colors per Branding Manual?
+- [ ] Typography and CTAs per Branding Manual?
 - [ ] Tabular data using `v-data-table`?
 - [ ] **Pest Browser tests** created/updated covering navigation and smoke (no Dusk)?
-- [ ] Main flows (forms, navigation, dashboards) covered with Browser tests?
+- [ ] Main flows covered with Browser tests?
 - [ ] Interactive elements use **`data-test`** (or equivalent stable hooks) where E2E needs them?
-

@@ -1,13 +1,24 @@
-You're a Senior Business Analyst specialized in Software Docummentation and Design Docs.
+---
+name: design-docs
+description: >
+  Guides creation of product documentation—feature list, ADRs, and FDRs—from PRD/HLD/Branding.
+  Use when bootstrapping or revising docs/ structure for a greenfield or existing project.
+---
 
-You Work is
+You're a Senior Business Analyst specialized in Software Documentation and Design Docs.
+
+Your work:
 
 # Phase 1 - Understanding the project
 
-1. Read all documents in `docs` folder
-    - `docs/01 - PRD.md`
+1. Read all documents in the `docs` folder relevant to the product, for example:
+    - `docs/01 - PRD.md` (or `docs/01 PRD.md`)
     - `docs/02 - HLD.md`
     - `docs/03 - Branding Manual.md`
+    - `docs/04 - Design System.md`
+    - `docs/05 - Feature List.md`
+    - `docs/ADRs/*`
+    - `docs/FDRs/*`
 
 # Phase 2 - Extraction
 
@@ -18,39 +29,39 @@ You Work is
 5. Write `docs/05 - Feature List.md` with all features and waves (see Reference below).
 6. **Feature linking (mandatory in `docs/05 - Feature List.md`):**
     - Assign each feature a stable anchor, e.g. `<a id="f07-customer-profiles-configuration"></a>` immediately before the feature heading.
-    - Use **two-digit** numbering (`01` … `19`) in headings and prose.
+    - Use **three-digit** numbering (`01` … `NNN`) in headings and prose.
     - **Every cross-reference** to another feature in that file must use: **`[NN Short description](#anchor-id)`** (same label and `#anchor-id` as in the **feature index** table at the top of the same file).
-    - Do not mix bare numbers, “Feature 7”, or names without the link form inside that document.
+    - Do not mix bare numbers, "Feature 7", or names without the link form inside that document.
 7. Include a **feature index** table at the top of `docs/05 - Feature List.md` listing `NN` + link for quick navigation.
-8. **Features relationship** matrix (near the end of the same file): **rows only for non-foundation features** (typically **04–17**). **Foundation** (**01–03**: platform foundation, authentication, application shell and design system) applies to the whole product—**do not** give them rows and **do not** repeat **01–03** inside matrix cells. Columns: **`Feature`**, **`Depends on`**, **`Consumes`**, **`Produces`** — each cell lists only **other product features** in that non-foundation set (links `[NN Short title](#fNN-slug)`). **Do not** list PostgreSQL, Redis, Slack, Google Calendar APIs, hosting, or other vendor/infra in this matrix (keep those in each feature’s prose and in `docs/ADRs/`).
+8. **Features relationship** matrix (near the end of the same file): **rows only for non-foundation features** (product-specific; exclude platform/auth/shell-type foundation features your project defines). **Foundation** features apply to the whole product — **do not** give them rows and **do not** repeat foundation IDs inside matrix cells. Columns: **`Feature`**, **`Depends on`**, **`Consumes`**, **`Produces`** — each cell lists only **other product features** in the non-foundation set (links `[NNN Short title](#fNNN-slug)`). **Do not** list databases, queues, third-party APIs, or hosting in this matrix (keep those in each feature's prose and in `docs/ADRs/`).
 
-# Phase 3 - ADRs docummentation
+# Phase 3 - ADRs documentation
 
 0. (This phase can be done with parallel agents)
 1. Write all ADRs in folder `docs/ADRs` (see Reference below)
 2. Update `docs/05 - Feature List.md` to include links to each ADR (ADRs stay linked by path as today; features use the `[NN Title](#fNN-slug)` convention above).
 
-**IMPORTANT**: 
+**IMPORTANT**:
 - All ADRs must be documented, don't skip any ADR
-- Don't fabricate ADRs, if something is not docummented in `docs/01 - PRD.md`, `docs/02 - HLD.md` or `docs/03 - Branding Manual.md`, you should ask me (human) to explain it, only with the explanation you can document that ADR
+- Don't fabricate ADRs, if something is not documented in PRD, HLD, or Branding, ask the human to explain it; only then document that ADR
 
-# Phase 4 - FDR docummentation
+# Phase 4 - FDR documentation
 
 0. (This phase can be done with parallel agents)
-1. For each feature Use Plan mode and Deep Think to plan the development
-2. Break down features in small tasks (5-10 tasks per feature). If a feature has more than (10 tasks, probably it's too complicated and should break down into smaller features)
+1. For each feature use Plan mode and deep thinking to plan the development
+2. Break down features in small tasks (5-10 tasks per feature). If a feature has more than 10 tasks, it is probably too complicated and should be break down into smaller features
 3. Document each feature in folder `docs/FDRs/ToDo` (see Reference below). Each FDR must cite `docs/05 - Feature List.md` and the feature number; when pointing at a feature from markdown in-repo, use the same `[NN Short title](#fNN-slug)` form **if** the link target is `docs/05 - Feature List.md` (relative path from the FDR file: `../../05%20-%20Feature%20List.md#fNN-…`).
-4. If Needed you can include mermaid diagrams
+4. If needed you can include mermaid diagrams
 
-**IMPORTANT**: 
+**IMPORTANT**:
 - All FDRs must be documented, don't skip any
-- Don't fabricate new features, files `docs/01 - PRD.md`, `docs/02 - HLD.md` or `docs/03 - Branding Manual.md`, are the source of truth, if something is not there you should ask me (human)
+- Don't fabricate new features; PRD, HLD, and Branding are the source of truth—if something is not there, ask the human
 
 # Phase 05 - Final Revision
 
 1. Double check **ALL** files, looking for inconsistencies:
     - All features were extracted into `docs/05 - Feature List.md` and use the **`[NN Title](#fNN-slug)`** cross-reference convention throughout (plus anchors and index table).
-    - The **Features relationship** matrix lists **04–19** (or project-specific non-foundation IDs) with **Depends on / Consumes / Produces** between those features only; **01–03** foundation is omitted from rows and cells; infra/vendors stay in feature prose and ADRs.
+    - The **Features relationship** matrix lists non-foundation features with **Depends on / Consumes / Produces** between those features only; foundation features are omitted from rows and cells; infra/vendors stay in feature prose and ADRs.
     - Each feature has its own ADR(s) in `docs/ADRs`
     - Each feature has its own FDR in `docs/FDRs/ToDo`
     - Nothing was fabricated (hallucination prevention)
@@ -115,9 +126,9 @@ You Work is
 
 ## Features relationship
 
-**Foundation (omitted):** features **01–03** (platform, auth, shell/design system)—no rows; not repeated in cells. Matrix rows start at **04**.
+**Foundation (omitted):** e.g. features **01–03** (platform, auth, shell/design system) — no rows; not repeated in cells. Matrix rows start at the first non-foundation feature ID for your project.
 
-Cross-feature only; no PostgreSQL, Redis, Slack, Google APIs, etc. in cells.
+Cross-feature only; no PostgreSQL, Redis, external APIs, etc. in cells.
 
 | Feature | Depends on | Consumes | Produces |
 | ------- | ---------- | -------- | -------- |
@@ -173,7 +184,8 @@ References:
 
 ```
 
-## docs/FDRs/ToDo/FDR-XXX-description.md
+## docs/FDRs/ToDo/FDR-XXX-description.md (example)
+
 ```markdown
 # FDR-011: Automated lead qualification
 

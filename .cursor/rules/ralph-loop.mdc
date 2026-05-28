@@ -9,10 +9,10 @@ alwaysApply: false
 ## Ralph Loop
 
 - **Prompts:** Planning uses `.cursor/ralph/PROMPT_plan.md`; Building uses `.cursor/ralph/PROMPT_build.md`. State lives in `docs/FDRs/IMPLEMENTATION_PLAN.md`.
-- **One task per Building run.** Do not implement multiple tasks in one go (unless user specifically asks for it). After each run: update the plan, run tests and Pint, then commit per `.cursor/rules/commits-small-incremental.mdc`.
+- **One task per Building run.** Do not implement multiple tasks in one go (unless user specifically asks for it). After each run: update the plan, run tests and linter, then commit per `.cursor/rules/commits-small-incremental.mdc`.
 - **One branch per feature.** Reuse the same branch for all tasks of that feature; do not create one branch per subtask.
 - **Track feature branches in the plan.** When a feature branch is created, register it in `docs/FDRs/IMPLEMENTATION_PLAN.md` and keep it updated.
-- **Sources of truth:** Feature specs = `docs/FDRs/ToDo/*.md` (FDRs). Architecture decisions = `docs/ADRs/*.md`. Product/design = `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/05 - Feature List.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`.
+- **Sources of truth (typical):** Feature specs = `docs/FDRs/ToDo/*.md` (FDRs). Architecture decisions = `docs/ADRs/*.md`. Product/design = project docs under `docs/` (e.g. PRD, HLD, Feature List, Branding, Design System — see `.cursor/AGENTS.md`).
 - **Do not assume "not implemented".** Always search/read the codebase before concluding something is missing.
 - **Commands:** Use Sail for all PHP/artisan/npm commands. See `.cursor/rules/starting-environment.mdc` for test and lint commands.
 
@@ -21,4 +21,4 @@ alwaysApply: false
 - **To do:** Features to implement are listed as FDR documents in `docs/FDRs/ToDo/` (e.g. `FDR-001-platform-foundation.md`).
 - **Done:** When **all** acceptance criteria of an FDR are met, **move** the FDR file from `docs/FDRs/ToDo/` to `docs/FDRs/Done/` (same filename). Do not delete; moving marks the feature as complete.
 - **`docs/FDRs/Closed/`** is documented in `.cursor/rules/fdr-todo-done.mdc` (archive only; not an agent workflow step).
-- Dependencies between features are described in `docs/05 - Feature List.md`; respect that order when planning and implementing.
+- Respect feature dependency order from the project's feature list (e.g. `docs/05 - Feature List.md`) when planning and implementing.

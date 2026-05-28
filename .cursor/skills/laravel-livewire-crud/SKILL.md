@@ -2,7 +2,7 @@
 name: laravel-livewire-crud
 description: >
   Guides the creation and maintenance of full Laravel + Livewire (+ Flux) CRUDs
-  in this project. Use this skill when implementing or updating CRUD-style
+  in Laravel projects using this workflow. Use when implementing or updating CRUD-style
   resources, ensuring consistent backend workflow (migration, model, factory,
   seed, routes, controller, form requests, tests) and frontend workflow
   (Livewire pages, Flux UI, shared toasts, delete modal, menu integration) with
@@ -12,7 +12,7 @@ description: >
 # Laravel + Livewire CRUD Workflow
 
 This skill defines the standard end-to-end process for building CRUD features
-in this project, from database to frontend and tests.
+in the repository, from database to frontend and tests.
 
 Always keep code in **English**, follow PSRs, and respect the existing
 branding and frontend standards (see `frontend-livewire-flux` skill).
@@ -186,7 +186,7 @@ provided by the test stack.
 - Follow:
   - **Livewire** for interactive UI and forms.
   - **Flux** (`flux:*`) for buttons, inputs, tables, modals, toasts, layout.
-  - Project branding and Design System (dark theme, tokens, CRM-first layouts).
+  - Project branding and Design System (theme, tokens, layout patterns per project docs).
   - No native `alert`/`confirm`/`prompt` (use Flux modal / toast).
   - Pest Browser tests for frontend flows when the project uses them.
 
