@@ -68,7 +68,7 @@ class Index extends Component
             return null;
         }
 
-        return Client::with('opportunities')->find($this->detailClientId);
+        return Client::with(['opportunities', 'followUps'])->find($this->detailClientId);
     }
 
     #[Computed]
