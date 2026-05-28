@@ -25,7 +25,7 @@ Use this skill when the user wants to **define and document a new feature** with
    - Design System: `docs/04 - Design System.md`
 2. Read all ADRs in `docs/ADRs/` (naming, status, context/decision/consequences pattern).
 3. Read existing FDRs in `docs/FDRs/ToDo/` and a few in `docs/FDRs/Done/` to learn the FDR format (How it works, How to test, Acceptance criteria, Deployment notes).
-4. Skim `docs/FDRs/IMPLEMENTATION_PLAN.md` and `.cursor/ralph/PROMPT_plan.md` to understand the Ralph Planning flow.
+4. Skim `.cursor/ralph/PROMPT_plan.md` and `docs/FDRs/ImplementationPlans/` (ephemeral, gitignored) to understand the Ralph Planning flow.
 
 Summarize briefly what the project is and what the docs say (stack, features, ADR/FDR conventions). Do not proceed to the interview until orientation is done.
 
@@ -76,9 +76,9 @@ If anything is ambiguous, ask the user before writing. Do not assume technical d
 ## Phase 4 — Ralph Planning
 
 1. Run **Ralph in Planning mode** as defined in `.cursor/ralph/PROMPT_plan.md`:
-   - Phase 0: Orient (docs, ADRs, FDRs ToDo, IMPLEMENTATION_PLAN, code).
-   - Phase 1: Gap analysis; update `docs/FDRs/IMPLEMENTATION_PLAN.md` with a prioritized task list for the new FDR (and any existing ToDo FDRs).
-2. Do **not** implement code or run Building. Output is only an updated `IMPLEMENTATION_PLAN.md`.
+   - Phase 0: Orient (docs, ADRs, FDRs ToDo, local plans if any, code).
+   - Phase 1: Gap analysis; write/update **local** plan files under `docs/FDRs/ImplementationPlans/` for the new FDR.
+2. Do **not** implement code or run Building. Do **not** commit plan files (gitignored).
 
 ---
 
@@ -88,9 +88,8 @@ Make **separate commits** by logical context, for example:
 
 1. **First commit:** New ADR (if created). Message e.g. `docs(adr): add ADR-XXX <short title>`
 2. **Second commit:** New FDR + update `docs/05 - Feature List.md`. Message e.g. `docs(fdr): add FDR-XXX <short title> and feature entry in Feature List`
-3. **Third commit:** Updated `docs/FDRs/IMPLEMENTATION_PLAN.md` after Ralph Planning. Message e.g. `docs(ralph): update implementation plan for FDR-XXX`
 
-If there is no ADR, only two commits (FDR + plan). Keep commit messages concise and in English.
+Ralph Planning output stays local in `ImplementationPlans/` (not committed). If there is no ADR, only one commit (FDR + Feature List). Keep commit messages concise and in English.
 
 ---
 
@@ -122,7 +121,7 @@ Ask the user: **“Do you want to create another feature? (yes/no)”**
 | Product/features  | `docs/01 PRD.md`, `docs/05 - Feature List.md` |
 | Architecture      | `docs/02 HLD.md`, `docs/ADRs/` |
 | Feature specs     | `docs/FDRs/ToDo/*.md`, `docs/FDRs/Done/*.md` (`Closed/` = archived only) |
-| Plan              | `docs/FDRs/IMPLEMENTATION_PLAN.md` |
+| Plan state (local) | `docs/FDRs/ImplementationPlans/` (gitignored) |
 | Ralph Planning    | `.cursor/ralph/PROMPT_plan.md` |
 | PR                | GitHub MCP `create_pull_request` (target `main`) |
 
@@ -133,8 +132,8 @@ Ask the user: **“Do you want to create another feature? (yes/no)”**
 1. Read all docs → understand project.  
 2. Interview user → clarify goal, scope, constraints, naming.  
 3. Create branch → ADR (if needed) → FDR (ToDo) → update Feature List.  
-4. Run Ralph Planning → update IMPLEMENTATION_PLAN only.  
-5. Commit incrementally (ADR, FDR+Features, plan).  
+4. Run Ralph Planning → local plan files only (not committed).  
+5. Commit incrementally (ADR, FDR+Feature List).  
 6. Push → open PR → checkout main → delete local branch.  
 7. Ask if they want to create another feature.
 

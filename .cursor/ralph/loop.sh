@@ -16,7 +16,7 @@
 #
 # Requirements: git repository; claude or cursor CLI on PATH.
 # Prompts: .cursor/ralph/PROMPT_build.md | PROMPT_plan.md
-# Plan state: docs/FDRs/IMPLEMENTATION_PLAN.md
+# Plan state (gitignored): docs/FDRs/ImplementationPlans/
 
 set -euo pipefail
 

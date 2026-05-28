@@ -8,11 +8,12 @@ alwaysApply: false
 
 ## Ralph Loop
 
-- **Prompts:** Planning uses `.cursor/ralph/PROMPT_plan.md`; Building uses `.cursor/ralph/PROMPT_build.md`. State lives in `docs/FDRs/IMPLEMENTATION_PLAN.md`.
-- **One task per Building run.** Do not implement multiple tasks in one go (unless user specifically asks for it). After each run: update the plan, run tests and linter, then commit per `.cursor/rules/commits-small-incremental.mdc`.
+- **Prompts:** Planning uses `.cursor/ralph/PROMPT_plan.md`; Building uses `.cursor/ralph/PROMPT_build.md`.
+- **Ephemeral plan state:** Local files in `docs/FDRs/ImplementationPlans/` (gitignored). Not long-lived docs; never commit. Delete feature plans when the feature is done; delete all wave plans when the wave is done.
+- **One task per Building run.** After each run: update local plan state, run tests and linter, then commit per `.cursor/rules/commits-small-incremental.mdc` (code + committed docs only—never plan files).
 - **One branch per feature.** Reuse the same branch for all tasks of that feature; do not create one branch per subtask.
-- **Track feature branches in the plan.** When a feature branch is created, register it in `docs/FDRs/IMPLEMENTATION_PLAN.md` and keep it updated.
-- **Sources of truth (typical):** Feature specs = `docs/FDRs/ToDo/*.md` (FDRs). Architecture decisions = `docs/ADRs/*.md`. Product/design = project docs under `docs/` (e.g. PRD, HLD, Feature List, Branding, Design System — see `.cursor/AGENTS.md`).
+- **Track feature branches in the local plan** until the feature is complete, then delete that plan file.
+- **Sources of truth:** Product roadmap and wave status = `docs/05 - Feature List.md`. Feature specs = `docs/FDRs/ToDo/` → `Done/`. ADRs = `docs/ADRs/`.
 - **Do not assume "not implemented".** Always search/read the codebase before concluding something is missing.
 - **Commands:** Use Sail for all PHP/artisan/npm commands. See `.cursor/rules/starting-environment.mdc` for test and lint commands.
 

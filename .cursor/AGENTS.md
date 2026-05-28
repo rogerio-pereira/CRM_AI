@@ -21,7 +21,8 @@ Workflow details (Ralph loop, FDR lifecycle, commits, skills): `.cursor/rules/` 
 | Feature list and dependencies | `docs/05 - Feature List.md` |
 | Architecture decisions | `docs/ADRs/` |
 | Feature specs (todo / done) | `docs/FDRs/ToDo/`, `docs/FDRs/Done/` |
-| Implementation plan (Ralph) | `docs/FDRs/IMPLEMENTATION_PLAN.md` |
+| Feature list & wave status (source of truth) | `docs/05 - Feature List.md` |
+| Ralph plan state (ephemeral, gitignored) | `docs/FDRs/ImplementationPlans/` |
 
 Do not invent requirements that contradict these documents.
 

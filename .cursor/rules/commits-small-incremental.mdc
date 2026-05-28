@@ -16,7 +16,7 @@ alwaysApply: true
     - **Models / services / controllers** (backend).
     - **Frontend** (UI and behavior—Livewire/Flux, Vue/Vuetify, or project stack).
     - **Tests** (Feature, Browser, unit).
-    - **Docs / FDR / IMPLEMENTATION_PLAN**.
+    - **Docs / FDR / Feature List** (never `docs/FDRs/ImplementationPlans/` — gitignored ephemeral state).
   - Each commit must **build and pass ALL relevant tests and linter** (see `.cursor/rules/starting-environment.mdc`).
 
 - **Commit messages (Conventional Commits)**
@@ -25,11 +25,11 @@ alwaysApply: true
     - `feat(core): …` – domain functionality.
     - `fix(…): …` – bug fixes.
     - `test(…): …` – tests only.
-    - `docs(…): …` – documentation only / FDR / implementation plan.
+    - `docs(…): …` – documentation only / FDR moves / Feature List wave status.
   - The subject line states **what** and **why**; use the body for bullets when needed.
 
 - **Ralph Building flow**
   - For each plan task:
     - Implement in small commits following the rules above.
     - Ensure the last implementation commit for the task leaves the repo healthy (build + tests + linter OK).
-  - After that, update `IMPLEMENTATION_PLAN.md` (e.g. `[x]` checkboxes) and move FDR to `docs/FDRs/Done` in a **separate** `docs(...)` commit from application code.
+  - After that, update the **local** plan (gitignored, not committed) and move FDR to `docs/FDRs/Done` in a **separate** `docs(...)` commit when applicable. Mark the wave `Done` in `docs/05 - Feature List.md` when the wave completes; delete local plan files for that wave.
