@@ -45,4 +45,23 @@ class PipelineStageTest extends TestCase
             'proposal sent' => [PipelineStage::ProposalSent],
         ];
     }
+
+    public function test_ordered_returns_eight_stages_in_pipeline_order(): void
+    {
+        $ordered = PipelineStage::ordered();
+
+        $this->assertCount(8, $ordered);
+        $this->assertSame(PipelineStage::Lead, $ordered[0]);
+        $this->assertSame(PipelineStage::Lost, $ordered[7]);
+    }
+
+    public function test_label_and_color_token_are_defined_for_each_stage(): void
+    {
+        foreach (PipelineStage::ordered() as $stage) {
+            $this->assertNotSame('', $stage->label());
+            $this->assertNotSame('', $stage->colorToken());
+            $this->assertNotSame('', $stage->slug());
+            $this->assertNotSame('', $stage->badgeClasses());
+        }
+    }
 }
