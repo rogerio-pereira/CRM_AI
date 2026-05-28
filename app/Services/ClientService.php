@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ClientStatus;
+use App\Enums\OpportunityStage;
 use App\Models\Client;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
@@ -87,12 +88,11 @@ class ClientService
 
     public function hasBlockingOpportunity(Client $client): bool
     {
-        if (! method_exists($client, 'opportunities')) {
-            return false;
-        }
-
         return $client->opportunities()
-            ->whereNotIn('stage', ['won', 'lost'])
+            ->whereNotIn('stage', [
+                OpportunityStage::Won->value,
+                OpportunityStage::Lost->value,
+            ])
             ->exists();
     }
 
