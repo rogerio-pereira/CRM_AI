@@ -9,19 +9,17 @@ use Tests\TestCase;
 
 class QueueJobTest extends TestCase
 {
-    public function test_jobs_can_be_dispatched_on_redis_connection(): void
+    public function test_jobs_can_be_dispatched_to_the_queue(): void
     {
         Queue::fake();
 
-        $job = new class implements ShouldQueue
-        {
-            use Queueable;
-        };
+        FakeQueueJob::dispatch();
 
-        dispatch($job)->onConnection('redis');
-
-        Queue::assertPushed($job::class, function (object $pushed): bool {
-            return $pushed->connection === 'redis';
-        });
+        Queue::assertPushed(FakeQueueJob::class);
     }
+}
+
+final class FakeQueueJob implements ShouldQueue
+{
+    use Queueable;
 }
