@@ -17,7 +17,7 @@ This skill defines how to build and maintain UI when the project uses **Livewire
 
 Use this skill whenever you:
 
-- Create or change **Livewire** pages or components (`resources/views/pages/`, class-based or `Route::livewire`).
+- Create or change **Livewire** pages or components (`app/Livewire/`, `resources/views/livewire/`).
 - Create or change **Blade layouts** and partials.
 - Add or update **navigation** (sidebar, header).
 - Add or update **frontend / browser tests** for UI flows.
@@ -28,25 +28,35 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 
 ## Mandatory rules
 
-1. **Stack**
+1. **Component type (class-based only)**
+   - **Always** use **class-based** Livewire components for new work (PHP class + Blade view).
+   - Class: `app/Livewire/{Path}/{Name}.php` (`App\Livewire\...`).
+   - View: `resources/views/livewire/{path}/{name}.blade.php`.
+   - Create via `./vendor/bin/sail artisan make:livewire Path/Name` (default `type` is `class` in `config/livewire.php`).
+   - **Do not** add new SFC (`⚡*.blade.php` with anonymous class in Blade) or MFC-only components.
+   - Full-page routes: `Route::livewire('uri', \App\Livewire\Path\Name::class)` (or `Route::get` with the class).
+   - Legacy `pages::` SFC under `resources/views/pages/` may remain until migrated; see `.cursor/rules/livewire-class-components.mdc`.
+
+2. **Stack**
    - **Livewire** for interactive UI and form handling.
    - **Flux** (`flux:*` components) for buttons, inputs, tables, modals, toasts, navigation.
    - **Tailwind CSS** tokens per the project's Design System (do not invent colors or spacing).
 
-2. **Design System**
+3. **Design System**
    - Read the project's Design System and Branding docs before building screens (e.g. `docs/04 - Design System.md`, `docs/03 - Branding Manual.md` — adapt paths).
    - Follow the project's theme (e.g. dark-only, density, layout patterns for lists, boards, dashboards).
    - Secondary insights (e.g. AI labels) should support the main task UI, not replace it.
 
-3. **Routing**
-   - Prefer `Route::livewire('path', 'pages::name')` for full pages (see existing routes such as `routes/settings.php` when present).
+4. **Routing**
+   - Prefer `Route::livewire('path', \App\Livewire\Path\Page::class)` for new full pages.
+   - Use `config/livewire.php` `component_layout` (`layouts::app`) for page layout.
    - Use Livewire layouts under `resources/views/layouts/`.
 
-4. **Feedback**
+5. **Feedback**
    - Success/error: `Flux::toast()` or Flux callouts/alerts.
    - Do not use browser `alert()` / `confirm()` / `prompt()`.
 
-5. **Selectors for tests**
+6. **Selectors for tests**
    - Add **`data-test="..."`** on interactive elements targeted by E2E tests.
    - Use explicit `name` on form fields where helpful.
 
@@ -83,6 +93,7 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 
 ## Quick checklist
 
+- [ ] Class-based Livewire (PHP class in `app/Livewire/`, view in `resources/views/livewire/`)?
 - [ ] Livewire + Flux (no raw HTML where a Flux component exists)?
 - [ ] Matches Design System (theme, density, tokens)?
 - [ ] Toasts/modals via Flux (no native dialogs)?

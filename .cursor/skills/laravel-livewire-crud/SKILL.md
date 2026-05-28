@@ -119,8 +119,7 @@ Testing:
 
 - For Livewire full pages:
 
-  - Use `Route::livewire('leads', 'pages::leads.index')` (adjust naming to the
-    project convention).
+  - Use class-based components: `Route::livewire('leads', \App\Livewire\Leads\Index::class)`.
   - Apply middleware and route names consistent with the rest of the app.
 
 ### 6. Controller (when used)
@@ -192,12 +191,14 @@ provided by the test stack.
 
 ### 2. Frontend routes
 
+- Use **class-based** Livewire components (`app/Livewire/`, views in `resources/views/livewire/`).
+  Create with `./vendor/bin/sail artisan make:livewire Resource/Index` (see `config/livewire.php` and `.cursor/rules/livewire-class-components.mdc`).
 - Use the project routing pattern:
-  - `Route::livewire(...)` for full-page components, and/or
+  - `Route::livewire('uri', \App\Livewire\Resource\Index::class)` for full-page components, and/or
   - Controller routes that return views embedding Livewire.
 - Map backend resource routes to Livewire pages, for example:
-  - Index → `pages::leads.index` (or `resources/views/pages/...`).
-  - Create/Edit → `pages::leads.form` (single component for both modes when possible).
+  - Index → `\App\Livewire\Leads\Index::class`.
+  - Create/Edit → `\App\Livewire\Leads\Form::class` (single component for both modes when possible).
 
 ### 3. Index page
 
@@ -313,7 +314,7 @@ provided by the test stack.
   - [ ] Validation and messages.
   - [ ] Database assertions.
   - [ ] Edge cases.
-- [ ] Frontend uses Livewire + Flux following `frontend-livewire-flux` skill.
+- [ ] Frontend uses class-based Livewire + Flux following `frontend-livewire-flux` skill.
 - [ ] Index page with table/list and proper actions.
 - [ ] Single Create/Update component with field validation and toast feedback.
 - [ ] Shared delete modal reused across CRUD pages.

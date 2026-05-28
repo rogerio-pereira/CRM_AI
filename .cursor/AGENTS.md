@@ -59,6 +59,7 @@ Typical stack across repositories using this setup:
 - Use interfaces for services when appropriate.
 - Every Eloquent model must have an equivalent factory in `database/factories`.
 - UI: **Livewire** for interactive pages and **Flux** (`flux:*`) for components; follow `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` (dark mode, Tailwind tokens, CRM-first layouts).
+- Livewire: **class-based components only** for new work (`app/Livewire/` + `resources/views/livewire/`); see `.cursor/rules/livewire-class-components.mdc`.
 - **ALWAYS** Follow Clean Code and treat this motto as non‑negotiable:
     > Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
 

@@ -55,7 +55,7 @@ All backend code must be in **English** and follow PSRs.
 - Define HTTP routes in `routes/web.php` (and `routes/settings.php`, `routes/api.php` where applicable).
 - Prefer `Route::resource` for REST-style resources.
 - Grouping by middleware, namespace, or prefix where appropriate.
-- Use `Route::livewire()` for full-page Livewire UI (see existing settings routes).
+- Use `Route::livewire()` with **class-based** components (`\App\Livewire\...::class`) for new full-page UI (see `.cursor/rules/livewire-class-components.mdc`).
 - Name routes consistently with `->name()`.
 - If needed, return Livewire responses in controllers, not in the route file.
 
