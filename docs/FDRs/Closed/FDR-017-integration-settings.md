@@ -1,7 +1,8 @@
 # FDR-017: Integration settings
 
 **Feature:** 17  
-**Status:** Approved  
+**Status:** Closed (not implemented)  
+**Closure reason:** Integration configuration (AI, Slack, Google Calendar) will be managed via `.env` and deployment secrets, not an in-app Settings UI.  
 **Reference:** [17 Integration settings](../../05%20-%20Feature%20List.md#f17-integration-settings), [ADR-002](../../ADRs/ADR-002-ai-provider-abstraction.md), [ADR-009](../../ADRs/ADR-009-slack-integration.md), [ADR-010](../../ADRs/ADR-010-google-calendar-integration.md)
 
 ---

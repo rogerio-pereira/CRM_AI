@@ -45,4 +45,4 @@ flowchart TD
 
 ## Deployment notes
 
-- Store webhook/token in secrets; configure in feature 17 UI.
+- Store webhook/token in secrets; configure via `.env` (see deployment notes).

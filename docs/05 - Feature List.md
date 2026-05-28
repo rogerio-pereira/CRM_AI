@@ -6,6 +6,8 @@
 
 **Convention:** Every cross-reference to a feature in this file uses `[NN Short title](#fNN-slug)`.
 
+**FDR locations:** Active specs live in `docs/FDRs/ToDo/`; completed features in `docs/FDRs/Done/`; archived or superseded specs in `docs/FDRs/Closed/`.
+
 **ADR status:** [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) and [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) are **Proposed** (awaiting stakeholder approval). Features [10](#f10-automated-prospecting), [11](#f11-automated-lead-qualification) (partial), [13](#f13-proposal-assistance), and [14](#f14-pipeline-stage-automation) (partial) depend on those decisions — see linked FDRs.
 
 ---
@@ -32,7 +34,7 @@
 | 14 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [FDR-014](FDRs/ToDo/FDR-014-pipeline-stage-automation.md) |
 | 15 | [15 Slack notifications](#f15-slack-notifications) | [FDR-015](FDRs/ToDo/FDR-015-slack-notifications.md) |
 | 16 | [16 Google Calendar integration](#f16-google-calendar) | [FDR-016](FDRs/ToDo/FDR-016-google-calendar.md) |
-| 17 | [17 Integration settings](#f17-integration-settings) | [FDR-017](FDRs/ToDo/FDR-017-integration-settings.md) |
+| 17 | [17 Integration settings](#f17-integration-settings) **Closed** | [FDR-017](FDRs/Closed/FDR-017-integration-settings.md) |
 
 ---
 
@@ -91,7 +93,7 @@
 
 **Dependencies:** [02 Authentication](#f02-authentication)
 
-**Related to:** All UI features (04–08, 17)
+**Related to:** All UI features (04–08)
 
 **Consumes:**
 
@@ -407,19 +409,15 @@
 
 ### 17 · Integration settings
 
-**Objective:** Settings UI for Slack, Google Calendar, and AI provider configuration (credentials, channel, calendar ID, provider selection).
+**Status:** **Closed** — not implemented. Integration parameters (AI provider, Slack, Google Calendar) are configured via `.env` and deployment secrets instead of an in-app Settings UI. See [FDR-017](FDRs/Closed/FDR-017-integration-settings.md).
 
-**Dependencies:** [03 Application shell and design system](#f03-application-shell-design-system), [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar), [09 AI provider layer and orchestration](#f09-ai-orchestration)
+**Objective:** *(Superseded)* Settings UI for Slack, Google Calendar, and AI provider configuration (credentials, channel, calendar ID, provider selection).
 
-**Consumes:**
+**Dependencies:** —
 
-- [03 Application shell and design system](#f03-application-shell-design-system)
-- [09 AI provider layer and orchestration](#f09-ai-orchestration)
-- [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) — configurable targets
+**Consumes:** —
 
-**Produces:**
-
-- Admin-configurable integration parameters
+**Produces:** —
 
 **ADRs:** [ADR-002](ADRs/ADR-002-ai-provider-abstraction.md), [ADR-009](ADRs/ADR-009-slack-integration.md), [ADR-010](ADRs/ADR-010-google-calendar-integration.md)
 
@@ -446,7 +444,6 @@ Cross-feature only; vendor/infra (PostgreSQL, Redis, OpenAI, etc.) stay in featu
 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [15 Slack notifications](#f15-slack-notifications) |
 | [15 Slack notifications](#f15-slack-notifications) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | — |
 | [16 Google Calendar integration](#f16-google-calendar) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | — |
-| [17 Integration settings](#f17-integration-settings) | [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [09 AI provider layer and orchestration](#f09-ai-orchestration), [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) | — |
 
 ---
 
@@ -461,7 +458,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | **3** | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
 | **4** | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
 | **5** | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
-| **6** | [16 Google Calendar integration](#f16-google-calendar), [17 Integration settings](#f17-integration-settings) |
+| **6** | [16 Google Calendar integration](#f16-google-calendar) |
 
 ---
 

@@ -15,7 +15,7 @@ The PRD requires Google Calendar for follow-ups and important tasks. The HLD spe
   - Important tasks
 - **No internal calendar model** in the database for MVP.
 - **No bidirectional synchronization** (Calendar is source of truth for scheduling intent; CRM is a mirror).
-- MVP uses a **single company calendar** (calendar ID configured in settings).
+- MVP uses a **single company calendar** (calendar ID configured in `.env`).
 
 References:
 
@@ -30,4 +30,4 @@ References:
 - **Negative:**
   - Edits/deletes in Google Calendar are not reflected in CRM automatically.
 - **Neutral:**
-  - OAuth / service account setup documented in feature 17 FDR.
+  - OAuth / service account setup documented in deployment notes (`.env`).
