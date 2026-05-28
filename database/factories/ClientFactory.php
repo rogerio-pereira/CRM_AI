@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\ClientStatus;
 use App\Models\Client;
+use App\Models\ClientContact;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,13 +21,6 @@ class ClientFactory extends Factory
     {
         return [
             'company_name' => fake()->company(),
-            'contacts' => [
-                [
-                    'name' => fake()->name(),
-                    'email' => fake()->companyEmail(),
-                    'phone' => fake()->phoneNumber(),
-                ],
-            ],
             'website' => fake()->optional()->url(),
             'social_links' => [
                 'linkedin' => fake()->optional()->url(),
@@ -38,9 +32,15 @@ class ClientFactory extends Factory
                 'Event',
             ]),
             'qualification_notes' => fake()->optional()->paragraph(),
-            'ai_insights' => null,
             'status' => ClientStatus::Active,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Client $client): void {
+            ClientContact::factory()->for($client)->create();
+        });
     }
 
     public function archived(): static

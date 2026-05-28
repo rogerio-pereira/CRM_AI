@@ -2,9 +2,10 @@
 
 namespace Tests\Feature\Clients;
 
+use App\Http\Controllers\ClientController;
+use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\User;
-use App\Services\ClientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -13,14 +14,14 @@ class ClientDeleteGuardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_client_can_be_soft_deleted_when_no_opportunities_exist(): void
+    public function test_client_can_be_soft_deleted(): void
     {
         $user = User::factory()->create();
         $client = Client::factory()->create();
 
         $this->actingAs($user);
 
-        app(ClientService::class)->delete($client);
+        app(ClientController::class)->destroy($client);
 
         $this->assertSoftDeleted('clients', ['id' => $client->id]);
     }
@@ -32,7 +33,7 @@ class ClientDeleteGuardTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test('pages::leads.index')
+        Livewire::test(Index::class)
             ->call('openDeleteModal', $client->id)
             ->call('deleteClient')
             ->assertHasNoErrors();

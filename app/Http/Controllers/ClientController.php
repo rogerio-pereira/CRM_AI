@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Services;
+namespace App\Http\Controllers;
 
 use App\Enums\ClientStatus;
 use App\Models\Client;
+use App\Models\ClientAiInsight;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class ClientService
+class ClientController extends Controller
 {
     /**
      * @return LengthAwarePaginator<int, Client>
      */
-    public function list(?string $search = null, ?ClientStatus $status = null, int $perPage = 15): LengthAwarePaginator
+    public function paginate(?string $search = null, ?ClientStatus $status = null, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Client::query()->latest();
+        $query = Client::query()->with(['contacts', 'aiInsight'])->latest();
 
         if ($search !== null && $search !== '') {
             $needle = '%'.mb_strtolower($search).'%';
@@ -31,12 +33,23 @@ class ClientService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data): Client
+    public function store(array $data): Client
     {
-        $payload = $this->normalizePayload($data);
-        $payload['status'] = ClientStatus::Active;
+        return DB::transaction(function () use ($data): Client {
+            $client = Client::query()->create([
+                'company_name' => $data['company_name'],
+                'website' => $data['website'] ?? null,
+                'lead_source' => $data['lead_source'] ?? null,
+                'qualification_notes' => $data['qualification_notes'] ?? null,
+                'social_links' => $this->normalizeSocialLinks($data['social_links'] ?? []),
+                'status' => ClientStatus::Active,
+            ]);
 
-        return Client::query()->create($payload);
+            $this->syncContacts($client, $data['contacts'] ?? []);
+            $this->ensureAiInsightRecord($client);
+
+            return $client->load(['contacts', 'aiInsight']);
+        });
     }
 
     /**
@@ -44,10 +57,21 @@ class ClientService
      */
     public function update(Client $client, array $data): Client
     {
-        $client->fill($this->normalizePayload($data));
-        $client->save();
+        return DB::transaction(function () use ($client, $data): Client {
+            $client->fill([
+                'company_name' => $data['company_name'],
+                'website' => $data['website'] ?? null,
+                'lead_source' => $data['lead_source'] ?? null,
+                'qualification_notes' => $data['qualification_notes'] ?? null,
+                'social_links' => $this->normalizeSocialLinks($data['social_links'] ?? []),
+            ]);
+            $client->save();
 
-        return $client;
+            $this->syncContacts($client, $data['contacts'] ?? []);
+            $this->ensureAiInsightRecord($client);
+
+            return $client->load(['contacts', 'aiInsight']);
+        });
     }
 
     public function archive(Client $client): Client
@@ -74,7 +98,7 @@ class ClientService
         return $client;
     }
 
-    public function delete(Client $client): void
+    public function destroy(Client $client): void
     {
         if ($this->hasBlockingOpportunity($client)) {
             throw ValidationException::withMessages([
@@ -97,21 +121,27 @@ class ClientService
     }
 
     /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
+     * @param  array<int, array<string, mixed>>  $contacts
      */
-    private function normalizePayload(array $data): array
+    private function syncContacts(Client $client, array $contacts): void
     {
-        $payload = [
-            'company_name' => $data['company_name'],
-            'website' => $data['website'] ?? null,
-            'lead_source' => $data['lead_source'] ?? null,
-            'qualification_notes' => $data['qualification_notes'] ?? null,
-            'contacts' => $this->normalizeContacts($data['contacts'] ?? []),
-            'social_links' => $this->normalizeSocialLinks($data['social_links'] ?? []),
-        ];
+        $client->contacts()->delete();
 
-        return $payload;
+        foreach ($this->normalizeContacts($contacts) as $contact) {
+            $client->contacts()->create($contact);
+        }
+    }
+
+    private function ensureAiInsightRecord(Client $client): void
+    {
+        if ($client->aiInsight()->exists()) {
+            return;
+        }
+
+        ClientAiInsight::query()->create([
+            'client_id' => $client->id,
+            'summary' => null,
+        ]);
     }
 
     /**
