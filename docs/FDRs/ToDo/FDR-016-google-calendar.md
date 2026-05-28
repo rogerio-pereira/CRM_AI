@@ -11,16 +11,15 @@
 1. **GoogleCalendarService** wraps Calendar API `events.insert` for follow-ups and important tasks.
 2. On create/update of eligible records, queue **CreateCalendarEventJob** with title, description, start/end from due date.
 3. Store returned `google_event_id` on record for updates/deletes (one-way sync from CRM).
-4. **Single calendar ID** from settings (feature 17).
+4. **Single calendar ID** from `.env` (see deployment notes).
 5. No bidirectional sync; no internal calendar tables.
 
 ```mermaid
-sequenceDiagram
-    CRM[CRM follow-up saved]
-    CRM->>Job: CreateCalendarEventJob
-    Job->>GCal: events.insert
-    GCal-->>Job: event id
-    Job->>CRM: store google_event_id
+flowchart TD
+    Save[CRM follow-up saved] --> Job[CreateCalendarEventJob]
+    Job --> GCal[Google Calendar API]
+    GCal --> Job
+    Job --> Store[Store google_event_id on record]
 ```
 
 ---
