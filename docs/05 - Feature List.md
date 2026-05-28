@@ -451,14 +451,16 @@ Cross-feature only; vendor/infra (PostgreSQL, Redis, OpenAI, etc.) stay in featu
 
 At most **three** features per wave. Order respects dependencies (no feature appears before its prerequisites).
 
-| Wave | Features |
-| ---- | -------- |
-| **1** | [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) |
-| **2** | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
-| **3** | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
-| **4** | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
-| **5** | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
-| **6** | [16 Google Calendar integration](#f16-google-calendar) |
+**Status values:** `Pending` (not started) · `In progress` (active implementation) · `Done` (all features in the wave delivered; FDRs in `docs/FDRs/Done/`). Ralph Building sets a wave to `Done` when the last feature is complete and deletes local plan files in `docs/FDRs/ImplementationPlans/` (gitignored).
+
+| Wave | Status | Features |
+| ---- | ------ | -------- |
+| **1** | In progress | [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) |
+| **2** | Pending | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
+| **3** | Pending | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
+| **4** | Pending | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
+| **5** | Pending | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
+| **6** | Pending | [16 Google Calendar integration](#f16-google-calendar) |
 
 ---
 
