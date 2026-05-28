@@ -38,8 +38,8 @@ Project default is configured in `config/livewire.php` (`make_command.type` => `
 
 ## Legacy (existing code)
 
-- Settings and auth may still use `pages::` SFC under `resources/views/pages/` until migrated.
-- When touching legacy SFC, prefer migrating to class-based in the same change if scope allows; otherwise leave as-is and do not add new SFC.
+- All Livewire components use class-based structure under `app/Livewire/` with views in `resources/views/livewire/`.
+- Do not reintroduce SFC (`⚡*.blade.php`) or MFC-only components.
 
 ## Related docs
 
