@@ -32,27 +32,47 @@ class OpportunityFactory extends Factory
         ];
     }
 
+    public function stage(PipelineStage $stage): static
+    {
+        return $this->state(function (array $attributes) use ($stage): array {
+            $status = OpportunityStatus::Open;
+
+            if ($stage === PipelineStage::Won) {
+                $status = OpportunityStatus::Won;
+            }
+
+            if ($stage === PipelineStage::Lost) {
+                $status = OpportunityStatus::Lost;
+            }
+
+            return [
+                'stage' => $stage,
+                'status' => $status,
+            ];
+        });
+    }
+
     public function open(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'stage' => PipelineStage::Qualification,
-            'status' => OpportunityStatus::Open,
-        ]);
+        return $this->stage(PipelineStage::Qualification);
     }
 
     public function won(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'stage' => PipelineStage::Won,
-            'status' => OpportunityStatus::Won,
-        ]);
+        return $this->stage(PipelineStage::Won);
     }
 
     public function lost(): static
     {
+        return $this->stage(PipelineStage::Lost);
+    }
+
+    public function withAiRecommendations(): static
+    {
         return $this->state(fn (array $attributes) => [
-            'stage' => PipelineStage::Lost,
-            'status' => OpportunityStatus::Lost,
+            'ai_recommendations' => [
+                'summary' => fake()->sentence(),
+            ],
         ]);
     }
 }
