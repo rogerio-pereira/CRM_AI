@@ -78,7 +78,12 @@
                         <td class="px-4">{{ $followUp->due_at->format('M j, Y H:i') }}</td>
                         <td class="px-4 font-medium text-text-primary">{{ $followUp->client->company_name }}</td>
                         <td class="px-4">{{ $followUp->opportunity?->title ?? '—' }}</td>
-                        <td class="px-4">{{ $followUp->priority->label() }}</td>
+                        <td class="px-4">
+                            <x-priority-badge
+                                :priority="$followUp->priority"
+                                data-test="follow-ups-priority-badge-{{ $followUp->id }}"
+                            />
+                        </td>
                         <td class="px-4">
                             <span
                                 class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $followUp->statusBadgeClasses() }}"

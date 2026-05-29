@@ -157,4 +157,105 @@ class TaskManagementTest extends TestCase
 
         $this->assertTrue($task->fresh()->is_important);
     }
+
+    public function test_filter_changes_reset_pagination(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        Task::factory()->count(25)->for($client)->create([
+            'title' => 'Paged task',
+        ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->set('paginators.page', 2)
+            ->assertSet('paginators.page', 2);
+
+        $component
+            ->set('search', 'Paged')
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
+            ->set('priorityFilter', TaskPriority::High->value)
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
+            ->set('pendingOnly', true)
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
+            ->set('hideDone', false)
+            ->assertSet('paginators.page', 1);
+    }
+
+    public function test_confirm_delete_without_selected_task_is_no_op(): void
+    {
+        $user = User::factory()->create();
+        $task = Task::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete')
+            ->assertSet('deleteTaskId', null)
+            ->assertSet('showDeleteModal', false);
+
+        $this->assertDatabaseHas('tasks', ['id' => $task->id]);
+    }
+
+    public function test_updated_client_id_clears_opportunity_selection(): void
+    {
+        $user = User::factory()->create();
+        $firstClient = Client::factory()->create();
+        $secondClient = Client::factory()->create();
+        $opportunity = Opportunity::factory()->for($firstClient)->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('client_id', $firstClient->id)
+            ->set('opportunity_id', $opportunity->id)
+            ->set('client_id', $secondClient->id)
+            ->assertSet('opportunity_id', null);
+    }
+
+    public function test_opportunity_options_are_empty_until_client_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->assertCount('opportunityOptions', 0);
+    }
+
+    public function test_save_task_with_empty_opportunity_id_creates_client_only_task(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('client_id', $client->id)
+            ->set('opportunity_id', '')
+            ->set('title', 'No linked opportunity')
+            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->call('saveTask')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('tasks', [
+            'client_id' => $client->id,
+            'opportunity_id' => null,
+            'title' => 'No linked opportunity',
+        ]);
+    }
 }

@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Enums\PipelineStage;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -58,5 +59,17 @@ class OpportunityTest extends TestCase
 
         $this->assertTrue($opportunity->client->is($client));
         $this->assertSame('Related Client Co', $opportunity->client->company_name);
+    }
+
+    public function test_tasks_relationship_returns_related_tasks(): void
+    {
+        $opportunity = Opportunity::factory()->create();
+        $task = Task::factory()->for($opportunity->client)->create([
+            'opportunity_id' => $opportunity->id,
+            'title' => 'Opportunity task',
+        ]);
+
+        $this->assertTrue($opportunity->tasks->contains($task));
+        $this->assertSame($opportunity->id, $task->opportunity_id);
     }
 }

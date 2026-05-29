@@ -15,6 +15,17 @@ class QuickCreateModalTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_open_for_client_prefills_client_without_opportunity(): void
+    {
+        $client = Client::factory()->create(['company_name' => 'Follow-up Client Co']);
+
+        Livewire::test(QuickCreateModal::class)
+            ->dispatch('open-follow-up-for-client', clientId: $client->id)
+            ->assertSet('showFormModal', true)
+            ->assertSet('client_id', $client->id)
+            ->assertSet('opportunity_id', null);
+    }
+
     public function test_open_for_opportunity_prefills_client_and_opportunity(): void
     {
         $client = Client::factory()->create();

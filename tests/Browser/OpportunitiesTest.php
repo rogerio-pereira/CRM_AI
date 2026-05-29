@@ -4,6 +4,7 @@ use App\Enums\PipelineStage;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use App\Models\Task;
 use App\Models\User;
 
 it('displays the kanban board and creates an opportunity', function () {
@@ -100,6 +101,30 @@ it('creates a follow-up from the kanban card button', function () {
         ->assertSee('Follow Up From Kanban');
 
     expect(FollowUp::where('notes', 'Scheduled from Kanban card')->exists())->toBeTrue();
+});
+
+it('creates a task from the kanban card button', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Kanban Task Co']);
+    $opportunity = Opportunity::factory()->for($client)->create([
+        'title' => 'Task From Kanban',
+        'stage' => PipelineStage::Contact,
+    ]);
+
+    $this->actingAs($user);
+
+    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-create-task-'.$opportunity->id.'"]')
+        ->click('@kanban-card-create-task-'.$opportunity->id)
+        ->assertPresent('[data-test="tasks-quick-create-modal"]')
+        ->fill('@tasks-quick-form-title', 'Scheduled from Kanban card')
+        ->fill('@tasks-quick-form-due-at', $dueAt)
+        ->click('@tasks-quick-form-submit')
+        ->assertSee('Task From Kanban');
+
+    expect(Task::where('title', 'Scheduled from Kanban card')->exists())->toBeTrue();
 });
 
 it('drags an opportunity card to another stage', function () {
