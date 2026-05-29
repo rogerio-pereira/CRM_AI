@@ -26,11 +26,11 @@
 
 ## Acceptance criteria
 
-- [ ] All PRD follow-up attributes supported.
-- [ ] Table UI per Design System; modal create/edit.
-- [ ] Relations to client and opportunity enforced.
-- [ ] Events/hooks stubbed for Calendar and Slack integrations.
-- [ ] Feature tests for CRUD and date validation.
+- [x] All PRD follow-up attributes supported.
+- [x] Table UI per Design System; modal create/edit.
+- [x] Relations to client and opportunity enforced.
+- [x] Events/hooks stubbed for Calendar and Slack integrations.
+- [x] Feature tests for CRUD and date validation.
 
 ---
 
