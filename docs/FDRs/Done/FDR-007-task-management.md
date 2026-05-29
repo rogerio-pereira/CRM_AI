@@ -25,11 +25,11 @@
 
 ## Acceptance criteria
 
-- [ ] Task CRUD with priority and status.
-- [ ] Table matches Design System patterns.
-- [ ] Important tasks distinguishable in UI.
-- [ ] Dashboard can query pending tasks efficiently.
-- [ ] Feature tests for lifecycle.
+- [x] Task CRUD with priority and status.
+- [x] Table matches Design System patterns.
+- [x] Important tasks distinguishable in UI.
+- [x] Dashboard can query pending tasks efficiently.
+- [x] Feature tests for lifecycle.
 
 ---
 

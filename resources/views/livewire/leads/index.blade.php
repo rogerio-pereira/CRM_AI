@@ -85,6 +85,18 @@
                                         {{ __('View details') }}
                                     </flux:menu.item>
                                     <flux:menu.item
+                                        wire:click="openFollowUpModalForClient({{ $client->id }})"
+                                        data-test="leads-create-follow-up-{{ $client->id }}"
+                                    >
+                                        {{ __('Add follow-up') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item
+                                        wire:click="openTaskModalForClient({{ $client->id }})"
+                                        data-test="leads-create-task-{{ $client->id }}"
+                                    >
+                                        {{ __('Add task') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item
                                         wire:click="openEditModal({{ $client->id }})"
                                         data-test="leads-edit-{{ $client->id }}"
                                     >
@@ -147,4 +159,7 @@
     @include('livewire.leads.partials.form-modal')
     @include('livewire.leads.partials.detail-modal')
     @include('livewire.leads.partials.delete-modal')
+
+    <livewire:follow-ups.quick-create-modal />
+    <livewire:tasks.quick-create-modal />
 </div>

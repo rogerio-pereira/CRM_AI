@@ -4,6 +4,8 @@ namespace App\Livewire\Leads;
 
 use App\Enums\ClientStatus;
 use App\Http\Requests\ClientRequest;
+use App\Livewire\FollowUps\QuickCreateModal as FollowUpQuickCreateModal;
+use App\Livewire\Tasks\QuickCreateModal;
 use App\Models\Client;
 use App\Services\ClientService;
 use App\Support\UrlNormalizer;
@@ -11,6 +13,7 @@ use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -81,7 +84,19 @@ class Index extends Component
             return null;
         }
 
-        return Client::with(['opportunities', 'followUps'])->find($this->detailClientId);
+        return Client::with(['opportunities', 'followUps', 'tasks'])->find($this->detailClientId);
+    }
+
+    #[On('task-created')]
+    public function refreshDetailAfterTask(): void
+    {
+        unset($this->detailClient);
+    }
+
+    #[On('follow-up-created')]
+    public function refreshDetailAfterFollowUp(): void
+    {
+        unset($this->detailClient);
     }
 
     #[Computed]
@@ -122,6 +137,18 @@ class Index extends Component
         $this->detailClientId = $clientId;
         $this->showDetailModal = true;
         unset($this->detailClient);
+    }
+
+    public function openTaskModalForClient(int $clientId): void
+    {
+        $this->dispatch('open-task-for-client', clientId: $clientId)
+            ->to(QuickCreateModal::class);
+    }
+
+    public function openFollowUpModalForClient(int $clientId): void
+    {
+        $this->dispatch('open-follow-up-for-client', clientId: $clientId)
+            ->to(FollowUpQuickCreateModal::class);
     }
 
     public function openDeleteModal(int $clientId): void

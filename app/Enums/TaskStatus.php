@@ -2,16 +2,16 @@
 
 namespace App\Enums;
 
-enum FollowUpReminderStatus: string
+enum TaskStatus: string
 {
     case Pending = 'pending';
-    case Completed = 'completed';
+    case Done = 'done';
 
     public function label(): string
     {
         return match ($this) {
             self::Pending => __('Pending'),
-            self::Completed => __('Completed'),
+            self::Done => __('Done'),
         };
     }
 
@@ -19,7 +19,7 @@ enum FollowUpReminderStatus: string
     {
         return match ($this) {
             self::Pending => 'bg-status-warning/20 text-status-warning border-status-warning/50',
-            self::Completed => 'bg-status-success/20 text-status-success border-status-success/50',
+            self::Done => 'bg-status-success/20 text-status-success border-status-success/50',
         };
     }
 }

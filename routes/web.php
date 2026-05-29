@@ -3,6 +3,7 @@
 use App\Livewire\FollowUps\Index as FollowUpsIndex;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
+use App\Livewire\Tasks\Index as TasksIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -16,11 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('follow-ups', FollowUpsIndex::class)->name('follow-ups.index');
 
-    Route::view('tasks', 'pages.crm.stub', [
-        'title' => 'Tasks',
-        'heading' => 'Tasks',
-        'message' => 'Task management arrives in wave 3 (FDR-007).',
-    ])->name('tasks.index');
+    Route::livewire('tasks', TasksIndex::class)->name('tasks.index');
 });
 
 require __DIR__.'/settings.php';

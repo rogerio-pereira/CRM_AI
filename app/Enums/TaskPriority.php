@@ -4,7 +4,7 @@ namespace App\Enums;
 
 use App\Enums\Concerns\HasPriorityBadge;
 
-enum FollowUpPriority: string
+enum TaskPriority: string
 {
     use HasPriorityBadge;
 
