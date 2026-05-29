@@ -2,7 +2,7 @@
 
 **Feature:** 11  
 **Status:** Approved  
-**Reference:** [11 Automated lead qualification](../../05%20-%20Feature%20List.md#f11-automated-lead-qualification), [ADR-003](../../ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](../../ADRs/ADR-006-queue-async-processing.md), [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Proposed**, via [FDR-010](FDR-010-automated-prospecting.md))
+**Reference:** [11 Automated lead qualification](../../05%20-%20Feature%20List.md#f11-automated-lead-qualification), [ADR-003](../../ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](../../ADRs/ADR-006-queue-async-processing.md), [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via [FDR-010](FDR-010-automated-prospecting.md))
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Dependency | ADR status | Impact on this FDR |
 | ---------- | ----------- | ------------------ |
-| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Proposed** | **Partial:** qualification queue from **automated prospecting** depends on FDR-010/ADR-015. Manual lead → qualification can be built earlier if enqueue policy is confirmed below. |
+| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Accepted** | Qualification handoff from **automated prospecting** ships with FDR-010. Manual lead → qualification can be built earlier if enqueue policy is confirmed below. |
 | [ADR-005 — Fixed pipeline](../../ADRs/ADR-005-fixed-sales-pipeline.md) | Accepted | Stage names fixed; **target stage after qualification** still needs product confirmation (see below). |
 
 ### Decisions required before build (confirm with stakeholder)
@@ -19,7 +19,7 @@
 | - | ----- | ------ |
 | 1 | Enqueue qualification on manual lead create? | ☐ Not confirmed |
 | 2 | Post-qualification pipeline target: **Contact** vs stay in **Qualification** | ☐ Not confirmed (HLD: “moved to the next stage after analysis”) |
-| 3 | Automated prospecting → qualification handoff | ☐ Blocked until ADR-015 **Accepted** |
+| 3 | Automated prospecting → qualification handoff | ☐ Ships with FDR-010 (ADR-015 **Accepted**) |
 
 Core qualification job, AI enrichment, and retries can proceed with **mocked** leads; finalize stage-transition rules before production.
 

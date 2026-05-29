@@ -2,7 +2,7 @@
 
 **Feature:** 10  
 **Status:** Approved  
-**Reference:** [10 Automated prospecting](../../05%20-%20Feature%20List.md#f10-automated-prospecting), [ADR-007](../../ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Proposed**)
+**Reference:** [10 Automated prospecting](../../05%20-%20Feature%20List.md#f10-automated-prospecting), [ADR-007](../../ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**)
 
 ---
 
@@ -10,18 +10,22 @@
 
 | Dependency | ADR status | Impact on this FDR |
 | ---------- | ----------- | ------------------ |
-| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Proposed** | **Blocked:** concrete discovery adapter, allowed sources, and dedup rules must not be implemented until ADR-015 is **Accepted** and confirmed in the table below. |
+| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Accepted** | Discovery: AI-led active search on public/free sources; no paid data APIs; ethics/compliance per ADR. **Blocked until approved prompt is supplied** (see below). |
 | [ADR-007 — Scheduled prospecting](../../ADRs/ADR-007-scheduled-prospecting.md) | Accepted | Schedule (`08:00` weekdays) can be implemented independently. |
 
-### Decisions required before build (confirm with stakeholder)
+### Stakeholder decisions (recorded 2026-05-29)
 
-| # | Topic | Status |
-| - | ----- | ------ |
-| 1 | Discovery mechanism (APIs, list, assisted flow, etc.) | ☐ Not confirmed — see ADR-015 |
-| 2 | Deduplication rules (domain / company name / both) | ☐ Not confirmed — see ADR-015 |
-| 3 | MVP data sources (Maps, social, directories, etc.) | ☐ Not confirmed — see ADR-015 |
+| # | Topic | Decision |
+| - | ----- | -------- |
+| 1 | Discovery mechanism | AI-led active prospecting (outbound-salesperson model); approved system prompt required; subtle–moderate sales tone; no aggressive tactics; LGPD/GDPR compliance |
+| 2 | Deduplication | Company name + website domain (primary); email + phone when present (secondary) |
+| 3 | MVP data sources | Public/free only: Google, Maps, websites, social networks, directories — **no paid data APIs** |
 
-Until the above are confirmed and ADR-015 is **Accepted**, implement only: scheduler shell, orchestration hook, and a **stub/no-op discovery adapter** for tests.
+### Pending stakeholder deliverable
+
+| Item | Status |
+| ---- | ------ |
+| Approved prospecting system prompt (versioned) | ☐ Not yet supplied — **required before production adapter**; stub/mock OK for early Building |
 
 ---
 
@@ -29,39 +33,44 @@ Until the above are confirmed and ADR-015 is **Accepted**, implement only: sched
 
 1. **Scheduled command** `prospecting:run` — weekdays 08:00 ([ADR-007](../../ADRs/ADR-007-scheduled-prospecting.md)).
 2. Command calls orchestration to run **Prospecting Agent**.
-3. Agent uses **pluggable discovery adapter** (implementation TBD per ADR-015—must be agreed before coding adapter).
-4. For each discovered company: create **Lead/Client** + **Opportunity** in stage **Lead**.
-5. Deduplicate by website/domain or company name (rules TBD in implementation)
-6. If not duplicated, enqueue **qualification** job (feature 11).
+3. Agent uses **pluggable discovery adapter** implementing [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md): AI searches public/free sources (no paid data APIs).
+4. Agent behavior driven by **approved prompt** (stakeholder-provided).
+5. For each discovered company: create **Lead/Client** + **Opportunity** in stage **Lead**; mark source as prospecting.
+6. **Deduplicate** before insert: match normalized company name or website domain; also email/phone when available.
+7. If not duplicated, enqueue **qualification** job (feature 11).
 
 ```mermaid
 flowchart TD
     Cron[Scheduler 08:00 weekdays] --> Cmd[prospecting:run]
     Cmd --> Agent[Prospecting Agent]
-    Agent --> Disc[Discovery adapter TBD]
-    Disc --> Save[Create lead + opportunity Lead stage]
-    Save --> Dedup[Deduplicate]
-    Dedup --> Q[Enqueue qualification]
+    Agent --> Prompt[Approved system prompt]
+    Agent --> Disc[AI-led discovery adapter]
+    Disc --> Dedup[Deduplicate name/domain/email/phone]
+    Dedup --> Save[Create lead + opportunity Lead stage]
+    Save --> Q[Enqueue qualification]
 ```
 
 ## How to test
 
 - Schedule fake: run command manually; verify leads created.
-- Mock discovery returns N records; dedup prevents duplicates.
+- Mock discovery returns N records; dedup prevents duplicates (name, domain, email, phone cases).
 - Qualification job dispatched for each new lead.
 - No run on Saturday/Sunday.
+- No live paid data API calls in CI; use mocks/fakes.
 
 ---
 
 ## Acceptance criteria
 
-- [ ] ADR-015 status is **Accepted**; discovery/dedup rows in ADR-015 checked; choices recorded in this FDR.
+- [x] ADR-015 status is **Accepted**; discovery/dedup/source choices recorded in this FDR.
+- [ ] Approved prospecting prompt integrated and referenced in code/config.
 - [ ] Weekday 08:00 schedule registered.
 - [ ] Prospecting agent invoked via orchestration.
+- [ ] AI-led discovery adapter implemented per ADR-015 (public/free sources only).
+- [ ] Dedup: company name, website; email/phone when present.
 - [ ] New records in Lead stage with source marked as prospecting.
 - [ ] Qualification queue receives new leads.
-- [ ] Discovery adapter interface documented; concrete adapter implemented **only after** ADR-015 **Accepted**.
-- [ ] Tests use mocked discovery only.
+- [ ] Tests use mocked discovery only (no live AI/data APIs in CI).
 
 ---
 
@@ -69,3 +78,4 @@ flowchart TD
 
 - Confirm `APP_TIMEZONE` for 08:00.
 - Scheduler must run in production.
+- `AI_PROVIDER` + API keys for inference (not paid **data** APIs per ADR-015).

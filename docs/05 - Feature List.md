@@ -8,7 +8,7 @@
 
 **FDR locations:** Active specs live in `docs/FDRs/ToDo/`; completed features in `docs/FDRs/Done/`; archived or superseded specs in `docs/FDRs/Closed/`.
 
-**ADR status:** [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) and [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) are **Proposed** (awaiting stakeholder approval). Features [10](#f10-automated-prospecting), [11](#f11-automated-lead-qualification) (partial), [13](#f13-proposal-assistance), and [14](#f14-pipeline-stage-automation) (partial) depend on those decisions — see linked FDRs.
+**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) has separate product decisions in its FDR.
 
 ---
 
@@ -262,9 +262,9 @@
 - New leads in pipeline stage Lead
 - Entries in qualification queue
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Proposed** — blocks discovery adapter; see [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md))
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md))
 
-**Implementation note:** Do not implement real lead discovery until ADR-015 is **Accepted**.
+**Implementation note:** Discovery per ADR-015 requires stakeholder **approved prospecting prompt** before production adapter; no paid data APIs.
 
 ---
 
@@ -287,7 +287,7 @@
 - Updated lead records with qualification notes and AI insights
 - Stage moves after qualification (per pipeline rules)
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Proposed**, via prospecting)
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting)
 
 **Implementation note:** Core qualification can proceed with manual/mock leads; prospecting handoff and post-qualification stage target need confirmation ([FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md)).
 
@@ -482,5 +482,5 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | [ADR-012](ADRs/ADR-012-integration-failure-isolation.md) | Accepted | Integration failure isolation |
 | [ADR-013](ADRs/ADR-013-dark-mode-design-system.md) | Accepted | Dark mode design system |
 | [ADR-014](ADRs/ADR-014-dashboard-observability-scope.md) | Accepted | Dashboard and observability scope |
-| [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Proposed** | Prospecting discovery undefined in MVP |
+| [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | Accepted | AI-led prospecting on public/free sources (no paid data APIs) |
 | [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | Proposal generation undefined in MVP |
