@@ -87,10 +87,19 @@
                 @else
                     <ul class="mt-2 space-y-2 text-sm text-text-secondary">
                         @foreach ($client->followUps->sortByDesc('due_at') as $followUp)
-                            <li>
-                                {{ $followUp->due_at->format('M j, Y') }}
-                                — {{ $followUp->priority->label() }}
-                                — {{ $followUp->reminder_status->label() }}
+                            <li class="flex flex-wrap items-center gap-2">
+                                <span>{{ $followUp->due_at->format('M j, Y') }}</span>
+                                <x-priority-badge
+                                    :priority="$followUp->priority"
+                                    data-test="leads-detail-follow-up-priority-{{ $followUp->id }}"
+                                />
+                                <span
+                                    class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $followUp->statusBadgeClasses() }}"
+                                    data-test="leads-detail-follow-up-status-{{ $followUp->id }}"
+                                    data-status="{{ $followUp->reminder_status->value }}"
+                                >
+                                    {{ $followUp->reminder_status->label() }}
+                                </span>
                             </li>
                         @endforeach
                     </ul>

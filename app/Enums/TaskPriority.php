@@ -2,8 +2,11 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\ProvidesPriorityBadge;
+
 enum TaskPriority: string
 {
+    use ProvidesPriorityBadge;
     case Low = 'low';
     case Medium = 'medium';
     case High = 'high';
