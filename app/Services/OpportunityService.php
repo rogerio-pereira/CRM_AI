@@ -71,7 +71,6 @@ class OpportunityService
     {
         $opportunities = Opportunity::query()
             ->with(['client'])
-            ->withNextFollowUpDate()
             ->orderByDesc('updated_at')
             ->get();
 

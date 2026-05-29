@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\FollowUps\Index as FollowUpsIndex;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +13,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('opportunities', OpportunitiesIndex::class)->name('opportunities.index');
 
-    Route::livewire('follow-ups', FollowUpsIndex::class)->name('follow-ups.index');
+    Route::view('follow-ups', 'pages.crm.stub', [
+        'title' => 'Follow-ups',
+        'heading' => 'Follow-ups',
+        'message' => 'Follow-up management arrives in wave 2 (FDR-006).',
+    ])->name('follow-ups.index');
 
     Route::view('tasks', 'pages.crm.stub', [
         'title' => 'Tasks',
