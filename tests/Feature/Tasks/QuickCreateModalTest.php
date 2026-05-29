@@ -82,4 +82,19 @@ class QuickCreateModalTest extends TestCase
             'status' => TaskStatus::Pending->value,
         ]);
     }
+
+    public function test_changing_client_clears_opportunity(): void
+    {
+        $firstClient = Client::factory()->create();
+        $secondClient = Client::factory()->create();
+        $firstOpportunity = Opportunity::factory()->for($firstClient)->create(['title' => 'First deal']);
+        Opportunity::factory()->for($secondClient)->create(['title' => 'Second deal']);
+
+        Livewire::test(QuickCreateModal::class)
+            ->dispatch('open-task-for-opportunity', opportunityId: $firstOpportunity->id)
+            ->set('client_id', $secondClient->id)
+            ->assertSet('opportunity_id', null)
+            ->assertCount('opportunityOptions', 1)
+            ->assertSee('Second deal');
+    }
 }
