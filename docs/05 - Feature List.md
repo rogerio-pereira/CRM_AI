@@ -264,7 +264,7 @@
 
 **ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md))
 
-**Implementation note:** Discovery per ADR-015 requires stakeholder **approved prospecting prompt** before production adapter; no paid data APIs.
+**Implementation note:** Discovery per ADR-015: compliant in-repo scraping on public/free sources allowed; **approved prospecting prompt** required before production; no paid data APIs; no external unmanaged discovery code.
 
 ---
 

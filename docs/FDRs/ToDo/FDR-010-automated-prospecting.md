@@ -17,7 +17,7 @@
 
 | # | Topic | Decision |
 | - | ----- | -------- |
-| 1 | Discovery mechanism | AI-led active prospecting (outbound-salesperson model); approved system prompt required; subtle–moderate sales tone; no aggressive tactics; LGPD/GDPR compliance |
+| 1 | Discovery mechanism | AI-led active prospecting; **compliant scraping** on public/free sources allowed; **all code in this repo** (no external scripts/services); approved system prompt required; subtle–moderate sales tone; LGPD/GDPR compliance |
 | 2 | Deduplication | Company name + website domain (primary); email + phone when present (secondary) |
 | 3 | MVP data sources | Public/free only: Google, Maps, websites, social networks, directories — **no paid data APIs** |
 
@@ -33,7 +33,7 @@
 
 1. **Scheduled command** `prospecting:run` — weekdays 08:00 ([ADR-007](../../ADRs/ADR-007-scheduled-prospecting.md)).
 2. Command calls orchestration to run **Prospecting Agent**.
-3. Agent uses **pluggable discovery adapter** implementing [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md): AI searches public/free sources (no paid data APIs).
+3. Agent uses **pluggable discovery adapter** implementing [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md): AI and/or **in-repo scraping** on public/free sources (no paid data APIs; no external unmanaged code).
 4. Agent behavior driven by **approved prompt** (stakeholder-provided).
 5. For each discovered company: create **Lead/Client** + **Opportunity** in stage **Lead**; mark source as prospecting.
 6. **Deduplicate** before insert: match normalized company name or website domain; also email/phone when available.
