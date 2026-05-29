@@ -10,6 +10,8 @@ use App\Jobs\RunRecommendationAgentJob;
 use App\Services\AiOrchestrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use InvalidArgumentException;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class AiOrchestrationServiceTest extends TestCase
@@ -44,5 +46,29 @@ class AiOrchestrationServiceTest extends TestCase
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($payload): bool {
             return $job->payload === $payload;
         });
+    }
+
+    public function test_dispatch_pushes_job_for_each_agent_type(): void
+    {
+        Queue::fake();
+
+        $this->service->dispatch(AgentType::Prospecting, ['trigger' => 'manual']);
+        $this->service->dispatch(AgentType::Recommendation, ['opportunity_id' => 2]);
+        $this->service->dispatch(AgentType::ProposalAssistant, ['opportunity_id' => 3]);
+
+        Queue::assertPushed(RunProspectingAgentJob::class);
+        Queue::assertPushed(RunRecommendationAgentJob::class);
+        Queue::assertPushed(RunProposalAssistantAgentJob::class);
+    }
+
+    public function test_resolve_job_class_throws_for_unknown_agent_type_value(): void
+    {
+        $method = new ReflectionMethod(AiOrchestrationService::class, 'resolveJobClass');
+        $method->setAccessible(true);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown agent type: unknown_agent');
+
+        $method->invoke($this->service, 'unknown_agent');
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\PipelineStage;
 use App\Events\ClientCreated;
 use App\Jobs\RunProposalAssistantAgentJob;
 use App\Jobs\RunQualificationAgentJob;
+use App\Jobs\RunRecommendationAgentJob;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -60,6 +61,27 @@ class AiOrchestrationTest extends TestCase
             ->call('moveToStage', $opportunity->id, PipelineStage::ProposalGeneration->value);
 
         Queue::assertPushed(RunProposalAssistantAgentJob::class);
+    }
+
+    public function test_moving_opportunity_to_proposal_analysis_enqueues_recommendation_job(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'stage' => PipelineStage::ProposalGeneration,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(OpportunitiesIndex::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::ProposalAnalysis->value)
+            ->assertHasNoErrors();
+
+        Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity): bool {
+            return $job->payload['opportunity_id'] === $opportunity->id
+                && $job->payload['to_stage'] === PipelineStage::ProposalAnalysis->value;
+        });
     }
 
     public function test_client_creation_enqueues_qualification_job(): void
