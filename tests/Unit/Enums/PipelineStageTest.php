@@ -62,6 +62,49 @@ class PipelineStageTest extends TestCase
             $this->assertNotSame('', $stage->colorToken());
             $this->assertNotSame('', $stage->slug());
             $this->assertNotSame('', $stage->badgeClasses());
+            $this->assertNotSame('', $stage->columnClasses());
+            $this->assertNotSame('', $stage->columnHeadingClasses());
         }
+    }
+
+    #[DataProvider('userActionStageProvider')]
+    public function test_requires_user_action_returns_true_for_human_driven_stages(PipelineStage $stage): void
+    {
+        $this->assertTrue($stage->requiresUserAction());
+        $this->assertStringContainsString('primary', $stage->columnClasses());
+        $this->assertStringContainsString('primary', $stage->badgeClasses());
+    }
+
+    /**
+     * @return array<string, array{0: PipelineStage}>
+     */
+    public static function userActionStageProvider(): array
+    {
+        return [
+            'contact' => [PipelineStage::Contact],
+            'proposal analysis' => [PipelineStage::ProposalAnalysis],
+        ];
+    }
+
+    #[DataProvider('automatedOrAwaitingStageProvider')]
+    public function test_requires_user_action_returns_false_for_non_human_stages(PipelineStage $stage): void
+    {
+        $this->assertFalse($stage->requiresUserAction());
+        $this->assertStringContainsString('border-border', $stage->columnClasses());
+    }
+
+    /**
+     * @return array<string, array{0: PipelineStage}>
+     */
+    public static function automatedOrAwaitingStageProvider(): array
+    {
+        return [
+            'lead' => [PipelineStage::Lead],
+            'qualification' => [PipelineStage::Qualification],
+            'proposal generation' => [PipelineStage::ProposalGeneration],
+            'proposal sent' => [PipelineStage::ProposalSent],
+            'won' => [PipelineStage::Won],
+            'lost' => [PipelineStage::Lost],
+        ];
     }
 }
