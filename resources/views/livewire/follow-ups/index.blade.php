@@ -30,7 +30,12 @@
             @endforeach
         </flux:select>
 
-        <div class="flex items-end">
+        <div class="flex flex-col justify-end gap-3">
+            <flux:checkbox
+                wire:model.live="hideCompleted"
+                :label="__('Hide completed')"
+                data-test="follow-ups-hide-completed"
+            />
             <flux:checkbox
                 wire:model.live="overdueOnly"
                 :label="__('Overdue only')"
@@ -56,17 +61,32 @@
                     <tr
                         wire:key="follow-up-{{ $followUp->id }}"
                         @class([
-                            'h-12 border-b border-border-subtle odd:bg-transparent even:bg-app/40 hover:bg-hover',
-                            'bg-status-warning/10' => $followUp->isOverdue(),
+                            'h-12 border-b border-border-subtle hover:bg-hover',
+                            'odd:bg-transparent even:bg-app/40' => ! $followUp->hasCompletedRowHighlight() && ! $followUp->hasOverdueRowHighlight(),
+                            'bg-status-success/10' => $followUp->hasCompletedRowHighlight(),
+                            'bg-status-danger/15' => $followUp->hasOverdueRowHighlight(),
+                            'border-l-2 border-l-status-danger' => $followUp->hasOverdueRowHighlight(),
                         ])
                         data-test="follow-ups-row-{{ $followUp->id }}"
+                        @if ($followUp->isOverdue())
+                            data-overdue-row="true"
+                        @endif
+                        @if ($followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Completed)
+                            data-completed-row="true"
+                        @endif
                     >
                         <td class="px-4">{{ $followUp->due_at->format('M j, Y H:i') }}</td>
                         <td class="px-4 font-medium text-text-primary">{{ $followUp->client->company_name }}</td>
                         <td class="px-4">{{ $followUp->opportunity?->title ?? '—' }}</td>
                         <td class="px-4">{{ $followUp->priority->label() }}</td>
                         <td class="px-4">
-                            <flux:badge size="sm">{{ $followUp->reminder_status->label() }}</flux:badge>
+                            <span
+                                class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $followUp->statusBadgeClasses() }}"
+                                data-test="follow-ups-status-badge-{{ $followUp->id }}"
+                                data-status="{{ $followUp->reminder_status->value }}"
+                            >
+                                {{ $followUp->reminder_status->label() }}
+                            </span>
                         </td>
                         <td class="px-4 text-end">
                             <flux:dropdown position="bottom" align="end">
@@ -85,18 +105,12 @@
                                         {{ __('Edit') }}
                                     </flux:menu.item>
 
-                                    @if ($followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending || $followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Snoozed)
+                                    @if ($followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending)
                                         <flux:menu.item
                                             wire:click="markComplete({{ $followUp->id }})"
                                             data-test="follow-ups-complete-{{ $followUp->id }}"
                                         >
                                             {{ __('Mark complete') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item
-                                            wire:click="snooze({{ $followUp->id }})"
-                                            data-test="follow-ups-snooze-{{ $followUp->id }}"
-                                        >
-                                            {{ __('Snooze') }}
                                         </flux:menu.item>
                                     @endif
                                 </flux:menu>

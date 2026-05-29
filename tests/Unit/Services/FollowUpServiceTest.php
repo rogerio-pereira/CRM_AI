@@ -11,7 +11,6 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -150,32 +149,16 @@ class FollowUpServiceTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_mark_complete_sets_status_and_clears_snooze(): void
+    public function test_mark_complete_sets_status_and_completed_at(): void
     {
         Event::fake([FollowUpUpdated::class]);
 
-        $followUp = FollowUp::factory()->snoozed()->create();
+        $followUp = FollowUp::factory()->create();
 
         $result = $this->service->markComplete($followUp);
 
         $this->assertSame(FollowUpReminderStatus::Completed, $result->reminder_status);
         $this->assertNotNull($result->completed_at);
-        $this->assertNull($result->snoozed_until);
-
-        Event::assertDispatched(FollowUpUpdated::class);
-    }
-
-    public function test_snooze_uses_custom_until_date(): void
-    {
-        Event::fake([FollowUpUpdated::class]);
-
-        $followUp = FollowUp::factory()->create();
-        $until = Carbon::parse('2030-06-15 10:00:00');
-
-        $result = $this->service->snooze($followUp, $until);
-
-        $this->assertSame(FollowUpReminderStatus::Snoozed, $result->reminder_status);
-        $this->assertTrue($result->snoozed_until->equalTo($until));
 
         Event::assertDispatched(FollowUpUpdated::class);
     }
@@ -195,27 +178,42 @@ class FollowUpServiceTest extends TestCase
             'due_at' => now()->addDay(),
         ]);
 
-        $searchResults = $this->service->paginateForIndex('acme', null, false);
+        $searchResults = $this->service->paginateForIndex('acme', null, false, false);
 
         $this->assertCount(1, $searchResults);
         $this->assertTrue($searchResults->first()->is($matching));
 
-        $priorityResults = $this->service->paginateForIndex(null, FollowUpPriority::High->value, false);
+        $priorityResults = $this->service->paginateForIndex(null, FollowUpPriority::High->value, false, false);
 
         $this->assertCount(1, $priorityResults);
         $this->assertTrue($priorityResults->first()->is($matching));
 
-        $overdueResults = $this->service->paginateForIndex(null, null, true);
+        $overdueResults = $this->service->paginateForIndex(null, null, true, false);
 
         $this->assertCount(1, $overdueResults);
         $this->assertTrue($overdueResults->first()->is($matching));
+    }
+
+    public function test_paginate_for_index_hides_completed_by_default(): void
+    {
+        $client = Client::factory()->create();
+
+        $pending = FollowUp::factory()->for($client)->create();
+        FollowUp::factory()->for($client)->completed()->create();
+
+        $hidden = $this->service->paginateForIndex(null, null, false, true);
+        $visible = $this->service->paginateForIndex(null, null, false, false);
+
+        $this->assertCount(1, $hidden);
+        $this->assertTrue($hidden->first()->is($pending));
+        $this->assertCount(2, $visible);
     }
 
     public function test_list_for_index_returns_all_when_filters_are_empty(): void
     {
         FollowUp::factory()->count(3)->create();
 
-        $results = $this->service->paginateForIndex(null, 'all', false);
+        $results = $this->service->paginateForIndex(null, 'all', false, false);
 
         $this->assertCount(3, $results);
     }
@@ -224,8 +222,8 @@ class FollowUpServiceTest extends TestCase
     {
         FollowUp::factory()->count(21)->create();
 
-        $pageOne = $this->service->paginateForIndex(null, null, false);
-        $pageTwo = $this->service->paginateForIndex(null, null, false, page: 2);
+        $pageOne = $this->service->paginateForIndex(null, null, false, false);
+        $pageTwo = $this->service->paginateForIndex(null, null, false, false, page: 2);
 
         $this->assertSame(21, $pageOne->total());
         $this->assertCount(20, $pageOne->items());

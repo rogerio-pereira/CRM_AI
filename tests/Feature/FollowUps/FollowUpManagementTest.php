@@ -112,27 +112,6 @@ class FollowUpManagementTest extends TestCase
         Event::assertDispatched(FollowUpUpdated::class);
     }
 
-    public function test_snooze_updates_reminder_status(): void
-    {
-        Event::fake([FollowUpUpdated::class]);
-
-        $user = User::factory()->create();
-        $followUp = FollowUp::factory()->create();
-
-        $this->actingAs($user);
-
-        Livewire::test(Index::class)
-            ->call('snooze', $followUp->id)
-            ->assertHasNoErrors();
-
-        $followUp->refresh();
-
-        $this->assertSame(FollowUpReminderStatus::Snoozed, $followUp->reminder_status);
-        $this->assertNotNull($followUp->snoozed_until);
-
-        Event::assertDispatched(FollowUpUpdated::class);
-    }
-
     public function test_overdue_filter_returns_only_overdue_pending_follow_ups(): void
     {
         $user = User::factory()->create();
@@ -225,6 +204,39 @@ class FollowUpManagementTest extends TestCase
             ->assertSet('opportunity_id', null)
             ->assertCount('opportunityOptions', 1)
             ->assertSee('Second deal');
+    }
+
+    public function test_hide_completed_is_enabled_by_default(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['company_name' => 'Visible Pending Co']);
+
+        FollowUp::factory()->for($client)->create();
+        FollowUp::factory()->for($client)->completed()->create(['notes' => 'Done follow-up']);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSet('hideCompleted', true)
+            ->assertSee('Visible Pending Co')
+            ->assertDontSee('Done follow-up');
+    }
+
+    public function test_unchecking_hide_completed_shows_completed_follow_ups(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['company_name' => 'Completed Visible Co']);
+
+        FollowUp::factory()->for($client)->completed()->create([
+            'notes' => 'Finished task',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->set('hideCompleted', false)
+            ->assertSee('Completed Visible Co')
+            ->assertSee(__('Completed'));
     }
 
     public function test_priority_filter_limits_listed_follow_ups(): void

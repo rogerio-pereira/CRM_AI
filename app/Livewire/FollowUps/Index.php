@@ -29,6 +29,8 @@ class Index extends Component
 
     public bool $overdueOnly = false;
 
+    public bool $hideCompleted = true;
+
     public bool $showFormModal = false;
 
     public ?int $editingFollowUpId = null;
@@ -49,6 +51,7 @@ class Index extends Component
             $this->search !== '' ? $this->search : null,
             $this->priorityFilter !== 'all' ? $this->priorityFilter : null,
             $this->overdueOnly,
+            $this->hideCompleted,
             page: $this->getPage(),
         );
     }
@@ -64,6 +67,11 @@ class Index extends Component
     }
 
     public function updatedOverdueOnly(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedHideCompleted(): void
     {
         $this->resetPage();
     }
@@ -156,13 +164,6 @@ class Index extends Component
         $followUp = FollowUp::findOrFail($followUpId);
         $followUpService->markComplete($followUp);
         Flux::toast(variant: 'success', text: __('Follow-up completed.'));
-    }
-
-    public function snooze(int $followUpId, FollowUpService $followUpService): void
-    {
-        $followUp = FollowUp::findOrFail($followUpId);
-        $followUpService->snooze($followUp);
-        Flux::toast(variant: 'success', text: __('Follow-up snoozed.'));
     }
 
     public function render(): View

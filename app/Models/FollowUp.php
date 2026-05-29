@@ -26,7 +26,6 @@ class FollowUp extends Model
         'priority',
         'notes',
         'reminder_status',
-        'snoozed_until',
         'completed_at',
     ];
 
@@ -39,7 +38,6 @@ class FollowUp extends Model
             'due_at' => 'datetime',
             'priority' => FollowUpPriority::class,
             'reminder_status' => FollowUpReminderStatus::class,
-            'snoozed_until' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }
@@ -67,6 +65,25 @@ class FollowUp extends Model
         }
 
         return $this->due_at->isPast();
+    }
+
+    public function hasCompletedRowHighlight(): bool
+    {
+        return $this->reminder_status === FollowUpReminderStatus::Completed;
+    }
+
+    public function hasOverdueRowHighlight(): bool
+    {
+        return $this->isOverdue();
+    }
+
+    public function statusBadgeClasses(): string
+    {
+        if ($this->isOverdue()) {
+            return 'bg-status-danger/20 text-status-danger border-status-danger/50';
+        }
+
+        return $this->reminder_status->badgeClasses();
     }
 
     /**

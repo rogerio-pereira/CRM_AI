@@ -8,7 +8,6 @@ use App\Events\FollowUpUpdated;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class FollowUpService
@@ -54,22 +53,6 @@ class FollowUpService
     {
         $followUp->reminder_status = FollowUpReminderStatus::Completed;
         $followUp->completed_at = now();
-        $followUp->snoozed_until = null;
-        $followUp->save();
-
-        FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
-
-        return $followUp;
-    }
-
-    public function snooze(FollowUp $followUp, ?Carbon $until = null): FollowUp
-    {
-        if ($until === null) {
-            $until = now()->addDay();
-        }
-
-        $followUp->reminder_status = FollowUpReminderStatus::Snoozed;
-        $followUp->snoozed_until = $until;
         $followUp->save();
 
         FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
@@ -81,6 +64,7 @@ class FollowUpService
         ?string $search,
         ?string $priorityFilter,
         bool $overdueOnly,
+        bool $hideCompleted = true,
         int $page = 1,
         int $perPage = self::INDEX_PER_PAGE,
     ): LengthAwarePaginator {
@@ -100,6 +84,10 @@ class FollowUpService
 
         if ($overdueOnly) {
             $query->overdue();
+        }
+
+        if ($hideCompleted) {
+            $query->where('reminder_status', '!=', FollowUpReminderStatus::Completed);
         }
 
         return $query->paginate(

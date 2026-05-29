@@ -13,6 +13,9 @@
     'kanban-column-user-action'
     'kanban-column-user-action-heading'
     'kanban-column-user-action--dragging'
+    'bg-status-danger/15 border-l-status-danger'
+    'bg-status-danger/20 text-status-danger border-status-danger/50'
+    'bg-status-success/10 bg-status-success/20 text-status-success border-status-success/50'
 );
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
@@ -131,6 +134,10 @@
         color: var(--color-primary-focus);
     }
 }
+
+@source inline("bg-status-danger/15");
+@source inline("border-l-status-danger");
+@source inline("bg-status-success/10");
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],

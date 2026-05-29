@@ -40,9 +40,20 @@ it('completes a follow-up from the actions menu', function () {
         ->assertSee('Complete Browser Co')
         ->click('@follow-ups-actions-'.$followUp->id)
         ->click('@follow-ups-complete-'.$followUp->id)
-        ->assertSee('Complete Browser Co');
+        ->uncheck('@follow-ups-hide-completed')
+        ->assertPresent('[data-test="follow-ups-row-'.$followUp->id.'"][data-completed-row="true"]')
+        ->assertPresent('[data-test="follow-ups-status-badge-'.$followUp->id.'"][data-status="completed"]');
 
-    $followUp->refresh();
+    expect($followUp->fresh()->reminder_status)->toBe(FollowUpReminderStatus::Completed);
+});
 
-    expect($followUp->reminder_status)->toBe(FollowUpReminderStatus::Completed);
+it('highlights overdue follow-ups in the table', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Overdue Browser Co']);
+    $followUp = FollowUp::factory()->for($client)->overdue()->create();
+
+    $this->actingAs($user);
+
+    visit('/follow-ups')
+        ->assertPresent('[data-test="follow-ups-row-'.$followUp->id.'"][data-overdue-row="true"]');
 });
