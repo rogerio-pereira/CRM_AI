@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Leads\Index as LeadsIndex;
+use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -10,11 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::livewire('leads', LeadsIndex::class)->name('leads.index');
 
-    Route::view('opportunities', 'pages.crm.stub', [
-        'title' => 'Opportunities',
-        'heading' => 'Opportunities',
-        'message' => 'Kanban pipeline view arrives in wave 2 (FDR-005).',
-    ])->name('opportunities.index');
+    Route::livewire('opportunities', OpportunitiesIndex::class)->name('opportunities.index');
 
     Route::view('follow-ups', 'pages.crm.stub', [
         'title' => 'Follow-ups',

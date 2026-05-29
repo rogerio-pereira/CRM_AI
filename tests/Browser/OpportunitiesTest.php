@@ -1,0 +1,103 @@
+<?php
+
+use App\Enums\PipelineStage;
+use App\Models\Client;
+use App\Models\Opportunity;
+use App\Models\User;
+
+it('displays the kanban board and creates an opportunity', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Kanban Browser Co']);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertNoSmoke()
+        ->assertPresent('[data-test="opportunities-page"]')
+        ->assertPresent('[data-test="kanban-board"]')
+        ->assertPresent('[data-test="kanban-column-lead"]')
+        ->assertPresent('[data-test="kanban-column-contact"][data-user-action-column="true"]')
+        ->assertPresent('[data-test="kanban-column-proposal-analysis"][data-user-action-column="true"]')
+        ->assertNotPresent('[data-test="kanban-column-lead"][data-user-action-column="true"]')
+        ->click('@opportunities-create-button')
+        ->fill('@opportunities-form-title', 'Browser Kanban Deal')
+        ->select('@opportunities-form-client', (string) $client->id)
+        ->fill('@opportunities-form-value', '25000')
+        ->click('@opportunities-form-submit')
+        ->assertSee('Browser Kanban Deal');
+
+    expect(Opportunity::where('title', 'Browser Kanban Deal')->exists())->toBeTrue();
+});
+
+it('moves an opportunity via the action menu', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'title' => 'Move Menu Deal',
+        'stage' => PipelineStage::Lead,
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]')
+        ->click('@kanban-card-actions-'.$opportunity->id)
+        ->click('@kanban-card-move-'.$opportunity->id.'-qualification')
+        ->assertPresent('[data-test="kanban-column-qualification"] [data-test="kanban-card-'.$opportunity->id.'"]');
+
+    $opportunity->refresh();
+
+    expect($opportunity->stage)->toBe(PipelineStage::Qualification);
+});
+
+it('opens the opportunity detail modal with client summary', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create([
+        'company_name' => 'Detail Summary Co',
+        'contact_email' => 'detail@summary.test',
+    ]);
+    $opportunity = Opportunity::factory()->for($client)->create([
+        'title' => 'Detail Modal Deal',
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-modal"]')
+        ->assertSee('Detail Modal Deal')
+        ->assertSee('Detail Summary Co')
+        ->assertSee('detail@summary.test');
+});
+
+it('shows horizontal scroll on narrow viewports', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->on()
+        ->mobile()
+        ->assertPresent('[data-test="kanban-board"]');
+});
+
+it('drags an opportunity card to another stage', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'title' => 'Drag Deal',
+        'stage' => PipelineStage::Lead,
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]')
+        ->drag(
+            '@kanban-card-'.$opportunity->id,
+            '@kanban-column-qualification',
+        )
+        ->assertPresent('[data-test="kanban-column-qualification"] [data-test="kanban-card-'.$opportunity->id.'"]');
+
+    $opportunity->refresh();
+
+    expect($opportunity->stage)->toBe(PipelineStage::Qualification);
+});

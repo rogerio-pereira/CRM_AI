@@ -34,11 +34,11 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] Fixed eight stages; not admin-configurable.
-- [ ] Kanban is primary opportunity UI.
-- [ ] Cards display required fields per Design System.
-- [ ] Stage change dispatches domain event.
-- [ ] Feature tests for stage transitions and validation.
+- [x] Fixed eight stages; not admin-configurable.
+- [x] Kanban is primary opportunity UI.
+- [x] Cards display required fields per Design System.
+- [x] Stage change dispatches domain event.
+- [x] Feature tests for stage transitions and validation.
 
 ---
 
