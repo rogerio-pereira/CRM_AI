@@ -15,11 +15,6 @@ trait RunsAiAgentJob
 
     public int $backoff = 300;
 
-    public function configureAiAgentJobQueue(): void
-    {
-        $this->onConnection('redis');
-    }
-
     abstract protected function agentType(): AgentType;
 
     abstract protected function resolveAgent(): AiAgent;

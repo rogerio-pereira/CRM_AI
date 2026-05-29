@@ -51,7 +51,7 @@ class RunQualificationAgentJobTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_job_uses_redis_connection_and_retry_settings(): void
+    public function test_job_uses_retry_settings(): void
     {
         $job = new RunQualificationAgentJob([]);
 

@@ -21,9 +21,7 @@ class RunQualificationAgentJob implements ShouldQueue
      */
     public function __construct(
         public array $payload,
-    ) {
-        $this->configureAiAgentJobQueue();
-    }
+    ) {}
 
     protected function agentType(): AgentType
     {
