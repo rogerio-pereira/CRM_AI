@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 class DashboardTablesService
 {
-    public const FOLLOW_UP_LIMIT = 10;
+    public const TABLE_LIMIT = 10;
 
     public function __construct(
         private readonly TaskService $taskService,
@@ -20,7 +20,23 @@ class DashboardTablesService
      */
     public function pendingTasks(): Collection
     {
-        return $this->taskService->pendingForDashboard();
+        return $this->taskService->pendingForDashboard(self::TABLE_LIMIT);
+    }
+
+    public function pendingTasksTotal(): int
+    {
+        return Task::query()->pending()->count();
+    }
+
+    public function pendingTasksOverflow(): int
+    {
+        $total = $this->pendingTasksTotal();
+
+        if ($total <= self::TABLE_LIMIT) {
+            return 0;
+        }
+
+        return $total - self::TABLE_LIMIT;
     }
 
     /**
@@ -35,7 +51,25 @@ class DashboardTablesService
             ->where('reminder_status', FollowUpReminderStatus::Pending)
             ->orderByRaw('CASE WHEN due_at < ? THEN 0 ELSE 1 END', [now()])
             ->orderBy('due_at')
-            ->limit(self::FOLLOW_UP_LIMIT)
+            ->limit(self::TABLE_LIMIT)
             ->get();
+    }
+
+    public function actionableFollowUpsTotal(): int
+    {
+        return FollowUp::query()
+            ->where('reminder_status', FollowUpReminderStatus::Pending)
+            ->count();
+    }
+
+    public function actionableFollowUpsOverflow(): int
+    {
+        $total = $this->actionableFollowUpsTotal();
+
+        if ($total <= self::TABLE_LIMIT) {
+            return 0;
+        }
+
+        return $total - self::TABLE_LIMIT;
     }
 }
