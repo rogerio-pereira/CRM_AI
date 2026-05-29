@@ -140,4 +140,115 @@ class OpportunityManagementTest extends TestCase
             'status' => OpportunityStatus::Open->value,
         ]);
     }
+
+    public function test_user_can_update_an_opportunity(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'title' => 'Original deal',
+            'estimated_value' => '1000',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openEditModal', $opportunity->id)
+            ->assertSet('title', 'Original deal')
+            ->assertSet('estimated_value', '1000.00')
+            ->set('title', 'Updated deal')
+            ->set('estimated_value', '2500')
+            ->call('saveOpportunity')
+            ->assertHasNoErrors()
+            ->assertSet('showFormModal', false);
+
+        $this->assertDatabaseHas('opportunities', [
+            'id' => $opportunity->id,
+            'title' => 'Updated deal',
+            'estimated_value' => '2500.00',
+        ]);
+    }
+
+    public function test_open_edit_modal_clears_estimated_value_when_null(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'estimated_value' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openEditModal', $opportunity->id)
+            ->assertSet('estimated_value', '');
+    }
+
+    public function test_save_opportunity_stores_null_when_estimated_value_is_blank(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('title', 'No value deal')
+            ->set('client_id', $client->id)
+            ->set('estimated_value', '   ')
+            ->call('saveOpportunity')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+            'title' => 'No value deal',
+            'estimated_value' => null,
+        ]);
+    }
+
+    public function test_estimated_value_must_be_numeric(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('title', 'Invalid value deal')
+            ->set('client_id', $client->id)
+            ->set('estimated_value', 'not-a-number')
+            ->call('saveOpportunity')
+            ->assertHasErrors(['estimated_value']);
+    }
+
+    public function test_open_detail_modal_loads_selected_opportunity(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create(['title' => 'Detail target deal']);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSet('detailOpportunityId', $opportunity->id)
+            ->assertSet('showDetailModal', true)
+            ->assertSet('detailOpportunity.title', 'Detail target deal');
+    }
+
+    public function test_moving_to_lost_sets_terminal_status(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->open()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::Lost->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+            'id' => $opportunity->id,
+            'stage' => PipelineStage::Lost->value,
+            'status' => OpportunityStatus::Lost->value,
+        ]);
+    }
 }

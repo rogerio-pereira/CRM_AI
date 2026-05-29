@@ -17,8 +17,11 @@
                 @php($stageOpportunities = $this->opportunitiesByStage[$stage->value] ?? collect())
 
                 <div
-                    class="flex min-w-[280px] max-w-[280px] flex-col gap-4 rounded-lg border border-border bg-surface p-3 transition-colors"
+                    class="flex min-w-[280px] max-w-[280px] flex-col gap-4 rounded-lg border p-3 transition-colors {{ $stage->columnClasses() }}"
                     data-test="kanban-column-{{ $stage->slug() }}"
+                    @if ($stage->requiresUserAction())
+                        data-user-action-column="true"
+                    @endif
                     x-data="{ draggingOver: false }"
                     @dragover.prevent="draggingOver = true"
                     @dragleave.prevent="draggingOver = false"
@@ -29,10 +32,17 @@
                             $wire.moveToStage(Number(opportunityId), '{{ $stage->value }}');
                         }
                     "
-                    :class="{ 'border-border-strong': draggingOver }"
+                    :class="{
+                        'border-border-strong': draggingOver && !{{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                        'kanban-column-user-action--dragging': draggingOver && {{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                    }"
                 >
                     <div class="flex items-center justify-between gap-2">
-                        <flux:subheading class="text-text-primary">{{ $stage->label() }}</flux:subheading>
+                        @if ($stage->requiresUserAction())
+                            <span class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</span>
+                        @else
+                            <flux:subheading class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</flux:subheading>
+                        @endif
                         <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ $stage->badgeClasses() }}">
                             {{ $stageOpportunities->count() }}
                         </span>

@@ -36,6 +36,7 @@ it('opens detail modal and archives a lead from the actions menu', function () {
         ->click('@leads-actions-'.$client->id)
         ->click('@leads-view-'.$client->id)
         ->assertPresent('[data-test="leads-detail-modal"]')
+        ->assertPresent('[data-test="leads-detail-status-badge"][data-status="active"]')
         ->assertSee('Detail Modal Co')
         ->assertSee('Initial notes')
         ->click('@leads-detail-close')
@@ -46,6 +47,9 @@ it('opens detail modal and archives a lead from the actions menu', function () {
     $client->refresh();
 
     expect($client->status)->toBe(ClientStatus::Archived);
+
+    visit('/leads')
+        ->assertPresent('[data-test="leads-status-badge-'.$client->id.'"][data-status="archived"]');
 });
 
 it('filters leads by archived status', function () {

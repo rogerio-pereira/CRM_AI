@@ -20,7 +20,13 @@
                 </div>
                 <div>
                     <flux:subheading>{{ __('Status') }}</flux:subheading>
-                    <flux:badge>{{ $client->status->label() }}</flux:badge>
+                    <span
+                        class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $client->status->badgeClasses() }}"
+                        data-test="leads-detail-status-badge"
+                        data-status="{{ $client->status->value }}"
+                    >
+                        {{ $client->status->label() }}
+                    </span>
                 </div>
                 <div>
                     <flux:subheading>{{ __('Website') }}</flux:subheading>

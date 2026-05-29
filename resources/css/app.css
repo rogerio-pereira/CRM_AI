@@ -2,6 +2,18 @@
 @import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../views';
+@source '../../app/Enums/**/*.php';
+@source inline(
+    'bg-status-success/20 text-status-success border-status-success/50'
+    'bg-status-warning/40 text-amber-300 border-status-warning/70 ring-1 ring-status-warning/30'
+    'bg-primary/20 text-primary-focus border-primary/50'
+    'bg-status-neutral/20 text-status-neutral border-status-neutral/50'
+    'text-primary-focus'
+    'bg-accent/15 text-accent border-accent/30'
+    'kanban-column-user-action'
+    'kanban-column-user-action-heading'
+    'kanban-column-user-action--dragging'
+);
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
@@ -98,6 +110,26 @@
 
 [data-flux-label] {
     @apply  !mb-0 !leading-tight;
+}
+
+@layer components {
+    .kanban-column-user-action {
+        border: 1px solid var(--color-primary);
+        background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-app-surface));
+        box-shadow: 0 0 20px -6px color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+
+    .kanban-column-user-action--dragging {
+        border-color: var(--color-primary-focus);
+        box-shadow: 0 0 24px -4px color-mix(in srgb, var(--color-primary-focus) 45%, transparent);
+    }
+
+    .kanban-column-user-action-heading {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        font-weight: 500;
+        color: var(--color-primary-focus);
+    }
 }
 
 input:focus[data-flux-control],

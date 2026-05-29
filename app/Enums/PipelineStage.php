@@ -41,7 +41,47 @@ enum PipelineStage: string
         };
     }
 
+    public function requiresUserAction(): bool
+    {
+        if ($this === self::Contact) {
+            return true;
+        }
+
+        if ($this === self::ProposalAnalysis) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function columnClasses(): string
+    {
+        if ($this->requiresUserAction()) {
+            return 'kanban-column-user-action';
+        }
+
+        return 'border-border bg-surface';
+    }
+
+    public function columnHeadingClasses(): string
+    {
+        if ($this->requiresUserAction()) {
+            return 'kanban-column-user-action-heading';
+        }
+
+        return 'text-text-primary';
+    }
+
     public function badgeClasses(): string
+    {
+        if ($this->requiresUserAction()) {
+            return 'bg-primary/20 text-primary-focus border-primary/50';
+        }
+
+        return $this->badgeClassesFromColorToken();
+    }
+
+    public function badgeClassesFromColorToken(): string
     {
         if ($this->colorToken() === 'ai') {
             return 'bg-ai/15 text-ai border-ai/30';

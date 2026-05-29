@@ -38,4 +38,52 @@ class ClientStatusTest extends TestCase
             $this->assertSame($status->label(), $options[$status->value]);
         }
     }
+
+    public function test_color_token_and_badge_classes_are_defined_for_each_status(): void
+    {
+        foreach (ClientStatus::cases() as $status) {
+            $this->assertNotSame('', $status->colorToken());
+            $this->assertNotSame('', $status->badgeClasses());
+        }
+    }
+
+    #[DataProvider('statusColorTokenProvider')]
+    public function test_color_token_returns_expected_value(ClientStatus $status, string $expectedToken): void
+    {
+        $this->assertSame($expectedToken, $status->colorToken());
+    }
+
+    /**
+     * @return array<string, array{0: ClientStatus, 1: string}>
+     */
+    public static function statusColorTokenProvider(): array
+    {
+        return [
+            'active' => [ClientStatus::Active, 'success'],
+            'contact intent' => [ClientStatus::ContactIntent, 'primary'],
+            'ignored' => [ClientStatus::Ignored, 'warning'],
+            'archived' => [ClientStatus::Archived, 'neutral'],
+        ];
+    }
+
+    #[DataProvider('statusBadgeClassProvider')]
+    public function test_badge_classes_use_expected_status_tokens(
+        ClientStatus $status,
+        string $expectedTokenFragment,
+    ): void {
+        $this->assertStringContainsString($expectedTokenFragment, $status->badgeClasses());
+    }
+
+    /**
+     * @return array<string, array{0: ClientStatus, 1: string}>
+     */
+    public static function statusBadgeClassProvider(): array
+    {
+        return [
+            'active' => [ClientStatus::Active, 'status-success'],
+            'contact intent' => [ClientStatus::ContactIntent, 'primary-focus'],
+            'ignored' => [ClientStatus::Ignored, 'amber-300'],
+            'archived' => [ClientStatus::Archived, 'status-neutral'],
+        ];
+    }
 }

@@ -60,7 +60,13 @@
                         </td>
                         <td class="px-4">{{ $client->lead_source ?? '—' }}</td>
                         <td class="px-4">
-                            <flux:badge size="sm">{{ $client->status->label() }}</flux:badge>
+                            <span
+                                class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $client->status->badgeClasses() }}"
+                                data-test="leads-status-badge-{{ $client->id }}"
+                                data-status="{{ $client->status->value }}"
+                            >
+                                {{ $client->status->label() }}
+                            </span>
                         </td>
                         <td class="px-4 text-end">
                             <flux:dropdown position="bottom" align="end">
