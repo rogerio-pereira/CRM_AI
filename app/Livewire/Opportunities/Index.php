@@ -132,6 +132,12 @@ class Index extends Component
         unset($this->opportunitiesByStage);
     }
 
+    #[On('task-created')]
+    public function refreshKanbanAfterTask(): void
+    {
+        unset($this->opportunitiesByStage);
+    }
+
     public function moveToStage(int $opportunityId, string $targetStageValue, OpportunityService $opportunityService): void
     {
         $opportunity = Opportunity::findOrFail($opportunityId);

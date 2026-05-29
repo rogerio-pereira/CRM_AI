@@ -126,7 +126,7 @@
                                         </span>
                                     </div>
 
-                                    <div class="flex justify-end border-t border-border-subtle pt-2">
+                                    <div class="flex justify-end gap-1 border-t border-border-subtle pt-2">
                                         <flux:button
                                             size="xs"
                                             variant="ghost"
@@ -135,6 +135,15 @@
                                             data-test="kanban-card-create-follow-up-{{ $opportunity->id }}"
                                         >
                                             {{ __('Follow-up') }}
+                                        </flux:button>
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="clipboard-document-list"
+                                            wire:click="$dispatch('open-task-for-opportunity', { opportunityId: {{ $opportunity->id }} })"
+                                            data-test="kanban-card-create-task-{{ $opportunity->id }}"
+                                        >
+                                            {{ __('Task') }}
                                         </flux:button>
                                     </div>
 
@@ -157,4 +166,5 @@
     @include('livewire.opportunities.partials.detail-modal')
 
     <livewire:follow-ups.quick-create-modal />
+    <livewire:tasks.quick-create-modal />
 </div>
