@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Dashboard\Index as DashboardIndex;
 use App\Livewire\FollowUps\Index as FollowUpsIndex;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('dashboard', DashboardIndex::class)->name('dashboard');
 
     Route::livewire('leads', LeadsIndex::class)->name('leads.index');
 
