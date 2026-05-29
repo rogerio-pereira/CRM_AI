@@ -23,5 +23,7 @@ class DashboardTest extends TestCase
 
         $response = $this->get(route('dashboard'));
         $response->assertOk();
+        $response->assertSee(__('Leads created today'), false);
+        $response->assertSee(__('Pending tasks'), false);
     }
 }
