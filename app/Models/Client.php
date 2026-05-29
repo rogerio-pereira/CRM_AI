@@ -56,4 +56,12 @@ class Client extends Model
     {
         return $this->hasMany(FollowUp::class);
     }
+
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
 }

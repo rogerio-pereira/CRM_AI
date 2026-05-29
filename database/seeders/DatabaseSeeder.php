@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             OpportunitySeeder::class,
             FollowUpSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }
