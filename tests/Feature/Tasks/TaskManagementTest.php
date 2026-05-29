@@ -158,24 +158,42 @@ class TaskManagementTest extends TestCase
         $this->assertTrue($task->fresh()->is_important);
     }
 
-    public function test_filter_setters_reset_pagination(): void
+    public function test_filter_changes_reset_pagination(): void
     {
         $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        Task::factory()->count(25)->for($client)->create([
+            'title' => 'Paged task',
+        ]);
 
         $this->actingAs($user);
 
-        Livewire::test(Index::class)
-            ->set('search', 'filter-me')
+        $component = Livewire::test(Index::class)
+            ->set('paginators.page', 2)
+            ->assertSet('paginators.page', 2);
+
+        $component
+            ->set('search', 'Paged')
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
             ->set('priorityFilter', TaskPriority::High->value)
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
             ->set('pendingOnly', true)
+            ->assertSet('paginators.page', 1);
+
+        $component
+            ->set('paginators.page', 2)
             ->set('hideDone', false)
-            ->assertSet('search', 'filter-me')
-            ->assertSet('priorityFilter', TaskPriority::High->value)
-            ->assertSet('pendingOnly', true)
-            ->assertSet('hideDone', false);
+            ->assertSet('paginators.page', 1);
     }
 
-    public function test_confirm_delete_does_nothing_when_no_task_is_selected(): void
+    public function test_confirm_delete_without_selected_task_is_no_op(): void
     {
         $user = User::factory()->create();
         $task = Task::factory()->create();
@@ -184,7 +202,8 @@ class TaskManagementTest extends TestCase
 
         Livewire::test(Index::class)
             ->call('confirmDelete')
-            ->assertHasNoErrors();
+            ->assertSet('deleteTaskId', null)
+            ->assertSet('showDeleteModal', false);
 
         $this->assertDatabaseHas('tasks', ['id' => $task->id]);
     }
@@ -212,9 +231,31 @@ class TaskManagementTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Livewire::test(Index::class)
-            ->call('openCreateModal');
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->assertCount('opportunityOptions', 0);
+    }
 
-        $this->assertCount(0, $component->instance()->opportunityOptions);
+    public function test_save_task_with_empty_opportunity_id_creates_client_only_task(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('client_id', $client->id)
+            ->set('opportunity_id', '')
+            ->set('title', 'No linked opportunity')
+            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->call('saveTask')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('tasks', [
+            'client_id' => $client->id,
+            'opportunity_id' => null,
+            'title' => 'No linked opportunity',
+        ]);
     }
 }

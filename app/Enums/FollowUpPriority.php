@@ -2,11 +2,12 @@
 
 namespace App\Enums;
 
-use App\Enums\Concerns\ProvidesPriorityBadge;
+use App\Enums\Concerns\HasPriorityBadge;
 
 enum FollowUpPriority: string
 {
-    use ProvidesPriorityBadge;
+    use HasPriorityBadge;
+
     case Low = 'low';
     case Medium = 'medium';
     case High = 'high';

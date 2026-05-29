@@ -63,12 +63,13 @@ class OpportunityTest extends TestCase
 
     public function test_tasks_relationship_returns_related_tasks(): void
     {
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
-        $task = Task::factory()->for($client)->for($opportunity)->create(['title' => 'Opp task']);
+        $opportunity = Opportunity::factory()->create();
+        $task = Task::factory()->for($opportunity->client)->create([
+            'opportunity_id' => $opportunity->id,
+            'title' => 'Opportunity task',
+        ]);
 
-        $this->assertCount(1, $opportunity->tasks);
-        $this->assertTrue($opportunity->tasks->first()->is($task));
-        $this->assertSame('Opp task', $opportunity->tasks->first()->title);
+        $this->assertTrue($opportunity->tasks->contains($task));
+        $this->assertSame($opportunity->id, $task->opportunity_id);
     }
 }

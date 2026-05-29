@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Livewire\FollowUps;
+namespace App\Livewire\Tasks;
 
-use App\Concerns\FollowUpValidationRules;
-use App\Enums\FollowUpPriority;
+use App\Concerns\TaskValidationRules;
+use App\Enums\TaskPriority;
 use App\Models\Client;
 use App\Models\Opportunity;
-use App\Services\FollowUpService;
+use App\Services\TaskService;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -16,7 +16,7 @@ use Livewire\Component;
 
 class QuickCreateModal extends Component
 {
-    use FollowUpValidationRules;
+    use TaskValidationRules;
 
     public bool $showFormModal = false;
 
@@ -24,11 +24,15 @@ class QuickCreateModal extends Component
 
     public ?int $opportunity_id = null;
 
+    public string $title = '';
+
+    public string $description = '';
+
     public string $due_at = '';
 
     public string $priority = 'medium';
 
-    public string $notes = '';
+    public bool $is_important = false;
 
     /**
      * @return Collection<int, Client>
@@ -55,7 +59,7 @@ class QuickCreateModal extends Component
             ->get();
     }
 
-    #[On('open-follow-up-for-opportunity')]
+    #[On('open-task-for-opportunity')]
     public function openForOpportunity(int $opportunityId): void
     {
         $opportunity = Opportunity::query()
@@ -69,7 +73,7 @@ class QuickCreateModal extends Component
         unset($this->opportunityOptions);
     }
 
-    #[On('open-follow-up-for-client')]
+    #[On('open-task-for-client')]
     public function openForClient(int $clientId): void
     {
         Client::query()->findOrFail($clientId);
@@ -87,7 +91,7 @@ class QuickCreateModal extends Component
         unset($this->opportunityOptions);
     }
 
-    public function saveFollowUp(FollowUpService $followUpService): void
+    public function saveTask(TaskService $taskService): void
     {
         $validated = $this->validate(self::formRules());
 
@@ -97,33 +101,37 @@ class QuickCreateModal extends Component
             $opportunityId = null;
         }
 
-        $followUpService->create([
+        $taskService->create([
             'client_id' => (int) $validated['client_id'],
             'opportunity_id' => $opportunityId === null ? null : (int) $opportunityId,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
             'due_at' => $validated['due_at'],
             'priority' => $validated['priority'],
-            'notes' => $validated['notes'] ?? null,
+            'is_important' => (bool) ($validated['is_important'] ?? false),
         ]);
 
-        Flux::toast(variant: 'success', text: __('Follow-up created.'));
+        Flux::toast(variant: 'success', text: __('Task created.'));
 
         $this->showFormModal = false;
         $this->resetForm();
-        $this->dispatch('follow-up-created');
+        $this->dispatch('task-created');
     }
 
     public function render(): View
     {
-        return view('livewire.follow-ups.quick-create-modal');
+        return view('livewire.tasks.quick-create-modal');
     }
 
     private function resetForm(): void
     {
         $this->client_id = null;
         $this->opportunity_id = null;
+        $this->title = '';
+        $this->description = '';
         $this->due_at = now()->addDay()->format('Y-m-d\TH:i');
-        $this->priority = FollowUpPriority::Medium->value;
-        $this->notes = '';
+        $this->priority = TaskPriority::Medium->value;
+        $this->is_important = false;
         $this->resetValidation();
         unset($this->opportunityOptions);
     }

@@ -4,27 +4,44 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\TaskPriority;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PriorityBadgeTest extends TestCase
 {
-    #[DataProvider('priorityProvider')]
-    public function test_task_and_follow_up_priorities_expose_badge_classes(string $expectedFragment, TaskPriority $taskPriority, FollowUpPriority $followUpPriority): void
+    public function test_follow_up_and_task_priorities_share_badge_classes(): void
     {
-        $this->assertStringContainsString($expectedFragment, $taskPriority->badgeClasses());
-        $this->assertStringContainsString($expectedFragment, $followUpPriority->badgeClasses());
+        $this->assertSame(
+            FollowUpPriority::Low->badgeClasses(),
+            TaskPriority::Low->badgeClasses(),
+        );
+        $this->assertSame(
+            FollowUpPriority::Medium->badgeClasses(),
+            TaskPriority::Medium->badgeClasses(),
+        );
+        $this->assertSame(
+            FollowUpPriority::High->badgeClasses(),
+            TaskPriority::High->badgeClasses(),
+        );
     }
 
-    /**
-     * @return array<string, array{0: string, 1: TaskPriority, 2: FollowUpPriority}>
-     */
-    public static function priorityProvider(): array
+    public function test_high_priority_uses_danger_tokens(): void
     {
-        return [
-            'low' => ['status-neutral', TaskPriority::Low, FollowUpPriority::Low],
-            'medium' => ['status-warning', TaskPriority::Medium, FollowUpPriority::Medium],
-            'high' => ['status-danger', TaskPriority::High, FollowUpPriority::High],
-        ];
+        $classes = TaskPriority::High->badgeClasses();
+
+        $this->assertStringContainsString('status-danger', $classes);
+    }
+
+    public function test_medium_priority_uses_warning_tokens(): void
+    {
+        $classes = FollowUpPriority::Medium->badgeClasses();
+
+        $this->assertStringContainsString('status-warning', $classes);
+    }
+
+    public function test_low_priority_uses_neutral_tokens(): void
+    {
+        $classes = TaskPriority::Low->badgeClasses();
+
+        $this->assertStringContainsString('status-neutral', $classes);
     }
 }

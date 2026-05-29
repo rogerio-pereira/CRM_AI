@@ -2,6 +2,8 @@
 
 use App\Enums\ClientStatus;
 use App\Models\Client;
+use App\Models\FollowUp;
+use App\Models\Task;
 use App\Models\User;
 
 it('displays the leads page and creates a lead', function () {
@@ -50,6 +52,86 @@ it('opens detail modal and archives a lead from the actions menu', function () {
 
     visit('/leads')
         ->assertPresent('[data-test="leads-status-badge-'.$client->id.'"][data-status="archived"]');
+});
+
+it('creates a follow-up from the leads list actions menu', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'List Menu Follow-up Co']);
+
+    $this->actingAs($user);
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-create-follow-up-'.$client->id)
+        ->assertPresent('[data-test="follow-ups-quick-create-modal"]')
+        ->fill('@follow-ups-form-notes', 'Follow-up from list menu')
+        ->click('@follow-ups-form-submit')
+        ->assertSee('List Menu Follow-up Co');
+
+    expect(FollowUp::where('notes', 'Follow-up from list menu')->exists())->toBeTrue();
+});
+
+it('creates a follow-up from the client detail modal', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Detail Follow-up Co']);
+
+    $this->actingAs($user);
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-view-'.$client->id)
+        ->assertPresent('[data-test="leads-detail-modal"]')
+        ->click('@leads-detail-create-follow-up')
+        ->assertPresent('[data-test="follow-ups-quick-create-modal"]')
+        ->fill('@follow-ups-form-notes', 'Follow-up from client detail')
+        ->click('@follow-ups-form-submit')
+        ->click('@leads-detail-close')
+        ->assertSee('Detail Follow-up Co');
+
+    expect(FollowUp::where('notes', 'Follow-up from client detail')->exists())->toBeTrue();
+});
+
+it('creates a task from the leads list actions menu', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'List Menu Task Co']);
+
+    $this->actingAs($user);
+
+    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-create-task-'.$client->id)
+        ->assertPresent('[data-test="tasks-quick-create-modal"]')
+        ->fill('@tasks-quick-form-title', 'Task from list menu')
+        ->fill('@tasks-quick-form-due-at', $dueAt)
+        ->click('@tasks-quick-form-submit')
+        ->assertSee('List Menu Task Co');
+
+    expect(Task::where('title', 'Task from list menu')->exists())->toBeTrue();
+});
+
+it('creates a task from the client detail modal', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Detail Task Co']);
+
+    $this->actingAs($user);
+
+    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-view-'.$client->id)
+        ->assertPresent('[data-test="leads-detail-modal"]')
+        ->click('@leads-detail-create-task')
+        ->assertPresent('[data-test="tasks-quick-create-modal"]')
+        ->fill('@tasks-quick-form-title', 'Task from client detail')
+        ->fill('@tasks-quick-form-due-at', $dueAt)
+        ->click('@tasks-quick-form-submit')
+        ->click('@leads-detail-close')
+        ->assertSee('Detail Task Co');
+
+    expect(Task::where('title', 'Task from client detail')->exists())->toBeTrue();
 });
 
 it('filters leads by archived status', function () {
