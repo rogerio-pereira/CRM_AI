@@ -136,6 +136,12 @@
                 @endforelse
             </tbody>
         </table>
+
+        @if ($this->clients->hasPages())
+            <div class="border-t border-border-default px-4 py-3" data-test="leads-pagination">
+                <flux:pagination :paginator="$this->clients" />
+            </div>
+        @endif
     </div>
 
     @include('livewire.leads.partials.form-modal')

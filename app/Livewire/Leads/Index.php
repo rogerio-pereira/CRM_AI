@@ -8,15 +8,18 @@ use App\Models\Client;
 use App\Services\ClientService;
 use App\Support\UrlNormalizer;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Title('Leads / Clients')]
 class Index extends Component
 {
+    use WithPagination;
+
     public string $search = '';
 
     public string $statusFilter = 'all';
@@ -52,13 +55,23 @@ class Index extends Component
      */
     public array $social_links = [];
 
-    #[Computed]
-    public function clients(): Collection
+    public function getClientsProperty(): LengthAwarePaginator
     {
-        return app(ClientService::class)->listForIndex(
+        return app(ClientService::class)->paginateForIndex(
             $this->search !== '' ? $this->search : null,
             $this->statusFilter !== 'all' ? $this->statusFilter : null,
+            page: $this->getPage(),
         );
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]
@@ -157,7 +170,6 @@ class Index extends Component
 
         $this->showFormModal = false;
         $this->resetForm();
-        unset($this->clients);
     }
 
     public function setContactIntent(int $clientId, ClientService $clientService): void
@@ -165,7 +177,6 @@ class Index extends Component
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::ContactIntent);
         Flux::toast(variant: 'success', text: __('Marked as contact intent.'));
-        unset($this->clients);
     }
 
     public function setIgnored(int $clientId, ClientService $clientService): void
@@ -173,7 +184,6 @@ class Index extends Component
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Ignored);
         Flux::toast(variant: 'success', text: __('Lead ignored.'));
-        unset($this->clients);
     }
 
     public function setArchived(int $clientId, ClientService $clientService): void
@@ -181,7 +191,6 @@ class Index extends Component
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Archived);
         Flux::toast(variant: 'success', text: __('Lead archived.'));
-        unset($this->clients);
     }
 
     public function setActive(int $clientId, ClientService $clientService): void
@@ -189,7 +198,6 @@ class Index extends Component
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Active);
         Flux::toast(variant: 'success', text: __('Lead marked as active.'));
-        unset($this->clients);
     }
 
     public function confirmDelete(ClientService $clientService): void
@@ -210,7 +218,7 @@ class Index extends Component
         Flux::toast(variant: 'success', text: __('Lead deleted.'));
         $this->showDeleteModal = false;
         $this->deleteClientId = null;
-        unset($this->clients, $this->deleteClient);
+        unset($this->deleteClient);
     }
 
     public function render(): View
