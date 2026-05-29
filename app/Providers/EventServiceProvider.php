@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Events\ClientCreated;
 use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
 use App\Events\OpportunityStageChanged;
 use App\Events\TaskCreated;
 use App\Events\TaskUpdated;
+use App\Listeners\DispatchAiOnClientCreated;
+use App\Listeners\DispatchAiOnOpportunityStageChanged;
 use App\Listeners\EvaluateSlackRulesForFollowUp;
 use App\Listeners\EvaluateSlackRulesForTask;
 use App\Listeners\QueueCalendarEventForFollowUp;
@@ -19,7 +22,12 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, list<class-string>>
      */
     protected $listen = [
-        OpportunityStageChanged::class => [],
+        OpportunityStageChanged::class => [
+            DispatchAiOnOpportunityStageChanged::class,
+        ],
+        ClientCreated::class => [
+            DispatchAiOnClientCreated::class,
+        ],
         FollowUpCreated::class => [
             QueueCalendarEventForFollowUp::class,
             EvaluateSlackRulesForFollowUp::class,
