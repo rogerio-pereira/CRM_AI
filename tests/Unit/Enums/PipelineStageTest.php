@@ -62,6 +62,7 @@ class PipelineStageTest extends TestCase
             $this->assertNotSame('', $stage->colorToken());
             $this->assertNotSame('', $stage->slug());
             $this->assertNotSame('', $stage->badgeClasses());
+            $this->assertNotSame('', $stage->badgeClassesFromColorToken());
             $this->assertNotSame('', $stage->columnClasses());
             $this->assertNotSame('', $stage->columnHeadingClasses());
         }
@@ -71,7 +72,8 @@ class PipelineStageTest extends TestCase
     public function test_requires_user_action_returns_true_for_human_driven_stages(PipelineStage $stage): void
     {
         $this->assertTrue($stage->requiresUserAction());
-        $this->assertStringContainsString('primary', $stage->columnClasses());
+        $this->assertStringContainsString('kanban-column-user-action', $stage->columnClasses());
+        $this->assertSame('kanban-column-user-action-heading', $stage->columnHeadingClasses());
         $this->assertStringContainsString('primary', $stage->badgeClasses());
     }
 
@@ -84,6 +86,68 @@ class PipelineStageTest extends TestCase
             'contact' => [PipelineStage::Contact],
             'proposal analysis' => [PipelineStage::ProposalAnalysis],
         ];
+    }
+
+    #[DataProvider('stageBadgeClassProvider')]
+    public function test_badge_classes_match_kanban_display(
+        PipelineStage $stage,
+        string $expectedFragment,
+    ): void {
+        $this->assertStringContainsString($expectedFragment, $stage->badgeClasses());
+    }
+
+    /**
+     * @return array<string, array{0: PipelineStage, 1: string}>
+     */
+    public static function stageBadgeClassProvider(): array
+    {
+        return [
+            'lead' => [PipelineStage::Lead, 'status-neutral'],
+            'qualification' => [PipelineStage::Qualification, 'text-ai'],
+            'contact' => [PipelineStage::Contact, 'primary-focus'],
+            'proposal generation' => [PipelineStage::ProposalGeneration, 'text-ai'],
+            'proposal analysis' => [PipelineStage::ProposalAnalysis, 'primary-focus'],
+            'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
+            'won' => [PipelineStage::Won, 'status-success'],
+            'lost' => [PipelineStage::Lost, 'status-danger'],
+        ];
+    }
+
+    #[DataProvider('colorTokenBadgeClassProvider')]
+    public function test_badge_classes_from_color_token_match_design_system(
+        PipelineStage $stage,
+        string $expectedFragment,
+    ): void {
+        $this->assertStringContainsString($expectedFragment, $stage->badgeClassesFromColorToken());
+    }
+
+    /**
+     * @return array<string, array{0: PipelineStage, 1: string}>
+     */
+    public static function colorTokenBadgeClassProvider(): array
+    {
+        return [
+            'lead' => [PipelineStage::Lead, 'status-neutral'],
+            'qualification' => [PipelineStage::Qualification, 'text-ai'],
+            'contact' => [PipelineStage::Contact, 'text-accent'],
+            'proposal generation' => [PipelineStage::ProposalGeneration, 'text-ai'],
+            'proposal analysis' => [PipelineStage::ProposalAnalysis, 'text-accent'],
+            'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
+            'won' => [PipelineStage::Won, 'status-success'],
+            'lost' => [PipelineStage::Lost, 'status-danger'],
+        ];
+    }
+
+    public function test_badge_classes_from_color_token_is_used_when_stage_does_not_require_user_action(): void
+    {
+        $this->assertStringContainsString(
+            'status-neutral',
+            PipelineStage::Lead->badgeClassesFromColorToken(),
+        );
+        $this->assertNotSame(
+            PipelineStage::Lead->badgeClassesFromColorToken(),
+            PipelineStage::Contact->badgeClasses(),
+        );
     }
 
     #[DataProvider('automatedOrAwaitingStageProvider')]

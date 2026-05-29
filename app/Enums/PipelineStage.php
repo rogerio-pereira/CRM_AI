@@ -57,7 +57,7 @@ enum PipelineStage: string
     public function columnClasses(): string
     {
         if ($this->requiresUserAction()) {
-            return 'border-primary/70 bg-primary/10 ring-1 ring-primary/30 shadow-[0_0_24px_-8px] shadow-primary/25';
+            return 'kanban-column-user-action';
         }
 
         return 'border-border bg-surface';
@@ -66,7 +66,7 @@ enum PipelineStage: string
     public function columnHeadingClasses(): string
     {
         if ($this->requiresUserAction()) {
-            return 'text-primary-focus';
+            return 'kanban-column-user-action-heading';
         }
 
         return 'text-text-primary';
@@ -78,6 +78,11 @@ enum PipelineStage: string
             return 'bg-primary/20 text-primary-focus border-primary/50';
         }
 
+        return $this->badgeClassesFromColorToken();
+    }
+
+    public function badgeClassesFromColorToken(): string
+    {
         if ($this->colorToken() === 'ai') {
             return 'bg-ai/15 text-ai border-ai/30';
         }

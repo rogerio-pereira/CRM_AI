@@ -32,10 +32,17 @@
                             $wire.moveToStage(Number(opportunityId), '{{ $stage->value }}');
                         }
                     "
-                    :class="{ 'border-border-strong': draggingOver }"
+                    :class="{
+                        'border-border-strong': draggingOver && !{{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                        'kanban-column-user-action--dragging': draggingOver && {{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                    }"
                 >
                     <div class="flex items-center justify-between gap-2">
-                        <flux:subheading class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</flux:subheading>
+                        @if ($stage->requiresUserAction())
+                            <span class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</span>
+                        @else
+                            <flux:subheading class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</flux:subheading>
+                        @endif
                         <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ $stage->badgeClasses() }}">
                             {{ $stageOpportunities->count() }}
                         </span>
