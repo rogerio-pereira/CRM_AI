@@ -32,22 +32,25 @@ class AiOrchestrationService
      */
     public function jobClassFor(AgentType $type): string
     {
-        if ($type === AgentType::Prospecting) {
-            return RunProspectingAgentJob::class;
+        return $this->resolveJobClass($type->value);
+    }
+
+    /**
+     * @return class-string
+     */
+    protected function resolveJobClass(string $agentTypeValue): string
+    {
+        $map = [
+            AgentType::Prospecting->value => RunProspectingAgentJob::class,
+            AgentType::Qualification->value => RunQualificationAgentJob::class,
+            AgentType::Recommendation->value => RunRecommendationAgentJob::class,
+            AgentType::ProposalAssistant->value => RunProposalAssistantAgentJob::class,
+        ];
+
+        if (! array_key_exists($agentTypeValue, $map)) {
+            throw new InvalidArgumentException('Unknown agent type: '.$agentTypeValue);
         }
 
-        if ($type === AgentType::Qualification) {
-            return RunQualificationAgentJob::class;
-        }
-
-        if ($type === AgentType::Recommendation) {
-            return RunRecommendationAgentJob::class;
-        }
-
-        if ($type === AgentType::ProposalAssistant) {
-            return RunProposalAssistantAgentJob::class;
-        }
-
-        throw new InvalidArgumentException('Unknown agent type: '.$type->value);
+        return $map[$agentTypeValue];
     }
 }
