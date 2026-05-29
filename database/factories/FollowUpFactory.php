@@ -28,7 +28,6 @@ class FollowUpFactory extends Factory
             'priority' => FollowUpPriority::Medium,
             'notes' => fake()->optional()->sentence(),
             'reminder_status' => FollowUpReminderStatus::Pending,
-            'snoozed_until' => null,
             'completed_at' => null,
         ];
     }
@@ -46,14 +45,6 @@ class FollowUpFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'reminder_status' => FollowUpReminderStatus::Completed,
             'completed_at' => now(),
-        ]);
-    }
-
-    public function snoozed(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'reminder_status' => FollowUpReminderStatus::Snoozed,
-            'snoozed_until' => now()->addDay(),
         ]);
     }
 

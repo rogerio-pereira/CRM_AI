@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('priority')->default('medium');
             $table->text('notes')->nullable();
             $table->string('reminder_status')->default('pending');
-            $table->dateTime('snoozed_until')->nullable();
             $table->dateTime('completed_at')->nullable();
             $table->timestamps();
 
