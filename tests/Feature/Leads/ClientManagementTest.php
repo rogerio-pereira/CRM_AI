@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -413,5 +414,54 @@ class ClientManagementTest extends TestCase
 
         $this->assertTrue($component->get('showDeleteModal'));
         $this->assertSame('Delete Me Co', $component->instance()->deleteClient?->company_name);
+    }
+
+    public function test_clients_list_is_paginated_with_twenty_per_page(): void
+    {
+        $user = User::factory()->create();
+        Client::factory()->count(21)->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class);
+
+        $this->assertCount(20, $component->instance()->clients->items());
+        $this->assertSame(21, $component->instance()->clients->total());
+
+        $component->call('gotoPage', 2);
+
+        $this->assertCount(1, $component->instance()->clients->items());
+    }
+
+    public function test_search_filter_resets_pagination_to_first_page(): void
+    {
+        $user = User::factory()->create();
+        Client::factory()->count(21)->create(['company_name' => 'Paged Co']);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('gotoPage', 2)
+            ->set('search', 'Paged');
+
+        $this->assertSame(1, $component->instance()->clients->currentPage());
+    }
+
+    public function test_clients_list_queries_database_with_limit(): void
+    {
+        $user = User::factory()->create();
+        Client::factory()->count(25)->create();
+
+        $this->actingAs($user);
+
+        DB::enableQueryLog();
+
+        Livewire::test(Index::class);
+
+        $sql = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->implode(' ');
+
+        $this->assertStringContainsString('limit', strtolower($sql));
     }
 }

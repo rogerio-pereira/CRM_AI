@@ -26,7 +26,7 @@ function crmSidebarRoutes(): array
         'follow-ups' => [
             'nav' => 'nav-follow-ups',
             'path' => '/follow-ups',
-            'marker' => 'crm-stub-page',
+            'marker' => 'follow-ups-page',
         ],
         'tasks' => [
             'nav' => 'nav-tasks',

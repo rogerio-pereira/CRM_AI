@@ -67,12 +67,12 @@
                 <flux:subheading>{{ __('Opportunity history') }}</flux:subheading>
                 @if ($client->opportunities->isEmpty())
                     <flux:text variant="subtle" class="mt-2">
-                        {{ __('No opportunities yet. Opportunity management arrives in FDR-005.') }}
+                        {{ __('No opportunities yet.') }}
                     </flux:text>
                 @else
                     <ul class="mt-2 space-y-2 text-sm text-text-secondary">
                         @foreach ($client->opportunities as $opportunity)
-                            <li>{{ $opportunity->title }} — {{ $opportunity->stage->value }}</li>
+                            <li>{{ $opportunity->title }} — {{ $opportunity->stage->label() }}</li>
                         @endforeach
                     </ul>
                 @endif
@@ -80,9 +80,21 @@
 
             <div data-test="leads-detail-follow-up-history">
                 <flux:subheading>{{ __('Follow-up history') }}</flux:subheading>
-                <flux:text variant="subtle" class="mt-2">
-                    {{ __('No follow-ups yet. Follow-up management arrives in FDR-006.') }}
-                </flux:text>
+                @if ($client->followUps->isEmpty())
+                    <flux:text variant="subtle" class="mt-2">
+                        {{ __('No follow-ups yet.') }}
+                    </flux:text>
+                @else
+                    <ul class="mt-2 space-y-2 text-sm text-text-secondary">
+                        @foreach ($client->followUps->sortByDesc('due_at') as $followUp)
+                            <li>
+                                {{ $followUp->due_at->format('M j, Y') }}
+                                — {{ $followUp->priority->label() }}
+                                — {{ $followUp->reminder_status->label() }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
 
             <div class="flex justify-end">

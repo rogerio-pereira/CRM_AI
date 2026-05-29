@@ -2,6 +2,7 @@
 
 use App\Enums\PipelineStage;
 use App\Models\Client;
+use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\User;
 
@@ -78,6 +79,27 @@ it('shows horizontal scroll on narrow viewports', function () {
         ->on()
         ->mobile()
         ->assertPresent('[data-test="kanban-board"]');
+});
+
+it('creates a follow-up from the kanban card button', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['company_name' => 'Kanban Follow Up Co']);
+    $opportunity = Opportunity::factory()->for($client)->create([
+        'title' => 'Follow Up From Kanban',
+        'stage' => PipelineStage::Contact,
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-create-follow-up-'.$opportunity->id.'"]')
+        ->click('@kanban-card-create-follow-up-'.$opportunity->id)
+        ->assertPresent('[data-test="follow-ups-quick-create-modal"]')
+        ->fill('@follow-ups-form-notes', 'Scheduled from Kanban card')
+        ->click('@follow-ups-form-submit')
+        ->assertSee('Follow Up From Kanban');
+
+    expect(FollowUp::where('notes', 'Scheduled from Kanban card')->exists())->toBeTrue();
 });
 
 it('drags an opportunity card to another stage', function () {

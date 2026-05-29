@@ -456,7 +456,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | Wave | Status | Features |
 | ---- | ------ | -------- |
 | **1** | Done | [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) |
-| **2** | In progress | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
+| **2** | Done | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
 | **3** | Pending | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
 | **4** | Pending | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
 | **5** | Pending | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |

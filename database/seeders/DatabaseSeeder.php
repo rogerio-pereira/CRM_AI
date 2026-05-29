@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ClientSeeder::class,
             OpportunitySeeder::class,
+            FollowUpSeeder::class,
         ]);
     }
 }

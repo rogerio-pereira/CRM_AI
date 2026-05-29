@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Enums\ClientStatus;
 use App\Enums\PipelineStage;
 use App\Models\Client;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ClientService
 {
+    public const INDEX_PER_PAGE = 20;
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -55,11 +57,12 @@ class ClientService
         $client->delete();
     }
 
-    /**
-     * @return Collection<int, Client>
-     */
-    public function listForIndex(?string $search, ?string $statusFilter): Collection
-    {
+    public function paginateForIndex(
+        ?string $search,
+        ?string $statusFilter,
+        int $page = 1,
+        int $perPage = self::INDEX_PER_PAGE,
+    ): LengthAwarePaginator {
         $query = Client::orderBy('company_name');
 
         if ($search !== null && $search !== '') {
@@ -70,6 +73,9 @@ class ClientService
             $query->where('status', $statusFilter);
         }
 
-        return $query->get();
+        return $query->paginate(
+            perPage: $perPage,
+            page: $page,
+        );
     }
 }
