@@ -18,12 +18,12 @@
 
 | NN | Feature | FDR |
 | -- | ------- | --- |
-| 01 | [01 Platform foundation](#f01-platform-foundation) | [FDR-001](FDRs/ToDo/FDR-001-platform-foundation.md) |
-| 02 | [02 Authentication](#f02-authentication) | [FDR-002](FDRs/ToDo/FDR-002-authentication.md) |
-| 03 | [03 Application shell and design system](#f03-application-shell-design-system) | [FDR-003](FDRs/ToDo/FDR-003-application-shell-design-system.md) |
-| 04 | [04 Lead and client management](#f04-lead-client-management) | [FDR-004](FDRs/ToDo/FDR-004-lead-client-management.md) |
-| 05 | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [FDR-005](FDRs/ToDo/FDR-005-opportunity-kanban-pipeline.md) |
-| 06 | [06 Follow-up management](#f06-follow-up-management) | [FDR-006](FDRs/ToDo/FDR-006-follow-up-management.md) |
+| 01 | [01 Platform foundation](#f01-platform-foundation) | [FDR-001](FDRs/Done/FDR-001-platform-foundation.md) |
+| 02 | [02 Authentication](#f02-authentication) | [FDR-002](FDRs/Done/FDR-002-authentication.md) |
+| 03 | [03 Application shell and design system](#f03-application-shell-design-system) | [FDR-003](FDRs/Done/FDR-003-application-shell-design-system.md) |
+| 04 | [04 Lead and client management](#f04-lead-client-management) | [FDR-004](FDRs/Done/FDR-004-lead-client-management.md) |
+| 05 | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [FDR-005](FDRs/Done/FDR-005-opportunity-kanban-pipeline.md) |
+| 06 | [06 Follow-up management](#f06-follow-up-management) | [FDR-006](FDRs/Done/FDR-006-follow-up-management.md) |
 | 07 | [07 Task management](#f07-task-management) | [FDR-007](FDRs/Done/FDR-007-task-management.md) |
 | 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/Done/FDR-008-operational-dashboard.md) |
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/Done/FDR-009-ai-orchestration.md) |
@@ -458,7 +458,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | **1** | Done | [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) |
 | **2** | Done | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
 | **3** | Done | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
-| **4** | Pending | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
+| **4** | In progress | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
 | **5** | Pending | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
 | **6** | Pending | [16 Google Calendar integration](#f16-google-calendar) |
 
