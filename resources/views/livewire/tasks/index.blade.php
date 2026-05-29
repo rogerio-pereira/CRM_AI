@@ -90,7 +90,12 @@
                         <td class="px-4">{{ $task->client->company_name }}</td>
                         <td class="px-4">{{ $task->opportunity?->title ?? '—' }}</td>
                         <td class="px-4">{{ $task->due_at->format('M j, Y H:i') }}</td>
-                        <td class="px-4">{{ $task->priority->label() }}</td>
+                        <td class="px-4">
+                            <x-priority-badge
+                                :priority="$task->priority"
+                                data-test="tasks-priority-badge-{{ $task->id }}"
+                            />
+                        </td>
                         <td class="px-4">
                             <span
                                 class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $task->statusBadgeClasses() }}"
