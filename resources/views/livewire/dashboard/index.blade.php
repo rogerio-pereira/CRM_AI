@@ -1,34 +1,40 @@
-<div class="space-y-8" data-test="dashboard-page">
+<div data-test="dashboard-page">
     <flux:heading size="xl" class="font-bold text-text-primary">{{ __('Dashboard') }}</flux:heading>
 
-    <section class="grid gap-4 sm:grid-cols-2" data-test="dashboard-metrics">
-        <div
-            class="rounded-lg border border-border-default bg-surface p-6"
-            data-test="dashboard-metric-leads-today"
-        >
-            <flux:text class="text-text-muted">{{ __('Leads created today') }}</flux:text>
-            <flux:heading size="2xl" class="mt-2 font-bold text-text-primary">
-                {{ $this->leadsCreatedToday }}
-            </flux:heading>
-        </div>
+    <section class="mt-12 space-y-4" data-test="dashboard-metrics-section">
+        <flux:heading size="lg" class="text-text-secondary">{{ __('Daily overview') }}</flux:heading>
 
-        <div
-            class="rounded-lg border border-border-default bg-surface p-6"
-            data-test="dashboard-metric-opportunities-today"
-        >
-            <flux:text class="text-text-muted">{{ __('Opportunities created today') }}</flux:text>
-            <flux:heading size="2xl" class="mt-2 font-bold text-text-primary">
-                {{ $this->opportunitiesCreatedToday }}
-            </flux:heading>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-6" data-test="dashboard-metrics">
+            @include('livewire.dashboard.partials.metric-card', [
+                'label' => __('Leads created today'),
+                'value' => $this->leadsCreatedToday,
+                'icon' => 'user-plus',
+                'test' => 'dashboard-metric-leads-today',
+                'accentBorder' => 'border-l-accent',
+                'iconBg' => 'bg-gradient-to-br from-accent/30 to-accent/10 text-accent',
+                'glowClass' => 'bg-accent/30',
+                'ringClass' => 'ring-accent/25',
+            ])
+
+            @include('livewire.dashboard.partials.metric-card', [
+                'label' => __('Opportunities created today'),
+                'value' => $this->opportunitiesCreatedToday,
+                'icon' => 'briefcase',
+                'test' => 'dashboard-metric-opportunities-today',
+                'accentBorder' => 'border-l-primary',
+                'iconBg' => 'bg-gradient-to-br from-primary/30 to-primary/10 text-primary-focus',
+                'glowClass' => 'bg-primary/25',
+                'ringClass' => 'ring-primary/25',
+            ])
         </div>
     </section>
 
-    <section class="space-y-4" data-test="dashboard-charts">
+    <section class="mt-12 space-y-4" data-test="dashboard-charts">
         <flux:heading size="lg" class="text-text-secondary">{{ __('Last 30 days') }}</flux:heading>
 
-        <div class="grid gap-4 lg:grid-cols-3">
-            <div class="rounded-lg border border-border-subtle bg-app/30 p-4">
-                <flux:text class="mb-3 text-xs font-medium uppercase text-text-muted">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" data-test="dashboard-charts-grid">
+            <div class="overflow-visible rounded-lg border border-border-subtle bg-app/30 p-3">
+                <flux:text class="mb-2 text-[10px] font-medium uppercase tracking-wide text-text-muted">
                     {{ __('Leads per day') }}
                 </flux:text>
                 @include('livewire.dashboard.partials.bar-chart', [
@@ -37,8 +43,8 @@
                 ])
             </div>
 
-            <div class="rounded-lg border border-border-subtle bg-app/30 p-4">
-                <flux:text class="mb-3 text-xs font-medium uppercase text-text-muted">
+            <div class="overflow-visible rounded-lg border border-border-subtle bg-app/30 p-3">
+                <flux:text class="mb-2 text-[10px] font-medium uppercase tracking-wide text-text-muted">
                     {{ __('Opportunities per day') }}
                 </flux:text>
                 @include('livewire.dashboard.partials.bar-chart', [
@@ -47,104 +53,42 @@
                 ])
             </div>
 
-            <div class="rounded-lg border border-border-subtle bg-app/30 p-4">
-                <flux:text class="mb-3 text-xs font-medium uppercase text-text-muted">
+            <div class="overflow-visible rounded-lg border border-border-subtle bg-app/30 p-3">
+                <flux:text class="mb-2 text-[10px] font-medium uppercase tracking-wide text-text-muted">
                     {{ __('Sales per day') }}
                 </flux:text>
                 @include('livewire.dashboard.partials.bar-chart', [
                     'series' => $this->salesSeries,
                     'testPrefix' => 'sales',
+                    'valueFormat' => 'decimal',
                 ])
             </div>
         </div>
     </section>
 
-    <section class="space-y-4" data-test="dashboard-tables">
-        <div
-            class="overflow-hidden rounded-lg border border-border-default bg-surface"
-            data-test="dashboard-table-tasks"
-        >
-            <div class="border-b border-border-default px-4 py-3">
-                <flux:heading size="md" class="font-semibold text-text-primary">
-                    {{ __('Pending tasks') }}
-                </flux:heading>
+    <section class="mt-12 space-y-4" data-test="dashboard-tables-section">
+        <flux:heading size="lg" class="text-text-secondary">{{ __('Tasks and follow-ups') }}</flux:heading>
+
+        <div class="grid gap-4 lg:grid-cols-2" data-test="dashboard-tables">
+            <div class="overflow-hidden rounded-lg border border-border-default bg-surface">
+                <div class="border-b border-border-default px-4 py-3">
+                    <flux:heading size="md" class="font-semibold text-text-primary">
+                        {{ __('Pending tasks') }}
+                    </flux:heading>
+                </div>
+
+                @include('livewire.dashboard.partials.tasks-table')
             </div>
 
-            <table class="w-full text-left text-sm font-light text-text-secondary">
-                <thead>
-                    <tr class="border-b border-border-default text-xs font-bold uppercase text-text-muted">
-                        <th class="h-10 px-4">{{ __('Title') }}</th>
-                        <th class="h-10 px-4">{{ __('Client') }}</th>
-                        <th class="h-10 px-4">{{ __('Due date') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($this->pendingTasks as $task)
-                        <tr
-                            wire:key="dashboard-task-{{ $task->id }}"
-                            class="h-12 border-b border-border-subtle hover:bg-hover"
-                            data-test="dashboard-task-row-{{ $task->id }}"
-                        >
-                            <td class="px-4 font-medium text-text-primary">{{ $task->title }}</td>
-                            <td class="px-4">{{ $task->client->company_name }}</td>
-                            <td class="px-4">{{ $task->due_at->format('M j, Y H:i') }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-text-muted" data-test="dashboard-tasks-empty">
-                                {{ __('No pending tasks.') }}
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+            <div class="overflow-hidden rounded-lg border border-border-default bg-surface">
+                <div class="border-b border-border-default px-4 py-3">
+                    <flux:heading size="md" class="font-semibold text-text-primary">
+                        {{ __('Follow-ups') }}
+                    </flux:heading>
+                </div>
 
-        <div
-            class="overflow-hidden rounded-lg border border-border-default bg-surface"
-            data-test="dashboard-table-follow-ups"
-        >
-            <div class="border-b border-border-default px-4 py-3">
-                <flux:heading size="md" class="font-semibold text-text-primary">
-                    {{ __('Follow-ups') }}
-                </flux:heading>
+                @include('livewire.dashboard.partials.follow-ups-table')
             </div>
-
-            <table class="w-full text-left text-sm font-light text-text-secondary">
-                <thead>
-                    <tr class="border-b border-border-default text-xs font-bold uppercase text-text-muted">
-                        <th class="h-10 px-4">{{ __('Client') }}</th>
-                        <th class="h-10 px-4">{{ __('Due date') }}</th>
-                        <th class="h-10 px-4">{{ __('Status') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($this->actionableFollowUps as $followUp)
-                        <tr
-                            wire:key="dashboard-follow-up-{{ $followUp->id }}"
-                            @class([
-                                'h-12 border-b border-border-subtle hover:bg-hover',
-                                'bg-status-danger/15' => $followUp->isOverdue(),
-                            ])
-                            data-test="dashboard-follow-up-row-{{ $followUp->id }}"
-                        >
-                            <td class="px-4 font-medium text-text-primary">{{ $followUp->client->company_name }}</td>
-                            <td class="px-4">{{ $followUp->due_at->format('M j, Y H:i') }}</td>
-                            <td class="px-4">
-                                <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $followUp->statusBadgeClasses() }}">
-                                    {{ $followUp->reminder_status->label() }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-text-muted" data-test="dashboard-follow-ups-empty">
-                                {{ __('No pending follow-ups.') }}
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
         </div>
     </section>
 </div>
