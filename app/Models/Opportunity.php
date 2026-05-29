@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Opportunity extends Model
 {
@@ -52,6 +53,14 @@ class Opportunity extends Model
         return $this->belongsTo(Client::class);
     }
 
+    /**
+     * @return HasMany<FollowUp, $this>
+     */
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(FollowUp::class);
+    }
+
     public function hasAiRecommendations(): bool
     {
         if ($this->ai_recommendations === null) {
@@ -72,5 +81,23 @@ class Opportunity extends Model
     protected function inStage(Builder $query, PipelineStage $stage): void
     {
         $query->where('stage', $stage);
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function withNextFollowUpDate(Builder $query): void
+    {
+        $query->withMin(
+            [
+                'followUps as next_follow_up_date' => function (Builder $followUpQuery): void {
+                    $followUpQuery
+                        ->where('reminder_status', 'pending')
+                        ->where('due_at', '>=', now());
+                },
+            ],
+            'due_at',
+        );
     }
 }
