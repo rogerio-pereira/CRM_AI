@@ -16,6 +16,8 @@ it('displays operational dashboard sections for authenticated users', function (
     visit('/dashboard')
         ->assertNoSmoke()
         ->assertPresent('[data-test="dashboard-page"]')
+        ->assertPresent('[data-test="dashboard-metrics-section"]')
+        ->assertPresent('[data-test="dashboard-tables-section"]')
         ->assertPresent('[data-test="dashboard-metric-leads-today"]')
         ->assertPresent('[data-test="dashboard-metric-opportunities-today"]')
         ->assertPresent('[data-test="dashboard-chart-leads"]')
