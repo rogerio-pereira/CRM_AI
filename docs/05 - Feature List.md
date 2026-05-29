@@ -25,7 +25,7 @@
 | 05 | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [FDR-005](FDRs/ToDo/FDR-005-opportunity-kanban-pipeline.md) |
 | 06 | [06 Follow-up management](#f06-follow-up-management) | [FDR-006](FDRs/ToDo/FDR-006-follow-up-management.md) |
 | 07 | [07 Task management](#f07-task-management) | [FDR-007](FDRs/Done/FDR-007-task-management.md) |
-| 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/ToDo/FDR-008-operational-dashboard.md) |
+| 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/Done/FDR-008-operational-dashboard.md) |
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/ToDo/FDR-009-ai-orchestration.md) |
 | 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md) |
 | 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md) |

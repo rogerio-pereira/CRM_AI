@@ -35,11 +35,11 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] All PRD dashboard sections present.
-- [ ] No out-of-scope widgets per ADR-014.
-- [ ] Charts subordinate to tables visually (Design System).
-- [ ] Queries optimized (indexes on `created_at`, `stage`).
-- [ ] Feature tests for metric calculations.
+- [x] All PRD dashboard sections present.
+- [x] No out-of-scope widgets per ADR-014.
+- [x] Charts subordinate to tables visually (Design System).
+- [x] Queries optimized (indexes on `created_at`, `stage`).
+- [x] Feature tests for metric calculations.
 
 ---
 
