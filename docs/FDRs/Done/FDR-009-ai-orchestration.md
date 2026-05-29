@@ -39,11 +39,11 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] Laravel AI SDK integrated with configurable provider.
-- [ ] Central orchestration service documented and injected.
-- [ ] Four agent entry points exist (may stub behavior until features 10–13).
-- [ ] Jobs use Redis queue with retries.
-- [ ] Tests use fakes/mocks; no live API in CI.
+- [x] Laravel AI SDK integrated with configurable provider.
+- [x] Central orchestration service documented and injected.
+- [x] Four agent entry points exist (may stub behavior until features 10–13).
+- [x] Jobs use Redis queue with retries.
+- [x] Tests use fakes/mocks; no live API in CI.
 
 ---
 
