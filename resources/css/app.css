@@ -2,6 +2,15 @@
 @import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../views';
+@source '../../app/Enums/**/*.php';
+@source inline(
+    'bg-status-success/20 text-status-success border-status-success/50'
+    'bg-status-warning/40 text-amber-300 border-status-warning/70 ring-1 ring-status-warning/30'
+    'bg-primary/20 text-primary-focus border-primary/50'
+    'bg-status-neutral/20 text-status-neutral border-status-neutral/50'
+    'border-primary/70 bg-primary/10 ring-1 ring-primary/30 shadow-primary/25'
+    'text-primary-focus'
+);
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
