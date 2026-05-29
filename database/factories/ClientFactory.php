@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\ClientStatus;
 use App\Models\Client;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends Factory<Client>
@@ -55,6 +56,14 @@ class ClientFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ClientStatus::ContactIntent,
+        ]);
+    }
+
+    public function createdAt(Carbon $at): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'created_at' => $at,
+            'updated_at' => $at,
         ]);
     }
 }

@@ -208,6 +208,23 @@ class TaskManagementTest extends TestCase
         $this->assertDatabaseHas('tasks', ['id' => $task->id]);
     }
 
+    public function test_updated_client_id_clears_opportunity_selection(): void
+    {
+        $user = User::factory()->create();
+        $firstClient = Client::factory()->create();
+        $secondClient = Client::factory()->create();
+        $opportunity = Opportunity::factory()->for($firstClient)->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openCreateModal')
+            ->set('client_id', $firstClient->id)
+            ->set('opportunity_id', $opportunity->id)
+            ->set('client_id', $secondClient->id)
+            ->assertSet('opportunity_id', null);
+    }
+
     public function test_opportunity_options_are_empty_until_client_is_selected(): void
     {
         $user = User::factory()->create();

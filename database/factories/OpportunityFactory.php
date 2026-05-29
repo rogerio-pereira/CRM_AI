@@ -7,6 +7,7 @@ use App\Enums\PipelineStage;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends Factory<Opportunity>
@@ -73,6 +74,22 @@ class OpportunityFactory extends Factory
             'ai_recommendations' => [
                 'summary' => fake()->sentence(),
             ],
+        ]);
+    }
+
+    public function createdAt(Carbon $at): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'created_at' => $at,
+            'updated_at' => $at,
+        ]);
+    }
+
+    public function wonOn(Carbon $at): static
+    {
+        return $this->won()->state(fn (array $attributes) => [
+            'created_at' => $at->copy()->subDays(fake()->numberBetween(1, 14)),
+            'updated_at' => $at,
         ]);
     }
 }

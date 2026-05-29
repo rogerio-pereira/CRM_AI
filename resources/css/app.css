@@ -14,6 +14,12 @@
     'kanban-column-user-action-heading'
     'kanban-column-user-action--dragging'
     'bg-status-danger/15 border-l-status-danger'
+    'border-l-accent border-l-primary bg-accent/15 bg-primary/15 text-primary-focus border-accent/25 border-primary/25'
+    'from-surface via-surface to-app/40'
+    'bg-status-success/20! text-status-success! hover:bg-status-success/30! hover:text-status-success!'
+    'from-accent/30 from-primary/30 to-accent/10 to-primary/10 ring-accent/25 ring-primary/25 bg-accent/30 bg-primary/25'
+    'via-app-elevated/30 to-app/50 ring-white/[0.04] to-white/[0.03]'
+    'group-hover/bar:opacity-100 group-hover/bar:bg-accent'
     'bg-status-danger/20 text-status-danger border-status-danger/50'
     'bg-status-success/10 bg-status-success/20 text-status-success border-status-success/50'
 );

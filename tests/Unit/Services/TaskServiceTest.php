@@ -186,6 +186,20 @@ class TaskServiceTest extends TestCase
         Event::assertDispatched(TaskUpdated::class);
     }
 
+    public function test_update_rejects_opportunity_from_another_client(): void
+    {
+        $client = Client::factory()->create();
+        $otherClient = Client::factory()->create();
+        $task = Task::factory()->for($client)->create();
+        $opportunity = Opportunity::factory()->for($otherClient)->create();
+
+        $this->expectException(ValidationException::class);
+
+        $this->service->update($task, [
+            'opportunity_id' => $opportunity->id,
+        ]);
+    }
+
     public function test_delete_removes_task(): void
     {
         $task = Task::factory()->create();
