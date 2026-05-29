@@ -23,7 +23,7 @@ class CrmRouteAuthTest extends TestCase
             'leads' => ['/leads'],
             'opportunities stub' => ['/opportunities'],
             'follow-ups stub' => ['/follow-ups'],
-            'tasks stub' => ['/tasks'],
+            'tasks' => ['/tasks'],
         ];
     }
 
@@ -35,7 +35,7 @@ class CrmRouteAuthTest extends TestCase
             'leads' => ['/leads'],
             'opportunities stub' => ['/opportunities'],
             'follow-ups stub' => ['/follow-ups'],
-            'tasks stub' => ['/tasks'],
+            'tasks' => ['/tasks'],
         ];
     }
 
