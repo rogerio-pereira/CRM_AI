@@ -9,16 +9,19 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Title('Follow-ups')]
 class Index extends Component
 {
     use FollowUpValidationRules;
+    use WithPagination;
 
     public string $search = '';
 
@@ -40,14 +43,29 @@ class Index extends Component
 
     public string $notes = '';
 
-    #[Computed]
-    public function followUps(): Collection
+    public function getFollowUpsProperty(): LengthAwarePaginator
     {
-        return app(FollowUpService::class)->listForIndex(
+        return app(FollowUpService::class)->paginateForIndex(
             $this->search !== '' ? $this->search : null,
             $this->priorityFilter !== 'all' ? $this->priorityFilter : null,
             $this->overdueOnly,
+            page: $this->getPage(),
         );
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPriorityFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedOverdueOnly(): void
+    {
+        $this->resetPage();
     }
 
     /**
@@ -131,7 +149,6 @@ class Index extends Component
 
         $this->showFormModal = false;
         $this->resetForm();
-        unset($this->followUps);
     }
 
     public function markComplete(int $followUpId, FollowUpService $followUpService): void
@@ -139,7 +156,6 @@ class Index extends Component
         $followUp = FollowUp::findOrFail($followUpId);
         $followUpService->markComplete($followUp);
         Flux::toast(variant: 'success', text: __('Follow-up completed.'));
-        unset($this->followUps);
     }
 
     public function snooze(int $followUpId, FollowUpService $followUpService): void
@@ -147,7 +163,6 @@ class Index extends Component
         $followUp = FollowUp::findOrFail($followUpId);
         $followUpService->snooze($followUp);
         Flux::toast(variant: 'success', text: __('Follow-up snoozed.'));
-        unset($this->followUps);
     }
 
     public function render(): View

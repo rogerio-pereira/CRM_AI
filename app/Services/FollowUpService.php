@@ -7,12 +7,14 @@ use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class FollowUpService
 {
+    public const INDEX_PER_PAGE = 20;
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -75,14 +77,13 @@ class FollowUpService
         return $followUp;
     }
 
-    /**
-     * @return Collection<int, FollowUp>
-     */
-    public function listForIndex(
+    public function paginateForIndex(
         ?string $search,
         ?string $priorityFilter,
         bool $overdueOnly,
-    ): Collection {
+        int $page = 1,
+        int $perPage = self::INDEX_PER_PAGE,
+    ): LengthAwarePaginator {
         $query = FollowUp::query()
             ->with(['client', 'opportunity'])
             ->orderBy('due_at');
@@ -101,7 +102,10 @@ class FollowUpService
             $query->overdue();
         }
 
-        return $query->get();
+        return $query->paginate(
+            perPage: $perPage,
+            page: $page,
+        );
     }
 
     /**

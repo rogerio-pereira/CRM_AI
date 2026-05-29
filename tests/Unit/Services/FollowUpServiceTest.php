@@ -195,17 +195,17 @@ class FollowUpServiceTest extends TestCase
             'due_at' => now()->addDay(),
         ]);
 
-        $searchResults = $this->service->listForIndex('acme', null, false);
+        $searchResults = $this->service->paginateForIndex('acme', null, false);
 
         $this->assertCount(1, $searchResults);
         $this->assertTrue($searchResults->first()->is($matching));
 
-        $priorityResults = $this->service->listForIndex(null, FollowUpPriority::High->value, false);
+        $priorityResults = $this->service->paginateForIndex(null, FollowUpPriority::High->value, false);
 
         $this->assertCount(1, $priorityResults);
         $this->assertTrue($priorityResults->first()->is($matching));
 
-        $overdueResults = $this->service->listForIndex(null, null, true);
+        $overdueResults = $this->service->paginateForIndex(null, null, true);
 
         $this->assertCount(1, $overdueResults);
         $this->assertTrue($overdueResults->first()->is($matching));
@@ -215,8 +215,21 @@ class FollowUpServiceTest extends TestCase
     {
         FollowUp::factory()->count(3)->create();
 
-        $results = $this->service->listForIndex(null, 'all', false);
+        $results = $this->service->paginateForIndex(null, 'all', false);
 
         $this->assertCount(3, $results);
+    }
+
+    public function test_paginate_for_index_returns_twenty_items_per_page(): void
+    {
+        FollowUp::factory()->count(21)->create();
+
+        $pageOne = $this->service->paginateForIndex(null, null, false);
+        $pageTwo = $this->service->paginateForIndex(null, null, false, page: 2);
+
+        $this->assertSame(21, $pageOne->total());
+        $this->assertCount(20, $pageOne->items());
+        $this->assertTrue($pageOne->hasMorePages());
+        $this->assertCount(1, $pageTwo->items());
     }
 }

@@ -112,6 +112,12 @@
                 @endforelse
             </tbody>
         </table>
+
+        @if ($this->followUps->hasPages())
+            <div class="border-t border-border-default px-4 py-3" data-test="follow-ups-pagination">
+                <flux:pagination :paginator="$this->followUps" />
+            </div>
+        @endif
     </div>
 
     @include('livewire.follow-ups.partials.form-modal')

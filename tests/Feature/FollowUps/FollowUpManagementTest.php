@@ -12,6 +12,7 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -245,5 +246,69 @@ class FollowUpManagementTest extends TestCase
             ->set('priorityFilter', FollowUpPriority::High->value)
             ->assertSee($highPriority->client->company_name)
             ->assertSee('High');
+    }
+
+    public function test_follow_ups_list_is_paginated_with_twenty_per_page(): void
+    {
+        $user = User::factory()->create();
+        FollowUp::factory()->count(21)->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class);
+
+        $this->assertCount(20, $component->instance()->followUps->items());
+        $this->assertSame(21, $component->instance()->followUps->total());
+
+        $component->call('gotoPage', 2);
+
+        $this->assertCount(1, $component->instance()->followUps->items());
+    }
+
+    public function test_search_filter_resets_pagination_to_first_page(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['company_name' => 'Searchable Follow Co']);
+        FollowUp::factory()->count(21)->for($client)->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('gotoPage', 2)
+            ->set('search', 'Searchable');
+
+        $this->assertSame(1, $component->instance()->followUps->currentPage());
+    }
+
+    public function test_overdue_filter_resets_pagination_to_first_page(): void
+    {
+        $user = User::factory()->create();
+        FollowUp::factory()->count(21)->create(['due_at' => now()->subDay()]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('gotoPage', 2)
+            ->set('overdueOnly', true);
+
+        $this->assertSame(1, $component->instance()->followUps->currentPage());
+    }
+
+    public function test_follow_ups_list_queries_database_with_limit(): void
+    {
+        $user = User::factory()->create();
+        FollowUp::factory()->count(25)->create();
+
+        $this->actingAs($user);
+
+        DB::enableQueryLog();
+
+        Livewire::test(Index::class);
+
+        $sql = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->implode(' ');
+
+        $this->assertStringContainsString('limit', strtolower($sql));
     }
 }
