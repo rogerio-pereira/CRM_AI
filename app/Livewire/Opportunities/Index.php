@@ -11,6 +11,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -122,6 +123,12 @@ class Index extends Component
 
         $this->showFormModal = false;
         $this->resetForm();
+        unset($this->opportunitiesByStage);
+    }
+
+    #[On('follow-up-created')]
+    public function refreshKanbanAfterFollowUp(): void
+    {
         unset($this->opportunitiesByStage);
     }
 

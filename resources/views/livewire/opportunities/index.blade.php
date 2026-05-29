@@ -126,6 +126,18 @@
                                         </span>
                                     </div>
 
+                                    <div class="flex justify-end border-t border-border-subtle pt-2">
+                                        <flux:button
+                                            size="xs"
+                                            variant="ghost"
+                                            icon="calendar-days"
+                                            wire:click="$dispatch('open-follow-up-for-opportunity', { opportunityId: {{ $opportunity->id }} })"
+                                            data-test="kanban-card-create-follow-up-{{ $opportunity->id }}"
+                                        >
+                                            {{ __('Follow-up') }}
+                                        </flux:button>
+                                    </div>
+
                                     @if ($opportunity->hasAiRecommendations())
                                         <div class="flex items-center gap-1 text-xs text-ai" data-test="kanban-card-ai-{{ $opportunity->id }}">
                                             <flux:icon.sparkles class="size-3.5" />
@@ -143,4 +155,6 @@
 
     @include('livewire.opportunities.partials.form-modal')
     @include('livewire.opportunities.partials.detail-modal')
+
+    <livewire:follow-ups.quick-create-modal />
 </div>
