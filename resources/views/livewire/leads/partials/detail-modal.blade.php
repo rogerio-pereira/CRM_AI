@@ -79,7 +79,18 @@
             </div>
 
             <div data-test="leads-detail-follow-up-history">
-                <flux:subheading>{{ __('Follow-up history') }}</flux:subheading>
+                <div class="flex items-center justify-between gap-2">
+                    <flux:subheading>{{ __('Follow-up history') }}</flux:subheading>
+                    <flux:button
+                        size="sm"
+                        variant="ghost"
+                        icon="calendar-days"
+                        wire:click="openFollowUpModalForClient({{ $client->id }})"
+                        data-test="leads-detail-create-follow-up"
+                    >
+                        {{ __('Add follow-up') }}
+                    </flux:button>
+                </div>
                 @if ($client->followUps->isEmpty())
                     <flux:text variant="subtle" class="mt-2">
                         {{ __('No follow-ups yet.') }}
@@ -87,10 +98,89 @@
                 @else
                     <ul class="mt-2 space-y-2 text-sm text-text-secondary">
                         @foreach ($client->followUps->sortByDesc('due_at') as $followUp)
+                            @php($followUpCompleted = $followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Completed)
+                            @php($followUpOverdue = $followUp->isOverdue())
                             <li>
-                                {{ $followUp->due_at->format('M j, Y') }}
-                                — {{ $followUp->priority->label() }}
-                                — {{ $followUp->reminder_status->label() }}
+                                <span
+                                    @class([
+                                        'inline-flex max-w-full flex-wrap items-center gap-2',
+                                        'leads-detail-row--completed' => $followUpCompleted,
+                                        'leads-detail-row--overdue' => $followUpOverdue,
+                                    ])
+                                    @if ($followUpCompleted)
+                                        data-test="leads-detail-follow-up-completed-{{ $followUp->id }}"
+                                    @elseif ($followUpOverdue)
+                                        data-test="leads-detail-follow-up-overdue-{{ $followUp->id }}"
+                                    @endif
+                                >
+                                    <span>{{ $followUp->due_at->format('M j, Y') }}</span>
+                                    <x-priority-badge :priority="$followUp->priority" />
+                                    <x-status-badge
+                                        :label="$followUp->reminder_status->label()"
+                                        :classes="$followUp->statusBadgeClasses()"
+                                        :status="$followUp->reminder_status->value"
+                                        data-test="leads-detail-follow-up-status-{{ $followUp->id }}"
+                                    />
+                                </span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
+            <div data-test="leads-detail-task-history">
+                <div class="flex items-center justify-between gap-2">
+                    <flux:subheading>{{ __('Task history') }}</flux:subheading>
+                    <flux:button
+                        size="sm"
+                        variant="ghost"
+                        icon="clipboard-document-list"
+                        wire:click="openTaskModalForClient({{ $client->id }})"
+                        data-test="leads-detail-create-task"
+                    >
+                        {{ __('Add task') }}
+                    </flux:button>
+                </div>
+                @if ($client->tasks->isEmpty())
+                    <flux:text variant="subtle" class="mt-2">
+                        {{ __('No tasks yet.') }}
+                    </flux:text>
+                @else
+                    <ul class="mt-2 space-y-2 text-sm text-text-secondary">
+                        @foreach ($client->tasks->sortByDesc('due_at') as $task)
+                            @php($taskCompleted = $task->status === \App\Enums\TaskStatus::Done)
+                            @php($taskOverdue = $task->isOverdue())
+                            <li>
+                                <span
+                                    @class([
+                                        'inline-flex max-w-full flex-wrap items-center gap-2',
+                                        'leads-detail-row--completed' => $taskCompleted,
+                                        'leads-detail-row--overdue' => $taskOverdue,
+                                    ])
+                                    @if ($taskCompleted)
+                                        data-test="leads-detail-task-completed-{{ $task->id }}"
+                                    @elseif ($taskOverdue)
+                                        data-test="leads-detail-task-overdue-{{ $task->id }}"
+                                    @endif
+                                >
+                                    @if ($task->is_important)
+                                        <flux:icon.star
+                                            variant="solid"
+                                            class="size-4 shrink-0 text-status-warning"
+                                            title="{{ __('Important task') }}"
+                                            data-test="leads-detail-task-important-{{ $task->id }}"
+                                        />
+                                    @endif
+                                    <span class="font-medium text-text-primary">{{ $task->title }}</span>
+                                    <span>{{ $task->due_at->format('M j, Y') }}</span>
+                                    <x-priority-badge :priority="$task->priority" />
+                                    <x-status-badge
+                                        :label="$task->status->label()"
+                                        :classes="$task->statusBadgeClasses()"
+                                        :status="$task->status->value"
+                                        data-test="leads-detail-task-status-{{ $task->id }}"
+                                    />
+                                </span>
                             </li>
                         @endforeach
                     </ul>

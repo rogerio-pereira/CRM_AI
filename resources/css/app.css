@@ -133,6 +133,32 @@
         font-weight: 500;
         color: var(--color-primary-focus);
     }
+
+    /*
+     * Strikethrough row line on inline-flex wrapper so width matches content, not the full <li>.
+     */
+    .leads-detail-row--completed {
+        position: relative;
+        width: fit-content;
+        opacity: 0.75;
+    }
+
+    .leads-detail-row--completed::after {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        top: 50%;
+        border-block-start: 1px solid var(--color-text-muted);
+        pointer-events: none;
+    }
+
+    .leads-detail-row--overdue {
+        border-radius: 0.375rem;
+        background-color: color-mix(in srgb, var(--color-status-danger) 16%, transparent);
+        box-shadow: inset 3px 0 0 0 var(--color-status-danger);
+        padding-inline: 0.35rem;
+        padding-block: 0.1rem;
+    }
 }
 
 @source inline("bg-status-danger/15");
