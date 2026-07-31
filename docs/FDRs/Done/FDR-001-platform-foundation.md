@@ -1,7 +1,7 @@
 # FDR-001: Platform foundation
 
 **Feature:** 01  
-**Status:** Approved  
+**Status:** Approved / Verified  
 **Reference:** [01 Platform foundation](../../05%20-%20Feature%20List.md#f01-platform-foundation), [ADR-001](../../ADRs/ADR-001-technology-stack.md), [ADR-006](../../ADRs/ADR-006-queue-async-processing.md)
 
 ---
@@ -30,17 +30,24 @@ flowchart TD
 
 - `sail up` — all services healthy; `migrate` succeeds.
 - Dispatch a test job — processed by worker; visible in Horizon.
-- Scheduler list includes prospecting command placeholder (feature 10).
+- Scheduler list includes prospecting scheduler placeholder comment (feature 10).
 
 ---
 
 ## Acceptance criteria
 
-- [ ] PostgreSQL is the default DB; migrations run cleanly.
-- [ ] Redis queue configured; test job completes.
-- [ ] Horizon dashboard accessible to authenticated operators (route/policy TBD).
-- [ ] Sail `docker-compose` documents PG + Redis + app.
-- [ ] Deployment notes for Laravel Cloud (workers, scheduler, env) documented in README or ops doc.
+- [x] PostgreSQL is the default DB; migrations run cleanly.
+- [x] Redis queue configured; test job completes.
+- [x] Horizon dashboard accessible to authenticated operators.
+- [x] Sail `docker-compose` documents PG + Redis + app.
+- [x] Deployment notes for Laravel Cloud (workers, scheduler, env) documented in README.
+- [x] Scheduler contains a feature-10 prospecting placeholder comment until `prospecting:run` is implemented.
+
+Verification notes:
+
+- Verified on 2026-07-31 with Sail runtime drivers: database `pgsql`, queue/cache/session `redis`, timezone `America/New_York`.
+- Ran targeted platform/auth checks and browser navigation checks.
+- Ran pending migrations successfully.
 
 ---
 
