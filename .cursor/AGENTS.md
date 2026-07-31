@@ -62,6 +62,7 @@ Typical stack across repositories using this setup:
 - Livewire: **class-based components only** for new work (`app/Livewire/` + `resources/views/livewire/`); see `.cursor/rules/livewire-class-components.mdc`.
 - **ALWAYS** Follow Clean Code and treat this motto as non‑negotiable:
     > Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
+- **MANDATORY** Read `.cursor/rules/style-guide.md` all rules there **MUST** be followed **ALWAYS**
 
 ### UI
 
