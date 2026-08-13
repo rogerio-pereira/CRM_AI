@@ -42,17 +42,39 @@
                 <div class="mt-4">
                     <flux:subheading>{{ __('Qualification') }}</flux:subheading>
                     <x-status-badge
-                        :label="$opportunity->client->qualification_status->label()"
-                        :classes="$opportunity->client->qualification_status->badgeClasses()"
-                        :status="$opportunity->client->qualification_status->value"
+                        :label="$opportunity->qualification_status->label()"
+                        :classes="$opportunity->qualification_status->badgeClasses()"
+                        :status="$opportunity->qualification_status->value"
                         data-test="opportunities-detail-qualification-badge"
                     />
-                    @if ($opportunity->client->qualification_status === \App\Enums\QualificationStatus::Failed && $opportunity->client->qualification_last_error)
+                    @if ($opportunity->qualification_status === \App\Enums\QualificationStatus::Failed && $opportunity->qualification_last_error)
                         <flux:text class="mt-2 text-status-danger" data-test="opportunities-detail-qualification-error">
-                            {{ $opportunity->client->qualification_last_error }}
+                            {{ $opportunity->qualification_last_error }}
+                        </flux:text>
+                    @endif
+                    @if ($opportunity->qualification_notes)
+                        <flux:text class="mt-2 text-text-secondary" data-test="opportunities-detail-qualification-notes">
+                            {{ $opportunity->qualification_notes }}
                         </flux:text>
                     @endif
                 </div>
+
+                @if (is_array($opportunity->ai_insights) && filled($opportunity->ai_insights['summary'] ?? null))
+                    <div class="mt-4 rounded-lg border border-ai/30 bg-surface p-4" data-test="opportunities-detail-ai-insights">
+                        <div class="flex items-center gap-2">
+                            <flux:subheading>{{ __('AI insights') }}</flux:subheading>
+                            <span class="inline-flex rounded-full border border-ai/30 bg-ai/15 px-2 py-0.5 text-xs font-medium text-ai">
+                                {{ __('AI Insight') }}
+                            </span>
+                        </div>
+                        <flux:text class="mt-2 text-text-secondary" data-test="opportunities-detail-ai-insights-summary">
+                            {{ $opportunity->ai_insights['summary'] }}
+                        </flux:text>
+                        <flux:text variant="subtle" class="mt-2">
+                            {{ __('AI-generated. Not a confirmed human decision.') }}
+                        </flux:text>
+                    </div>
+                @endif
 
                 <div class="mt-4">
                     <a

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -70,6 +71,38 @@ it('opens the opportunity detail modal with client summary', function () {
         ->assertSee('Detail Summary Co')
         ->assertSee('detail@summary.test')
         ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]');
+});
+
+it('renders qualification status chips on the kanban and failed error on detail', function () {
+    $user = User::factory()->create();
+    $pending = Opportunity::factory()->qualificationPending()->create([
+        'title' => 'Pending Chip Deal',
+        'stage' => PipelineStage::Lead,
+    ]);
+    $processing = Opportunity::factory()->qualificationProcessing()->create([
+        'title' => 'Processing Chip Deal',
+        'stage' => PipelineStage::Qualification,
+    ]);
+    $qualified = Opportunity::factory()->qualificationQualified()->create([
+        'title' => 'Qualified Chip Deal',
+        'stage' => PipelineStage::Contact,
+    ]);
+    $failed = Opportunity::factory()->qualificationFailed()->create([
+        'title' => 'Failed Chip Deal',
+        'stage' => PipelineStage::Qualification,
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$pending->id.'"][data-status="'.QualificationStatus::Pending->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$processing->id.'"][data-status="'.QualificationStatus::Processing->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$qualified->id.'"][data-status="'.QualificationStatus::Qualified->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$failed->id.'"][data-status="'.QualificationStatus::Failed->value.'"]')
+        ->click('@kanban-card-open-'.$failed->id)
+        ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="failed"]')
+        ->assertPresent('[data-test="opportunities-detail-qualification-error"]')
+        ->assertSee('Qualification could not be completed. The team can try again later.');
 });
 
 it('shows horizontal scroll on narrow viewports', function () {

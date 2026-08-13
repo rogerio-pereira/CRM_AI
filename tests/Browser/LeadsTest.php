@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ClientStatus;
-use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Task;
@@ -150,25 +149,4 @@ it('filters leads by archived status', function () {
         ->select('@leads-status-filter', ClientStatus::Archived->value)
         ->assertSee('Hidden Archived Co')
         ->assertDontSee('Visible Active Co');
-});
-
-it('renders qualification status chips for pending processing qualified and failed', function () {
-    $user = User::factory()->create();
-    $pending = Client::factory()->qualificationPending()->create(['company_name' => 'Pending Chip Browser Co']);
-    $processing = Client::factory()->qualificationProcessing()->create(['company_name' => 'Processing Chip Browser Co']);
-    $qualified = Client::factory()->qualificationQualified()->create(['company_name' => 'Qualified Chip Browser Co']);
-    $failed = Client::factory()->qualificationFailed()->create(['company_name' => 'Failed Chip Browser Co']);
-
-    $this->actingAs($user);
-
-    visit('/leads')
-        ->assertPresent('[data-test="leads-qualification-badge-'.$pending->id.'"][data-status="pending"]')
-        ->assertPresent('[data-test="leads-qualification-badge-'.$processing->id.'"][data-status="processing"]')
-        ->assertPresent('[data-test="leads-qualification-badge-'.$qualified->id.'"][data-status="qualified"]')
-        ->assertPresent('[data-test="leads-qualification-badge-'.$failed->id.'"][data-status="failed"]')
-        ->click('@leads-actions-'.$failed->id)
-        ->click('@leads-view-'.$failed->id)
-        ->assertPresent('[data-test="leads-detail-qualification-badge"][data-status="failed"]')
-        ->assertPresent('[data-test="leads-detail-qualification-error"]')
-        ->assertSee('Qualification could not be completed. The team can try again later.');
 });

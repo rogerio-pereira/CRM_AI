@@ -240,10 +240,10 @@ class OpportunityManagementTest extends TestCase
     public function test_opportunity_detail_renders_client_qualification_chip(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->qualificationFailed()->create([
+        $client = Client::factory()->create([
             'company_name' => 'Failed Qualify Client',
         ]);
-        $opportunity = Opportunity::factory()->for($client)->create([
+        $opportunity = Opportunity::factory()->for($client)->qualificationFailed()->create([
             'title' => 'Failed qualify deal',
         ]);
 
