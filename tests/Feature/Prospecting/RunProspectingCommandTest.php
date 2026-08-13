@@ -15,6 +15,10 @@ class RunProspectingCommandTest extends TestCase
     {
         Queue::fake();
 
+        config([
+            'prospecting.enabled' => true,
+        ]);
+
         $this->artisan('prospecting:run')
             ->assertSuccessful()
             ->expectsOutputToContain('Prospecting agent job dispatched.');
