@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,6 +31,11 @@ class OpportunityFactory extends Factory
             'proposal_notes' => null,
             'proposal_payload' => null,
             'ai_recommendations' => null,
+            'qualification_notes' => null,
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+            'ai_insights' => null,
         ];
     }
 
@@ -66,6 +72,46 @@ class OpportunityFactory extends Factory
     public function lost(): static
     {
         return $this->stage(PipelineStage::Lost);
+    }
+
+    public function qualificationPending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationProcessing(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Processing,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationQualified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Qualified,
+            'qualification_last_error' => null,
+            'qualified_at' => now(),
+            'ai_insights' => [
+                'schema_version' => 1,
+                'summary' => 'Ready for a first conversation.',
+            ],
+        ]);
+    }
+
+    public function qualificationFailed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Failed,
+            'qualification_last_error' => 'Qualification could not be completed. The team can try again later.',
+            'qualified_at' => null,
+        ]);
     }
 
     public function withAiRecommendations(): static

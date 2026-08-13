@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use Database\Factories\OpportunityFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,13 @@ class Opportunity extends Model
     use HasFactory;
 
     /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'qualification_status' => 'pending',
+    ];
+
+    /**
      * @var list<string>
      */
     protected $fillable = [
@@ -29,6 +37,11 @@ class Opportunity extends Model
         'proposal_notes',
         'proposal_payload',
         'ai_recommendations',
+        'qualification_notes',
+        'qualification_status',
+        'qualification_last_error',
+        'qualified_at',
+        'ai_insights',
     ];
 
     /**
@@ -42,6 +55,9 @@ class Opportunity extends Model
             'status' => OpportunityStatus::class,
             'proposal_payload' => 'array',
             'ai_recommendations' => 'array',
+            'qualification_status' => QualificationStatus::class,
+            'qualified_at' => 'datetime',
+            'ai_insights' => 'array',
         ];
     }
 
