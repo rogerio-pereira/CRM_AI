@@ -47,11 +47,11 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return Password::min(12)
-                            ->mixedCase()
-                            ->letters()
-                            ->numbers()
-                            ->symbols()
-                            ->uncompromised();
+                        ->mixedCase()
+                        ->letters()
+                        ->numbers()
+                        ->symbols()
+                        ->uncompromised();
         });
     }
 }

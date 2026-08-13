@@ -35,8 +35,8 @@ class FetchPublicPage implements Tool
             ];
 
         $response = Http::timeout(self::TIMEOUT_SECONDS)
-                            ->withHeaders($headers)
-                            ->get($url);
+                        ->withHeaders($headers)
+                        ->get($url);
 
         if (! $response->successful()) {
             $status = $response->status();
