@@ -10,7 +10,7 @@
 
 | Dependency | ADR status | Impact on this FDR |
 | ---------- | ----------- | ------------------ |
-| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Accepted** | Discovery: AI-led active search on public/free sources; no paid data APIs; ethics/compliance per ADR. **Blocked until approved prompt is supplied** (see below). |
+| [ADR-015 — Prospecting discovery](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | **Accepted** | Discovery: AI-led active search on public/free sources; no paid data APIs; ethics/compliance per ADR. Approved prompt is versioned at `docs/prompts/prospecting-agent.md`. |
 | [ADR-007 — Scheduled prospecting](../../ADRs/ADR-007-scheduled-prospecting.md) | Accepted | Schedule (`08:00` weekdays) can be implemented independently. |
 
 ### Stakeholder decisions (recorded 2026-05-29)
@@ -21,11 +21,11 @@
 | 2 | Deduplication | Company name + website domain (primary); email + phone when present (secondary) |
 | 3 | MVP data sources | Public/free only: Google, Maps, websites, social networks, directories — **no paid data APIs** |
 
-### Pending stakeholder deliverable
+### Stakeholder deliverable
 
 | Item | Status |
 | ---- | ------ |
-| Approved prospecting system prompt (versioned) | ☐ Not yet supplied — **required before production adapter**; stub/mock OK for early Building |
+| Approved prospecting system prompt (versioned) | ☑ Supplied — `docs/prompts/prospecting-agent.md` |
 
 ---
 
@@ -63,6 +63,7 @@ flowchart TD
 ## Acceptance criteria
 
 - [x] ADR-015 status is **Accepted**; discovery/dedup/source choices recorded in this FDR.
+- [x] Approved prospecting prompt supplied and versioned in `docs/prompts/prospecting-agent.md`.
 - [ ] Approved prospecting prompt integrated and referenced in code/config.
 - [ ] Weekday 08:00 schedule registered.
 - [ ] Prospecting agent invoked via orchestration.
