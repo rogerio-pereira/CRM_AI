@@ -12,8 +12,9 @@ use InvalidArgumentException;
 /**
  * Central entry point for enqueueing AI agent work (ADR-003).
  *
- * Dispatches responsibility-specific queue jobs; agents use stub handlers until
- * features 10–13 replace them with Laravel AI SDK calls. No provider failover (ADR-002).
+ * Dispatches responsibility-specific queue jobs. Prospecting and qualification
+ * agents use the Laravel AI SDK; remaining agents stay stubbed until FDR-012/013.
+ * No provider failover (ADR-002).
  */
 class AiOrchestrationService
 {

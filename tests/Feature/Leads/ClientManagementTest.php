@@ -3,6 +3,7 @@
 namespace Tests\Feature\Leads;
 
 use App\Enums\ClientStatus;
+use App\Enums\QualificationStatus;
 use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -44,6 +45,7 @@ class ClientManagementTest extends TestCase
             'contact_email' => 'sales@acme.test',
             'website' => 'https://acme.test',
             'status' => ClientStatus::Active->value,
+            'qualification_status' => QualificationStatus::Qualified->value,
         ]);
     }
 

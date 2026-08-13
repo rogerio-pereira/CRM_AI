@@ -46,6 +46,44 @@ class AiOrchestrationTest extends TestCase
         });
     }
 
+    public function test_moving_opportunity_to_qualification_skips_job_when_already_processing(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        $client = Client::factory()->qualificationProcessing()->create();
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'stage' => PipelineStage::Lead,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(OpportunitiesIndex::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::Qualification->value)
+            ->assertHasNoErrors();
+
+        Queue::assertNotPushed(RunQualificationAgentJob::class);
+    }
+
+    public function test_moving_opportunity_to_qualification_skips_job_when_already_qualified(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        $client = Client::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'stage' => PipelineStage::Lead,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(OpportunitiesIndex::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::Qualification->value)
+            ->assertHasNoErrors();
+
+        Queue::assertNotPushed(RunQualificationAgentJob::class);
+    }
+
     public function test_moving_opportunity_to_proposal_generation_enqueues_proposal_assistant_job(): void
     {
         Queue::fake();

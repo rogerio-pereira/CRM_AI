@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Enums\AgentType;
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Events\OpportunityStageChanged;
 use App\Services\AiOrchestrationService;
 
@@ -15,7 +16,7 @@ class DispatchAiOnOpportunityStageChanged
 
     public function handle(OpportunityStageChanged $event): void
     {
-        $agentType = $this->agentTypeForStage($event->toStage);
+        $agentType = $this->agentTypeForStage($event);
 
         if ($agentType === null) {
             return;
@@ -31,10 +32,12 @@ class DispatchAiOnOpportunityStageChanged
         ]);
     }
 
-    private function agentTypeForStage(PipelineStage $stage): ?AgentType
+    private function agentTypeForStage(OpportunityStageChanged $event): ?AgentType
     {
+        $stage = $event->toStage;
+
         if ($stage === PipelineStage::Qualification) {
-            return AgentType::Qualification;
+            return $this->qualificationAgentType($event);
         }
 
         if ($stage === PipelineStage::ProposalGeneration) {
@@ -46,5 +49,26 @@ class DispatchAiOnOpportunityStageChanged
         }
 
         return null;
+    }
+
+    private function qualificationAgentType(OpportunityStageChanged $event): ?AgentType
+    {
+        $client = $event->opportunity->client;
+
+        if ($client === null) {
+            return AgentType::Qualification;
+        }
+
+        $status = $client->qualification_status;
+
+        if ($status === QualificationStatus::Processing) {
+            return null;
+        }
+
+        if ($status === QualificationStatus::Qualified) {
+            return null;
+        }
+
+        return AgentType::Qualification;
     }
 }
