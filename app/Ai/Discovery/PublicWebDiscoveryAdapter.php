@@ -19,15 +19,19 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
      */
     public function discover(array $options = []): array
     {
-        $limit = (int) ($options['limit'] ?? config('prospecting.default_limit', 20));
+        $defaultLimit = (int) config('prospecting.default_limit', 20);
+        $requestedLimit = $options['limit'] ?? $defaultLimit;
+        $limit = (int) $requestedLimit;
 
         if ($limit < 1) {
             $limit = 1;
         }
 
-        $instructions = (string) ($options['instructions'] ?? '');
+        $rawInstructions = $options['instructions'] ?? '';
+        $instructions = (string) $rawInstructions;
+        $trimmedInstructions = trim($instructions);
 
-        if (trim($instructions) === '') {
+        if ($trimmedInstructions === '') {
             throw new RuntimeException('Prospecting discovery requires approved prompt instructions.');
         }
 
@@ -57,55 +61,22 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
         }
 
         $leads = [];
-        $skipped = [];
-
-        foreach ($rawSkipped as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $skipped[] = [
-                'name' => (string) ($item['name'] ?? ''),
-                'reason' => (string) ($item['reason'] ?? ''),
-            ];
-        }
+        $skipped = $this->mapSkippedItems($rawSkipped);
 
         foreach ($rawLeads as $item) {
             if (! is_array($item)) {
                 continue;
             }
 
-            $companyName = trim((string) ($item['company_name'] ?? ''));
-            $email = strtolower(trim((string) ($item['email'] ?? '')));
+            $mappedLead = $this->mapLead($item);
 
-            if ($companyName === '' || $email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-                $skipped[] = [
-                    'name' => $companyName !== '' ? $companyName : 'Unknown',
-                    'reason' => 'Missing company name or valid public email.',
-                ];
+            if ($mappedLead === null) {
+                $skipped[] = $this->skippedInvalidLead($item);
 
                 continue;
             }
 
-            $websiteInput = null;
-
-            if (isset($item['website']) && is_string($item['website'])) {
-                $websiteInput = $item['website'];
-            }
-
-            $website = UrlNormalizer::normalize($websiteInput);
-
-            $leads[] = [
-                'company_name' => $companyName,
-                'contact_name' => $this->nullableString($item['contact_name'] ?? null),
-                'email' => $email,
-                'phone' => $this->nullableString($item['phone'] ?? null),
-                'website' => $website,
-                'social_links' => $this->stringList($item['social_links'] ?? []),
-                'why_good_fit' => $this->nullableString($item['why_good_fit'] ?? null),
-                'observed_signals' => $this->stringList($item['observed_signals'] ?? []),
-                'lead_source' => 'prospecting',
-            ];
+            $leads[] = $mappedLead;
 
             if (count($leads) >= $limit) {
                 break;
@@ -113,9 +84,107 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
         }
 
         return [
-            'leads' => $leads,
-            'skipped' => $skipped,
-        ];
+                'leads' => $leads,
+                'skipped' => $skipped,
+            ];
+    }
+
+    /**
+     * @param  list<mixed>  $rawSkipped
+     * @return list<array{name: string, reason: string}>
+     */
+    private function mapSkippedItems(array $rawSkipped): array
+    {
+        $skipped = [];
+
+        foreach ($rawSkipped as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $rawName = $item['name'] ?? '';
+            $rawReason = $item['reason'] ?? '';
+
+            $skipped[] = [
+                    'name' => (string) $rawName,
+                    'reason' => (string) $rawReason,
+                ];
+        }
+
+        return $skipped;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>|null
+     */
+    private function mapLead(array $item): ?array
+    {
+        $rawCompanyName = $item['company_name'] ?? '';
+        $companyName = trim((string) $rawCompanyName);
+        $rawEmail = $item['email'] ?? '';
+        $email = strtolower(trim((string) $rawEmail));
+        $emailIsValid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+
+        if ($companyName === '') {
+            return null;
+        }
+
+        if ($emailIsValid === false) {
+            return null;
+        }
+
+        $websiteInput = null;
+
+        if (isset($item['website'])) {
+            if (is_string($item['website'])) {
+                $websiteInput = $item['website'];
+            }
+        }
+
+        $website = UrlNormalizer::normalize($websiteInput);
+        $rawContactName = $item['contact_name'] ?? null;
+        $rawPhone = $item['phone'] ?? null;
+        $rawWhyGoodFit = $item['why_good_fit'] ?? null;
+        $rawSocialLinks = $item['social_links'] ?? [];
+        $rawObservedSignals = $item['observed_signals'] ?? [];
+        $contactName = $this->nullableString($rawContactName);
+        $phone = $this->nullableString($rawPhone);
+        $whyGoodFit = $this->nullableString($rawWhyGoodFit);
+        $socialLinks = $this->stringList($rawSocialLinks);
+        $observedSignals = $this->stringList($rawObservedSignals);
+
+        return [
+                'company_name' => $companyName,
+                'contact_name' => $contactName,
+                'email' => $email,
+                'phone' => $phone,
+                'website' => $website,
+                'social_links' => $socialLinks,
+                'why_good_fit' => $whyGoodFit,
+                'observed_signals' => $observedSignals,
+                'lead_source' => 'prospecting',
+            ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array{name: string, reason: string}
+     */
+    private function skippedInvalidLead(array $item): array
+    {
+        $rawCompanyName = $item['company_name'] ?? '';
+        $companyName = trim((string) $rawCompanyName);
+        $skippedName = 'Unknown';
+
+        if ($companyName !== '') {
+            $skippedName = $companyName;
+        }
+
+        return [
+                'name' => $skippedName,
+                'reason' => 'Missing company name or valid public email.',
+            ];
     }
 
     private function nullableString(mixed $value): ?string

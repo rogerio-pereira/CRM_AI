@@ -15,20 +15,27 @@ class LeadDeduplicationService
      */
     public function findDuplicate(array $candidate): ?Client
     {
-        $companyName = $this->normalizeCompanyName($candidate['company_name'] ?? null);
-        $domain = $this->normalizeDomain($candidate['website'] ?? null);
-        $email = $this->normalizeEmail($candidate['email'] ?? null);
-        $phone = $this->normalizePhone($candidate['phone'] ?? null);
+        $rawCompanyName = $candidate['company_name'] ?? null;
+        $rawWebsite = $candidate['website'] ?? null;
+        $rawEmail = $candidate['email'] ?? null;
+        $rawPhone = $candidate['phone'] ?? null;
+
+        $companyName = $this->normalizeCompanyName($rawCompanyName);
+        $domain = $this->normalizeDomain($rawWebsite);
+        $email = $this->normalizeEmail($rawEmail);
+        $phone = $this->normalizePhone($rawPhone);
+
+        $columns = [
+                'id',
+                'company_name',
+                'website',
+                'contact_email',
+                'contact_phone',
+            ];
 
         $clients = Client::query()
                         ->orderBy('id')
-                        ->get([
-                            'id',
-                            'company_name',
-                            'website',
-                            'contact_email',
-                            'contact_phone',
-                        ]);
+                        ->get($columns);
 
         foreach ($clients as $client) {
             $existingName = $this->normalizeCompanyName($client->company_name);
@@ -63,9 +70,19 @@ class LeadDeduplicationService
         }
 
         $normalized = Str::lower(trim($name));
-        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? '';
-        $normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', $normalized) ?? '';
-        $normalized = trim($normalized);
+        $withoutExtraSpaces = preg_replace('/\s+/u', ' ', $normalized);
+
+        if (! is_string($withoutExtraSpaces)) {
+            $withoutExtraSpaces = '';
+        }
+
+        $withoutPunctuation = preg_replace('/[^\p{L}\p{N}\s]/u', '', $withoutExtraSpaces);
+
+        if (! is_string($withoutPunctuation)) {
+            $withoutPunctuation = '';
+        }
+
+        $normalized = trim($withoutPunctuation);
 
         if ($normalized === '') {
             return null;
@@ -128,7 +145,11 @@ class LeadDeduplicationService
             return null;
         }
 
-        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (! is_string($digits)) {
+            $digits = '';
+        }
 
         if (strlen($digits) < 7) {
             return null;

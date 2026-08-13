@@ -22,21 +22,26 @@ class FetchPublicPage implements Tool
 
     public function handle(Request $request): Stringable|string
     {
-        $url = $request->string('url')->toString();
+        $urlInput = $request->string('url');
+        $url = $urlInput->toString();
 
         if (! $this->isPublicHttpUrl($url)) {
             return 'Rejected: URL is not a public http(s) resource.';
         }
 
+        $headers = [
+                'User-Agent' => 'FrontPorchCRM-Prospecting/1.0',
+                'Accept' => 'text/html,text/plain',
+            ];
+
         $response = Http::timeout(self::TIMEOUT_SECONDS)
-                            ->withHeaders([
-                                'User-Agent' => 'FrontPorchCRM-Prospecting/1.0',
-                                'Accept' => 'text/html,text/plain',
-                            ])
+                            ->withHeaders($headers)
                             ->get($url);
 
         if (! $response->successful()) {
-            return 'Fetch failed with HTTP status '.$response->status().'.';
+            $status = $response->status();
+
+            return 'Fetch failed with HTTP status '.$status.'.';
         }
 
         $body = $response->body();
@@ -45,13 +50,9 @@ class FetchPublicPage implements Tool
             $body = substr($body, 0, self::MAX_BYTES);
         }
 
-        $text = html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $collapsed = preg_replace('/\s+/u', ' ', $text);
-
-        if (! is_string($collapsed)) {
-            $collapsed = '';
-        }
-
+        $strippedBody = strip_tags($body);
+        $decodedText = html_entity_decode($strippedBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $collapsed = $this->collapseWhitespace($decodedText);
         $text = trim($collapsed);
 
         if ($text === '') {
@@ -66,14 +67,18 @@ class FetchPublicPage implements Tool
      */
     public function schema(JsonSchema $schema): array
     {
+        $url = $schema->string()
+                    ->required();
+
         return [
-            'url' => $schema->string()->required(),
-        ];
+                'url' => $url,
+            ];
     }
 
     private function isPublicHttpUrl(string $url): bool
     {
-        $parts = parse_url(trim($url));
+        $trimmedUrl = trim($url);
+        $parts = parse_url($trimmedUrl);
 
         if (! is_array($parts)) {
             return false;
@@ -94,7 +99,9 @@ class FetchPublicPage implements Tool
             return false;
         }
 
-        if (filter_var($host, FILTER_VALIDATE_IP) === false) {
+        $isIpAddress = filter_var($host, FILTER_VALIDATE_IP) !== false;
+
+        if ($isIpAddress === false) {
             return true;
         }
 
@@ -102,5 +109,18 @@ class FetchPublicPage implements Tool
         $publicIp = filter_var($host, FILTER_VALIDATE_IP, $flags);
 
         return $publicIp !== false;
+    }
+
+    private function collapseWhitespace(string $text): string
+    {
+        $parts = preg_split('/\s+/u', $text);
+
+        if (! is_array($parts)) {
+            return '';
+        }
+
+        $collapsed = implode(' ', $parts);
+
+        return $collapsed;
     }
 }

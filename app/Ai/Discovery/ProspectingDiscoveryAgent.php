@@ -33,8 +33,8 @@ class ProspectingDiscoveryAgent implements Agent, HasStructuredOutput, HasTools
     public function tools(): iterable
     {
         return [
-            $this->fetchPublicPage,
-        ];
+                $this->fetchPublicPage,
+            ];
     }
 
     /**
@@ -42,25 +42,51 @@ class ProspectingDiscoveryAgent implements Agent, HasStructuredOutput, HasTools
      */
     public function schema(JsonSchema $schema): array
     {
+        $socialLinkItems = $schema->string();
+        $socialLinks = $schema->array()
+                            ->items($socialLinkItems)
+                            ->nullable();
+
+        $observedSignalItems = $schema->string();
+        $observedSignals = $schema->array()
+                            ->items($observedSignalItems)
+                            ->nullable();
+
         $lead = $schema->object([
-            'company_name' => $schema->string()->required(),
-            'contact_name' => $schema->string()->nullable(),
-            'email' => $schema->string()->required(),
-            'phone' => $schema->string()->nullable(),
-            'website' => $schema->string()->nullable(),
-            'social_links' => $schema->array()->items($schema->string())->nullable(),
-            'why_good_fit' => $schema->string()->nullable(),
-            'observed_signals' => $schema->array()->items($schema->string())->nullable(),
-        ]);
+                'company_name' => $schema->string()
+                                        ->required(),
+                'contact_name' => $schema->string()
+                                        ->nullable(),
+                'email' => $schema->string()
+                                ->required(),
+                'phone' => $schema->string()
+                                ->nullable(),
+                'website' => $schema->string()
+                                ->nullable(),
+                'social_links' => $socialLinks,
+                'why_good_fit' => $schema->string()
+                                        ->nullable(),
+                'observed_signals' => $observedSignals,
+            ]);
 
         $skipped = $schema->object([
-            'name' => $schema->string()->required(),
-            'reason' => $schema->string()->required(),
-        ]);
+                'name' => $schema->string()
+                                ->required(),
+                'reason' => $schema->string()
+                                ->required(),
+            ]);
+
+        $leads = $schema->array()
+                        ->items($lead)
+                        ->required();
+
+        $skippedItems = $schema->array()
+                            ->items($skipped)
+                            ->required();
 
         return [
-            'leads' => $schema->array()->items($lead)->required(),
-            'skipped' => $schema->array()->items($skipped)->required(),
-        ];
+                'leads' => $leads,
+                'skipped' => $skippedItems,
+            ];
     }
 }
