@@ -18,6 +18,7 @@ alwaysApply: true
     - **Tests** (Feature, Browser, unit).
     - **Docs / FDR / Feature List** (never `docs/FDRs/ImplementationPlans/` — gitignored ephemeral state).
   - Each commit must **build and pass ALL relevant tests and linter** (see `.cursor/rules/starting-environment.mdc`).
+  - Each commit must also comply with `.cursor/rules/style-guide.md`. Re-read all changed files before committing. Style-guide violations mean the work is **not done**, even if tests and Pint pass.
 
 - **Commit messages (Conventional Commits)**
   - Use clear, consistent type prefixes, for example:

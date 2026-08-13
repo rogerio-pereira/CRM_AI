@@ -1,5 +1,9 @@
 # Style Guide Rule: Explicit, Sequential Code
 
+**Mandatory.** Read and follow this entire file before writing or editing code. A feature, fix, refactor, or any other code change is **not done** until every changed file complies with this guide. Passing tests and Pint is not a substitute.
+
+---
+
 ## Rule
 
 Follow **PSR-12** formatting conventions for PHP.

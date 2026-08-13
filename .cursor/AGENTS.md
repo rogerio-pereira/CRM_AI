@@ -62,7 +62,8 @@ Typical stack across repositories using this setup:
 - Livewire: **class-based components only** for new work (`app/Livewire/` + `resources/views/livewire/`); see `.cursor/rules/livewire-class-components.mdc`.
 - **ALWAYS** Follow Clean Code and treat this motto as non‑negotiable:
     > Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
-- **MANDATORY** Read `.cursor/rules/style-guide.md` all rules there **MUST** be followed **ALWAYS**
+- **MANDATORY** Read `.cursor/rules/style-guide.md` before writing or editing code. Every rule there **MUST** be followed **ALWAYS**.
+- A feature, fix, refactor, or any code change is **not done** until every changed file complies with `.cursor/rules/style-guide.md`. After implementation, re-read all changed files. Passing tests and Pint is not enough; style-guide violations mean the work is still open.
 
 ### UI
 

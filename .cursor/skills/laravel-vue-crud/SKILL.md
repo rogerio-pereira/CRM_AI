@@ -17,6 +17,11 @@ in the repository, from database to frontend and tests.
 Always keep code in **English**, follow PSRs, and respect the existing
 branding and frontend standards (see `frontend-vue-vuetify` skill).
 
+**ALWAYS** follow `.cursor/rules/style-guide.md`. After code is written,
+re-read every changed file. A feature, fix, refactor, or any code change is
+**not done** until the style guide is followed. Tests and Pint passing is
+not enough.
+
 ---
 
 ## When to use this skill
@@ -329,4 +334,5 @@ provided by Pest/Laravel.
 - [ ] Sidebar/menu updated with link to Index page.
 - [ ] Browser tests (Pest) covering navigation, CRUD flows, and basic smoke.
 - [ ] All tests passing.
+- [ ] All changed files re-read against `.cursor/rules/style-guide.md`. If the style guide is not followed, the work is **not done**.
 

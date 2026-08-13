@@ -19,6 +19,11 @@ Combine this skill with the stack the project uses:
 
 All backend code must be in **English** and follow PSRs.
 
+- **Style guide (mandatory):**
+  - Read and follow `.cursor/rules/style-guide.md` on every backend change.
+  - A feature, fix, refactor, or any code change is **not done** until every changed file complies.
+  - After implementation, re-read **all** changed files. Tests and Pint passing is not a substitute.
+
 - **Conditional style:**
   - Do not use ternary operators (`condition ? a : b`) in backend PHP code.
   - Prefer explicit `if` / `else` blocks or early returns for clarity.
@@ -26,6 +31,7 @@ All backend code must be in **English** and follow PSRs.
 - **Formatting convention:**
   - Use one statement per line (including fluent chains).
   - One method call per line in chained calls.
+  - Continuation indent: primary structure + 4 spaces (extra tab when hierarchy is weak). See `.cursor/rules/style-guide.md`.
   - Multi-line argument lists and arrays formatted consistently and readably.
 
 ---
@@ -254,3 +260,4 @@ All backend changes should come with or update appropriate tests.
 - [ ] All tests passing via Sail test commands.
 - [ ] All type tests passing via Sail test commands.
 - [ ] Pint passes with no style errors.
+- [ ] All changed files re-read against `.cursor/rules/style-guide.md`. If the style guide is not followed, the work is **not done**.

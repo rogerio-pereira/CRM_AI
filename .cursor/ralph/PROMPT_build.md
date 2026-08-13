@@ -28,7 +28,7 @@ Feature plan example: `docs/FDRs/ImplementationPlans/IMPLEMENTATION_PLAN_wave_1_
 ## Phase 1 — Implement
 
 1. Implement **only** the chosen task. Do not do extra tasks in this run.
-2. Follow project standards: English code, PSR, **no ternary operators** in PHP, thin controllers, Form Requests for validation, services for business logic, and an equivalent factory for every Eloquent model.
+2. Follow `.cursor/rules/style-guide.md` strictly (English code, PSR, **no ternary operators** in PHP, explicit sequential data flow, one chained method per line with the documented continuation indent). A task is **not done** until every changed file complies.
 3. In fluent method chains, keep one method call per line and keep indentation consistent.
 4. For assigned fluent chains, use a deeper continuation indent for `->` lines; for standalone chains, use one continuation indent level.
 5. In tests, chained expectations are acceptable when each method call stays on its own line.
@@ -56,7 +56,23 @@ Run Pint:
 ./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
 ```
 
-**IMPORTANT:** Do not move forward before Phase 1.2 and 1.3 are passing.
+### Phase 1.4 — Style guide review (mandatory)
+
+Read `.cursor/rules/style-guide.md` and re-read **every** changed file.
+
+A feature, fix, refactor, or any code change is **not done** until all changed files comply. Tests and Pint passing is not a substitute.
+
+Check at least:
+
+- Explicit named intermediate values (no nested meaningful method calls)
+- One logical operation per statement
+- One chained method per line, with continuation indent per the guide
+- No PHP ternary operators
+- Arrays and multiline arguments indented per the guide
+
+If any file fails, fix it before Phase 2.
+
+**IMPORTANT:** Do not move forward before Phase 1.2, 1.3, and 1.4 are passing.
 
 ## Phase 2 — Update state, docs, and repo
 
@@ -93,8 +109,8 @@ Follow `.cursor/rules/commits-small-incremental.mdc`:
 - Resolve test failures before committing. No placeholder or stub-only implementations.
 - Keep the **local** feature plan current between runs so the next agent knows what is left.
 - Do not commit, copy, or reference implementation plans in PR descriptions as permanent docs.
-- Do not consider the run finished until: tests and Pint pass; local plan updated; FDR moved when applicable; commits exclude `ImplementationPlans/`; feature PR handled when feature-complete; wave plans deleted and Feature List updated when wave-complete.
+- Do not consider the run finished until: tests and Pint pass; **every changed file complies with `.cursor/rules/style-guide.md`**; local plan updated; FDR moved when applicable; commits exclude `ImplementationPlans/`; feature PR handled when feature-complete; wave plans deleted and Feature List updated when wave-complete.
 
 ## Output
 
-When done, state: (1) which task you completed, (2) that tests and Pint passed, (3) whether you moved an FDR to Done, (4) commit hash(es) or messages, (5) if feature-complete: PR URL and branch cleanup, (6) if wave-complete: confirmation that wave plan files were deleted and `docs/05 - Feature List.md` was updated.
+When done, state: (1) which task you completed, (2) that tests and Pint passed, (3) that all changed files were re-read against `.cursor/rules/style-guide.md` and comply, (4) whether you moved an FDR to Done, (5) commit hash(es) or messages, (6) if feature-complete: PR URL and branch cleanup, (7) if wave-complete: confirmation that wave plan files were deleted and `docs/05 - Feature List.md` was updated.
