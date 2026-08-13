@@ -17,7 +17,7 @@ After implementation, re-read **all** changed files and verify:
 - No PHP ternary operators
 - Arrays and multiline arguments indented per the guide
 - Sequential, readable flow; no clever shortcuts
-- KISS (`.cursor/rules/kiss.mdc`): no extra normalize/sanitize/parse helpers when `trim` / `strtolower` / reading a file is enough
+- KISS (`.cursor/rules/kiss.mdc`): simplest solution that meets the requirement; no overengineering
 
 If any file fails this review, keep working. Tests and Pint passing is not enough.
 

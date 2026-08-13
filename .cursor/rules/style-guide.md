@@ -19,11 +19,11 @@ The project favors:
 - **One method call per line in method chains**
 - **One logical operation per statement**
 - **Sequential code that can be read from top to bottom**
-- **KISS** — simple steps, not extra layers (see Keep It Simple below and `.cursor/rules/kiss.mdc`)
+- **KISS** — simplest solution that meets the requirement; no overengineering (see Keep It Simple below and `.cursor/rules/kiss.mdc`)
 
 The goal is not to minimize the number of lines. The goal is to make the code immediately understandable, easy to debug, and easy to modify.
 
-Sequential style does **not** mean more helpers. Named intermediate values are required; `normalize*` / `sanitize*` / custom parsers for trim, lowercase, or reading a file are not.
+Sequential style does **not** mean more helpers, classes, or layers. Named intermediate values are required; extra abstractions are not.
 
 ---
 
@@ -67,29 +67,9 @@ This creates a clear inspection, logging, and debugging point.
 
 ## Keep It Simple (KISS)
 
-Explicit sequential code is not a reason to add classes, helpers, regex, or config.
+Follow `.cursor/rules/kiss.mdc`. All code must be the simplest solution that meets the current requirement, without violating this style guide or other good practices.
 
-Extract a private method when it is a **business step** the reader needs a name for (`createLeadAndOpportunity`, `findDuplicate`). Do **not** extract a method whose only job is trim, lowercase, empty-to-null, punctuation stripping, or markdown heading scans.
-
-### Good
-
-```php
-$companyName = strtolower(trim($name));
-$notes = $lead['why_good_fit'] ?? null;
-$prompt = trim((string) File::get($path));
-```
-
-### Avoid
-
-```php
-$companyName = $this->normalizeCompanyName($name);
-$notes = $this->normalizeQualificationNotes($lead['why_good_fit'] ?? null);
-$prompt = $this->extractSystemPromptSection($contents);
-```
-
-Do not use regex when `trim`, `strtolower`, `str_starts_with`, or `str_replace` is enough.
-
-Hardcode values that will not change at runtime (approved prompt path, headings). Change them in git.
+Explicit sequential code is not a reason to add classes, helpers, config, or indirection. Extract a method when it is a **business step** the reader needs a name for. Do not extract a method, type, or layer whose only job is wrapping a trivial operation or preparing for a future that is not in the requirement.
 
 ---
 

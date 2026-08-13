@@ -1,52 +1,91 @@
 ---
-description: Keep code simple (KISS). Do not add normalize/sanitize/parse layers when trim, strtolower, or reading a file is enough.
+description: Keep all generated code as simple as possible. Avoid overengineering. Follow SOLID and Clean Code without adding unused abstractions.
 alwaysApply: true
 ---
 
 # KISS — Keep It Simple, Stupid
 
-Sequential, explicit code is **not** a license to add helpers, regex, parsers, or config. Prefer the simplest code that meets the requirement.
+All generated and edited code must be the **simplest solution that meets the current requirement**. Do not overengineer.
 
-Style-guide named steps still apply. Extract a method only when it is a **real business step** (create a lead, find a duplicate), not when it only trims, lowercases, or strips punctuation.
+Simplicity does **not** override good programming practices: Clean Code, SOLID (applied to what exists now), the style guide, project architecture, security, validation, and tests.
+
+Sequential, explicit code is **not** a license to add extra classes, helpers, config, or indirection. Named intermediate values are required; extra layers are not.
+
+## Principle
+
+If a straightforward implementation works, use it. Do not add generality, indirection, or structure for hypothetical future needs (YAGNI).
+
+Prefer the language, standard library, and framework. Add a new abstraction only when the requirement needs it **now**, or the same logic already exists in several places.
+
+> Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Robert C. Martin
+
+## Clean Code
+
+Write code people can read, debug, and change without decoding cleverness.
+
+- Use names that say what the value or step is
+- Keep functions and methods small and focused on one idea
+- Prefer obvious sequential steps over nested or implicit flow
+- Remove duplication that already exists; do not invent a shared layer for a single use
+- Do not use comments to explain unclear code — make the code clear
+- Handle errors and edge cases that the requirement needs; do not skip tests
+
+## SOLID (at the scale of the current requirement)
+
+Apply SOLID to the code you are writing now. Do not add types, interfaces, or extension points for a future that is not in the requirement.
+
+- **Single Responsibility Principle** — a class or method has one reason to change. A complete business step is one reason; wrapping `trim` is not.
+- **Open/Closed Principle** — extend existing seams when they already exist. Do not create new ones “so we can extend later”.
+- **Liskov Substitution Principle** — subtypes must honor the contract of the type they replace. Do not inherit just to share a few lines.
+- **Interface Segregation Principle** — depend only on methods you use. Do not add a wide interface for one caller.
+- **Dependency Inversion Principle** — depend on an abstraction when there are real multiple implementations or a needed seam. Do not add an interface for a single hardcoded class.
 
 ## Do
 
-- Use `trim`, `strtolower`, `str_starts_with`, and `str_replace` instead of regex
-- A tiny helper is OK only when the same cleanup is used in several places (e.g. lowercase candidate and existing client)
-- Hardcode values that will not change at runtime (prompt paths, headings); change them in git
-- Pass structured-output / Form Request fields through unless a real business rule rejects them
-- Keep SSRF / auth / validation guards that exist for safety, not for "cleanliness"
+- Solve only what was asked
+- Use existing project patterns (thin controllers, services for business logic, Form Requests) instead of inventing new ones
+- Inline one-off logic; extract a method or class only for a real business step or reused logic
+- Hardcode values that will not change at runtime; change them in git
+- Keep auth, authorization, validation, and other safety guards
+- Follow `.cursor/rules/style-guide.md`
 
 ## Do not
 
-- Add `normalize*`, `sanitize*`, `nullableString`, or `stringList` helpers that only trim, cast, or regex-clean
-- Parse markdown, prompts, or config with custom scanners when reading the whole file is enough
-- Add config keys, interfaces, or adapters for a single hardcoded implementation
-- Collapse whitespace, strip punctuation, or validate email a second time after the schema / Form Request already did
-- Use regex when a string function is enough
+- Add classes, interfaces, adapters, factories, pipelines, or config for a single hardcoded implementation
+- Wrap a trivial operation in a helper
+- Re-process data that the framework, validator, or schema already handled
+- Use a more powerful tool (regex, parser, event, job, cache, queue) when a direct call is enough
+- Design for reuse, extensibility, or “we might need it later” unless the requirement says so
+- Skip tests, security, architecture, Clean Code, or SOLID in the name of simplicity
 
 ## Examples
 
 ```php
-// BAD — regex "normalization" for a case-insensitive name match
-$normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', Str::lower(trim($name)));
+// BAD — extra type and helper for one use
+interface PromptLoaderInterface {}
+$prompt = $this->promptLoader->load(config('ai.prompt_path'));
+
+// GOOD — current need is a file
+$prompt = trim((string) File::get(resource_path('prompts/qualify.txt')));
+```
+
+```php
+// BAD — strategy/factory for two branches
+$handler = $this->handlerFactory->make($type);
+$handler->handle($payload);
+
+// GOOD
+if ($type === 'email') {
+    $this->sendEmail($payload);
+} else {
+    $this->sendWebhook($payload);
+}
+```
+
+```php
+// BAD — helper whose only job is a trivial wrap
+$companyName = $this->normalizeCompanyName($name);
 
 // GOOD
 $companyName = strtolower(trim($name));
-```
-
-```php
-// BAD — helper used once, only trims
-private function normalizeQualificationNotes(mixed $notes): ?string { ... }
-
-// GOOD
-$notes = $lead['why_good_fit'] ?? null;
-```
-
-```php
-// BAD — parse a heading out of an approved prompt file
-foreach ($lines as $index => $line) { ... }
-
-// GOOD
-$prompt = trim((string) File::get($path));
 ```

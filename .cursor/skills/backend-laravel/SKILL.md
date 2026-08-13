@@ -26,8 +26,8 @@ All backend code must be in **English** and follow PSRs.
 
 - **KISS (mandatory):**
   - Follow `.cursor/rules/kiss.mdc` on every backend change.
-  - Sequential named steps are required; extra `normalize*` / `sanitize*` / markdown-parse helpers are not.
-  - Use `trim`, `strtolower`, `str_starts_with`, `str_replace`, or `File::get` unless a real business rule needs more.
+  - Prefer the simplest solution that meets the requirement. Do not overengineer.
+  - Do not skip architecture, security, validation, or tests in the name of simplicity.
 
 - **Conditional style:**
   - Do not use ternary operators (`condition ? a : b`) in backend PHP code.
@@ -266,4 +266,4 @@ All backend changes should come with or update appropriate tests.
 - [ ] All type tests passing via Sail test commands.
 - [ ] Pint passes with no style errors.
 - [ ] All changed files re-read against `.cursor/rules/style-guide.md`. If the style guide is not followed, the work is **not done**.
-- [ ] All changed files re-read against `.cursor/rules/kiss.mdc`. No extra normalize/sanitize/parse helpers when a string function or `File::get` is enough.
+- [ ] All changed files re-read against `.cursor/rules/kiss.mdc`. Simplest solution that meets the requirement; no overengineering.
