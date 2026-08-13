@@ -29,7 +29,7 @@ class LeadDeduplicationServiceTest extends TestCase
         ]);
 
         $duplicate = $this->service->findDuplicate([
-            'company_name' => 'green sprout lawn care!',
+            'company_name' => 'GREEN SPROUT LAWN CARE',
             'website' => 'https://different.example',
             'email' => 'b@example.com',
         ]);
