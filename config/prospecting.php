@@ -1,6 +1,21 @@
 <?php
 
+$rawEnabled = env('PROSPECTING_ENABLED', false);
+$enabled = filter_var($rawEnabled, FILTER_VALIDATE_BOOLEAN);
+
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prospecting Enabled
+    |--------------------------------------------------------------------------
+    |
+    | When false, artisan prospecting:run and the weekday schedule do not
+    | dispatch the prospecting agent.
+    |
+    */
+
+    'enabled' => $enabled,
 
     /*
     |--------------------------------------------------------------------------
