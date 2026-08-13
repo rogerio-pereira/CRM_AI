@@ -5,6 +5,7 @@ namespace App\Ai\Discovery;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Tools\FetchPublicPage;
 use App\Support\UrlNormalizer;
+use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 
@@ -34,13 +35,8 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
             throw new RuntimeException('Prospecting discovery requires approved prompt instructions.');
         }
 
-        $agent = new ProspectingDiscoveryAgent(
-            $this->fetchPublicPage,
-            $instructions,
-        );
-
         $userPrompt = "Discover up to {$limit} lead candidates with a public email. Return structured JSON only.";
-        $response = $agent->prompt($userPrompt);
+        $response = $this->promptDiscovery($instructions, $userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {
             throw new RuntimeException('Prospecting discovery did not return structured output.');
@@ -109,6 +105,16 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
                 'leads' => $leads,
                 'skipped' => $skipped,
             ];
+    }
+
+    protected function promptDiscovery(string $instructions, string $userPrompt): AgentResponse
+    {
+        $agent = new ProspectingDiscoveryAgent(
+            $this->fetchPublicPage,
+            $instructions,
+        );
+
+        return $agent->prompt($userPrompt);
     }
 
     /**

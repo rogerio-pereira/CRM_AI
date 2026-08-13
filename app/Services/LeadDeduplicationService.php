@@ -85,10 +85,6 @@ class LeadDeduplicationService
             return null;
         }
 
-        if ($host === '') {
-            return null;
-        }
-
         $host = strtolower($host);
 
         if (str_starts_with($host, 'www.')) {
