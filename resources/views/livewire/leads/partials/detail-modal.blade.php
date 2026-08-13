@@ -29,6 +29,20 @@
                     </span>
                 </div>
                 <div>
+                    <flux:subheading>{{ __('Qualification') }}</flux:subheading>
+                    <x-status-badge
+                        :label="$client->qualification_status->label()"
+                        :classes="$client->qualification_status->badgeClasses()"
+                        :status="$client->qualification_status->value"
+                        data-test="leads-detail-qualification-badge"
+                    />
+                    @if ($client->qualification_status === \App\Enums\QualificationStatus::Failed && $client->qualification_last_error)
+                        <flux:text class="mt-2 text-status-danger" data-test="leads-detail-qualification-error">
+                            {{ $client->qualification_last_error }}
+                        </flux:text>
+                    @endif
+                </div>
+                <div>
                     <flux:subheading>{{ __('Website') }}</flux:subheading>
                     <flux:text class="text-text-secondary">{{ $client->website ?? '—' }}</flux:text>
                 </div>
@@ -56,11 +70,25 @@
                 </div>
             @endif
 
-            <div class="rounded-lg border border-border-default bg-app p-4" data-test="leads-detail-ai-insights">
-                <flux:subheading>{{ __('AI insights') }}</flux:subheading>
-                <flux:text variant="subtle" class="mt-2">
-                    {{ __('AI-generated insights will appear here after lead qualification (features 11–12).') }}
-                </flux:text>
+            <div class="rounded-lg border border-ai/30 bg-surface p-4" data-test="leads-detail-ai-insights">
+                <div class="flex items-center gap-2">
+                    <flux:subheading>{{ __('AI insights') }}</flux:subheading>
+                    <span class="inline-flex rounded-full border border-ai/30 bg-ai/15 px-2 py-0.5 text-xs font-medium text-ai">
+                        {{ __('AI Insight') }}
+                    </span>
+                </div>
+                @if (is_array($client->ai_insights) && filled($client->ai_insights['summary'] ?? null))
+                    <flux:text class="mt-2 text-text-secondary" data-test="leads-detail-ai-insights-summary">
+                        {{ $client->ai_insights['summary'] }}
+                    </flux:text>
+                    <flux:text variant="subtle" class="mt-2">
+                        {{ __('AI-generated. Not a confirmed human decision.') }}
+                    </flux:text>
+                @else
+                    <flux:text variant="subtle" class="mt-2">
+                        {{ __('AI-generated insights will appear here after lead qualification.') }}
+                    </flux:text>
+                @endif
             </div>
 
             <div data-test="leads-detail-opportunity-history">

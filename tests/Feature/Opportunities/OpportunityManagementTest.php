@@ -234,6 +234,26 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
+    public function test_opportunity_detail_renders_client_qualification_chip(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->qualificationFailed()->create([
+            'company_name' => 'Failed Qualify Client',
+        ]);
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'title' => 'Failed qualify deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
+            ->assertSeeHtml('data-status="failed"')
+            ->assertSeeHtml('data-test="opportunities-detail-qualification-error"')
+            ->assertSee('Qualification could not be completed. The team can try again later.');
+    }
+
     public function test_moving_to_lost_sets_terminal_status(): void
     {
         $user = User::factory()->create();

@@ -38,6 +38,7 @@
                     <th class="h-10 px-4">{{ __('Company') }}</th>
                     <th class="h-10 px-4">{{ __('Contact') }}</th>
                     <th class="h-10 px-4">{{ __('Source') }}</th>
+                    <th class="h-10 px-4">{{ __('Qualification') }}</th>
                     <th class="h-10 px-4">{{ __('Status') }}</th>
                     <th class="h-10 px-4 text-end">{{ __('Actions') }}</th>
                 </tr>
@@ -59,6 +60,14 @@
                             @endif
                         </td>
                         <td class="px-4">{{ $client->lead_source ?? '—' }}</td>
+                        <td class="px-4">
+                            <x-status-badge
+                                :label="$client->qualification_status->label()"
+                                :classes="$client->qualification_status->badgeClasses()"
+                                :status="$client->qualification_status->value"
+                                data-test="leads-qualification-badge-{{ $client->id }}"
+                            />
+                        </td>
                         <td class="px-4">
                             <span
                                 class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $client->status->badgeClasses() }}"
@@ -141,7 +150,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-text-muted" data-test="leads-empty">
+                        <td colspan="6" class="px-4 py-8 text-center text-text-muted" data-test="leads-empty">
                             {{ __('No leads found.') }}
                         </td>
                     </tr>

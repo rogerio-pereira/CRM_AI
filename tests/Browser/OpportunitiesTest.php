@@ -33,7 +33,8 @@ it('displays the kanban board and creates an opportunity', function () {
 
 it('moves an opportunity via the action menu', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
+    $client = Client::factory()->qualificationProcessing()->create();
+    $opportunity = Opportunity::factory()->for($client)->create([
         'title' => 'Move Menu Deal',
         'stage' => PipelineStage::Lead,
     ]);
@@ -68,7 +69,8 @@ it('opens the opportunity detail modal with client summary', function () {
         ->assertPresent('[data-test="opportunities-detail-modal"]')
         ->assertSee('Detail Modal Deal')
         ->assertSee('Detail Summary Co')
-        ->assertSee('detail@summary.test');
+        ->assertSee('detail@summary.test')
+        ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]');
 });
 
 it('shows horizontal scroll on narrow viewports', function () {
@@ -129,7 +131,8 @@ it('creates a task from the kanban card button', function () {
 
 it('drags an opportunity card to another stage', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
+    $client = Client::factory()->qualificationProcessing()->create();
+    $opportunity = Opportunity::factory()->for($client)->create([
         'title' => 'Drag Deal',
         'stage' => PipelineStage::Lead,
     ]);

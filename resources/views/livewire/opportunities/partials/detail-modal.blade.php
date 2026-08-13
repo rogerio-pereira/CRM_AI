@@ -40,6 +40,21 @@
                 </div>
 
                 <div class="mt-4">
+                    <flux:subheading>{{ __('Qualification') }}</flux:subheading>
+                    <x-status-badge
+                        :label="$opportunity->client->qualification_status->label()"
+                        :classes="$opportunity->client->qualification_status->badgeClasses()"
+                        :status="$opportunity->client->qualification_status->value"
+                        data-test="opportunities-detail-qualification-badge"
+                    />
+                    @if ($opportunity->client->qualification_status === \App\Enums\QualificationStatus::Failed && $opportunity->client->qualification_last_error)
+                        <flux:text class="mt-2 text-status-danger" data-test="opportunities-detail-qualification-error">
+                            {{ $opportunity->client->qualification_last_error }}
+                        </flux:text>
+                    @endif
+                </div>
+
+                <div class="mt-4">
                     <a
                         href="{{ route('leads.index') }}"
                         wire:navigate
