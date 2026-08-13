@@ -89,3 +89,49 @@ $companyName = $this->normalizeCompanyName($name);
 // GOOD
 $companyName = strtolower(trim($name));
 ```
+
+```php
+//BAD overngineered
+public function handle(array $context): array
+{
+    $opportunity = $this->loadOpportunity($context);
+    $client = $this->loadClient($opportunity);
+
+    // ...
+}
+
+private function loadOpportunity(array $context): Opportunity
+{
+    $rawOpportunityId = $context['opportunity_id'] ?? null;
+
+    if ($rawOpportunityId === null) {
+        throw new RuntimeException('Qualification requires an opportunity_id.');
+    }
+
+    $opportunityId = (int) $rawOpportunityId;
+    $opportunity = Opportunity::find($opportunityId);
+
+    if ($opportunity === null) {
+        throw new RuntimeException('Qualification opportunity not found: '.$opportunityId);
+    }
+
+    return $opportunity;
+}
+
+private function loadClient(Opportunity $opportunity): Client
+{
+    $client = $opportunity->client;
+
+    if ($client === null) {
+        throw new RuntimeException('Qualification client not found for opportunity: '.$opportunity->id);
+    }
+
+    return $client;
+}
+
+//Good - KISS
+$id = $context['opportunity_id'];
+$oportunity = Opportunity::with(client)
+                    ->findOrFail($id);
+$client = $oportunity->client;
+```
