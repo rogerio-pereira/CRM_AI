@@ -122,7 +122,7 @@ Baseline for production on [Laravel Cloud](https://cloud.laravel.com):
 6. **Scheduler** — Cloud scheduler or cron every minute: `php artisan schedule:run`.
 7. **Users** — public registration is disabled; provision internal users via seeding or admin tools (see Authentication below).
 
-After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows scheduled tasks (example: `inspire` until FDR-010).
+After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows `prospecting:run` weekdays at 08:00 (`America/New_York`).
 
 ## Test and quality gates
 
