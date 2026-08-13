@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Ai\Contracts\DiscoveryAdapter;
+use App\Ai\Discovery\PublicWebDiscoveryAdapter;
 use App\Services\AiOrchestrationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -17,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AiOrchestrationService::class);
+        $this->app->bind(DiscoveryAdapter::class, PublicWebDiscoveryAdapter::class);
     }
 
     /**
@@ -38,14 +41,17 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
-        );
+        Password::defaults(function (): ?Password {
+            if (! app()->isProduction()) {
+                return null;
+            }
+
+            return Password::min(12)
+                        ->mixedCase()
+                        ->letters()
+                        ->numbers()
+                        ->symbols()
+                        ->uncompromised();
+        });
     }
 }

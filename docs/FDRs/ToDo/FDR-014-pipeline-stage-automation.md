@@ -11,7 +11,7 @@
 | Dependency | ADR status | Impact on this FDR |
 | ---------- | ----------- | ------------------ |
 | [ADR-016 — Proposal format](../../ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | **Partial:** stage map entry for **→ Proposal Generation** (dispatch proposal assistant) must use a **stub** until ADR-016 is **Accepted** and [FDR-013](FDR-013-proposal-assistance.md) is updated. |
-| [FDR-011 — Qualification](../../FDRs/ToDo/FDR-011-automated-lead-qualification.md) | Pending decisions | **→ Qualification** automation should align with confirmed post-qualification stage rules. |
+| [FDR-011 — Qualification](../../FDRs/ToDo/FDR-011-automated-lead-qualification.md) | Decisions confirmed by ADR-017 | **→ Qualification** automation should move successful qualifications to **Contact**. |
 
 Other stage actions (follow-ups, tasks, Slack hooks) can be implemented without ADR-016.
 

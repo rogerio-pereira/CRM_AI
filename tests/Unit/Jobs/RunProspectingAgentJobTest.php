@@ -27,7 +27,9 @@ class RunProspectingAgentJobTest extends TestCase
             ->once()
             ->with('ai.agent.failed', Mockery::type('array'));
 
-        $job = new RunProspectingAgentJob(['client_id' => 1]);
+        $job = new RunProspectingAgentJob([
+            'client_id' => 1,
+        ]);
 
         $this->expectException(RuntimeException::class);
 
@@ -36,16 +38,44 @@ class RunProspectingAgentJobTest extends TestCase
 
     public function test_job_logs_metadata_on_success_without_prompt_content(): void
     {
+        $agent = Mockery::mock(ProspectingAgent::class);
+        $agent->shouldReceive('handle')
+            ->once()
+            ->andReturn([
+                'agent' => 'prospecting',
+                'status' => 'completed',
+            ]);
+
+        $this->app->instance(ProspectingAgent::class, $agent);
+
         Log::shouldReceive('info')
             ->once()
             ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
-                return $context['agent'] === 'prospecting'
-                    && $context['provider'] === config('ai.default')
-                    && isset($context['duration_ms'])
-                    && isset($context['result_keys']);
+                $agentName = $context['agent'] ?? null;
+                $provider = $context['provider'] ?? null;
+                $hasDuration = isset($context['duration_ms']);
+                $hasResultKeys = isset($context['result_keys']);
+                $expectedProvider = config('ai.default');
+
+                if ($agentName !== 'prospecting') {
+                    return false;
+                }
+
+                if ($provider !== $expectedProvider) {
+                    return false;
+                }
+
+                if ($hasDuration === false) {
+                    return false;
+                }
+
+                return $hasResultKeys;
             }));
 
-        $job = new RunProspectingAgentJob(['client_id' => 1]);
+        $job = new RunProspectingAgentJob([
+            'client_id' => 1,
+        ]);
+
         $job->handle();
 
         $this->assertTrue(true);

@@ -1,5 +1,9 @@
 # Style Guide Rule: Explicit, Sequential Code
 
+**Mandatory.** Read and follow this entire file before writing or editing code. A feature, fix, refactor, or any other code change is **not done** until every changed file complies with this guide. Passing tests and Pint is not a substitute.
+
+---
+
 ## Rule
 
 Follow **PSR-12** formatting conventions for PHP.
@@ -15,8 +19,11 @@ The project favors:
 - **One method call per line in method chains**
 - **One logical operation per statement**
 - **Sequential code that can be read from top to bottom**
+- **KISS** — simple steps, not extra layers (see Keep It Simple below and `.cursor/rules/kiss.mdc`)
 
 The goal is not to minimize the number of lines. The goal is to make the code immediately understandable, easy to debug, and easy to modify.
+
+Sequential style does **not** mean more helpers. Named intermediate values are required; `normalize*` / `sanitize*` / custom parsers for trim, lowercase, or reading a file are not.
 
 ---
 
@@ -55,6 +62,34 @@ Both examples are valid PHP, but the first makes each operation explicit:
 3. Update the post
 
 This creates a clear inspection, logging, and debugging point.
+
+---
+
+## Keep It Simple (KISS)
+
+Explicit sequential code is not a reason to add classes, helpers, regex, or config.
+
+Extract a private method when it is a **business step** the reader needs a name for (`createLeadAndOpportunity`, `findDuplicate`). Do **not** extract a method whose only job is trim, lowercase, empty-to-null, punctuation stripping, or markdown heading scans.
+
+### Good
+
+```php
+$companyName = strtolower(trim($name));
+$notes = $lead['why_good_fit'] ?? null;
+$prompt = trim((string) File::get($path));
+```
+
+### Avoid
+
+```php
+$companyName = $this->normalizeCompanyName($name);
+$notes = $this->normalizeQualificationNotes($lead['why_good_fit'] ?? null);
+$prompt = $this->extractSystemPromptSection($contents);
+```
+
+Do not use regex when `trim`, `strtolower`, `str_starts_with`, or `str_replace` is enough.
+
+Hardcode values that will not change at runtime (approved prompt path, headings). Change them in git.
 
 ---
 
@@ -519,7 +554,8 @@ Prefer:
 - Explicit intent
 - Named intermediate values
 - Visible data flow
-    - You can and must break big methods into smaller methods with explicit intend name
+    - You can and must break big methods into smaller methods with explicit intended names
+    - Do **not** extract methods whose only job is trim, lowercase, empty-to-null, or regex cleanup (see Keep It Simple)
     ```
     public function createPodcast(PodastRequest $request)
     {

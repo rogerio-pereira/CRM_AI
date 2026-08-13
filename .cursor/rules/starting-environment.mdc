@@ -11,6 +11,8 @@ alwaysApply: true
 - All code must be in English.
 - Keep code clean and follow PSRs (one instruction per line).
 - Do **not** use ternary operators (`condition ? a : b`) in PHP; use explicit `if` / `else` or early returns.
+- **ALWAYS** follow `.cursor/rules/style-guide.md`. A feature, fix, refactor, or any code change is **not done** until every changed file complies with that guide. Re-read all changed files after implementation; tests and Pint passing is not a substitute.
+- **ALWAYS** follow `.cursor/rules/kiss.mdc`. Do not add `normalize*` / `sanitize*` / custom parsers when `trim`, `strtolower`, or reading a file is enough.
 - If `vendor` does not exist, install with the container `laravelsail/php85-composer:latest`
 (do not use local PHP/Composer).
 

@@ -1,0 +1,24 @@
+---
+description: Mandatory sequential/explicit style. Work is not done until all changed files comply with style-guide.md.
+alwaysApply: true
+---
+
+# Style guide is mandatory
+
+Read `.cursor/rules/style-guide.md` before writing or editing code. Follow every rule in that file.
+
+A feature, fix, refactor, or any code change is **not done** until every changed file complies with that guide.
+
+After implementation, re-read **all** changed files and verify:
+
+- Explicit named intermediate values (do not nest meaningful method calls)
+- One logical operation per statement
+- One chained method per line; continuation indent is primary structure + 4 spaces (extra tab when hierarchy is weak)
+- No PHP ternary operators
+- Arrays and multiline arguments indented per the guide
+- Sequential, readable flow; no clever shortcuts
+- KISS (`.cursor/rules/kiss.mdc`): no extra normalize/sanitize/parse helpers when `trim` / `strtolower` / reading a file is enough
+
+If any file fails this review, keep working. Tests and Pint passing is not enough.
+
+Do not treat Pint or PSR-12 as a substitute. This project’s style guide is stricter.
