@@ -1,0 +1,52 @@
+---
+description: Keep code simple (KISS). Do not add normalize/sanitize/parse layers when trim, strtolower, or reading a file is enough.
+alwaysApply: true
+---
+
+# KISS — Keep It Simple, Stupid
+
+Sequential, explicit code is **not** a license to add helpers, regex, parsers, or config. Prefer the simplest code that meets the requirement.
+
+Style-guide named steps still apply. Extract a method only when it is a **real business step** (create a lead, find a duplicate), not when it only trims, lowercases, or strips punctuation.
+
+## Do
+
+- Use `trim`, `strtolower`, `str_starts_with`, and `str_replace` instead of regex
+- A tiny helper is OK only when the same cleanup is used in several places (e.g. lowercase candidate and existing client)
+- Hardcode values that will not change at runtime (prompt paths, headings); change them in git
+- Pass structured-output / Form Request fields through unless a real business rule rejects them
+- Keep SSRF / auth / validation guards that exist for safety, not for "cleanliness"
+
+## Do not
+
+- Add `normalize*`, `sanitize*`, `nullableString`, or `stringList` helpers that only trim, cast, or regex-clean
+- Parse markdown, prompts, or config with custom scanners when reading the whole file is enough
+- Add config keys, interfaces, or adapters for a single hardcoded implementation
+- Collapse whitespace, strip punctuation, or validate email a second time after the schema / Form Request already did
+- Use regex when a string function is enough
+
+## Examples
+
+```php
+// BAD — regex "normalization" for a case-insensitive name match
+$normalized = preg_replace('/[^\p{L}\p{N}\s]/u', '', Str::lower(trim($name)));
+
+// GOOD
+$companyName = strtolower(trim($name));
+```
+
+```php
+// BAD — helper used once, only trims
+private function normalizeQualificationNotes(mixed $notes): ?string { ... }
+
+// GOOD
+$notes = $lead['why_good_fit'] ?? null;
+```
+
+```php
+// BAD — parse a heading out of an approved prompt file
+foreach ($lines as $index => $line) { ... }
+
+// GOOD
+$prompt = trim((string) File::get($path));
+```

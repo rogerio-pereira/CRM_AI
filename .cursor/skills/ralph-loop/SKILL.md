@@ -10,7 +10,7 @@ Use this skill when the user wants to run **Planning** or **Building** for the R
 ## What the Ralph Loop is here
 
 - **Planning:** Read in full `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`, and `docs/05 - Feature List.md`; then gap analysis vs in-scope FDRs, ADRs, and code. Write/update **local** plan files under `docs/FDRs/ImplementationPlans/` only. **Do not invent features** beyond committed product docs and FDRs—note gaps as blockers instead. No code changes, no commits (folder is gitignored).
-- **Building:** One task from the active feature plan; implement, test, Pint, then re-read **all** changed files against `.cursor/rules/style-guide.md`; update local plan; move FDR to `Done` when complete; commit code and committed docs only. Delete plan files when feature/wave finishes; set wave `Done` in `docs/05 - Feature List.md`. Style-guide violations mean the task is **not done**.
+- **Building:** One task from the active feature plan; implement, test, Pint, then re-read **all** changed files against `.cursor/rules/style-guide.md` and `.cursor/rules/kiss.mdc`; update local plan; move FDR to `Done` when complete; commit code and committed docs only. Delete plan files when feature/wave finishes; set wave `Done` in `docs/05 - Feature List.md`. Style-guide or KISS violations mean the task is **not done**.
 - **Branching:** One branch per feature (reuse across tasks), not one branch per task.
 - **PR flow:** After a feature is complete, push and open PR to `main` (GitHub MCP).
 
@@ -41,4 +41,4 @@ Use this skill when the user wants to run **Planning** or **Building** for the R
 - `docs/05 - Feature List.md` is the source of truth for waves; implementation plans are throwaway state.
 - When an FDR is fully done, move `ToDo` → `Done`. Do not use `Closed/` for delivery.
 - Use Sail for tests and Pint (see `.cursor/rules/starting-environment.mdc`).
-- **ALWAYS** follow `.cursor/rules/style-guide.md`. After code is written, review every changed file. A feature, fix, refactor, or any code change is **not done** until the style guide is followed; tests and Pint passing is not enough.
+- **ALWAYS** follow `.cursor/rules/style-guide.md` and `.cursor/rules/kiss.mdc`. After code is written, review every changed file. A feature, fix, refactor, or any code change is **not done** until both are followed; tests and Pint passing is not enough.
