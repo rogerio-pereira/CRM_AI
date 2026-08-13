@@ -1,6 +1,6 @@
 # Prospecting Agent Prompt
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-010, ADR-015, ADR-017, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`  
@@ -105,6 +105,8 @@ Use only public and free sources, such as:
 - Public local directories
 
 Do not use paid data APIs, private databases, leaked data, credentialed sources, or sources that require bypassing access controls. Respect applicable laws, platform terms, robots policies, and reasonable rate limits.
+
+Use the provider web search tool to find public listings. Use the provider web fetch tool to read a specific public page for contact details. Do not invent URLs from memory.
 
 ## Tone And Reasoning Style
 
