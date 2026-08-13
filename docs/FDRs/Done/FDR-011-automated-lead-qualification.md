@@ -58,13 +58,13 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] Async qualification via Redis queue.
-- [ ] CRM record updated with analysis output.
-- [ ] Pipeline stage advances to **Contact** after successful qualification.
-- [ ] Failures isolated per ADR-012.
-- [ ] Dispatches recommendation job (feature 12) on success.
-- [ ] Tests with mocked AI responses.
-- [ ] Qualification status chips render `pending`, `processing`, `qualified`, and `failed`.
+- [x] Async qualification via Redis queue.
+- [x] CRM record updated with analysis output.
+- [x] Pipeline stage advances to **Contact** after successful qualification.
+- [x] Failures isolated per ADR-012.
+- [x] Dispatches recommendation job (feature 12) on success.
+- [x] Tests with mocked AI responses.
+- [x] Qualification status chips render `pending`, `processing`, `qualified`, and `failed`.
 
 ---
 

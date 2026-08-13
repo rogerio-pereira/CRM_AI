@@ -28,7 +28,7 @@
 | 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/Done/FDR-008-operational-dashboard.md) |
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/Done/FDR-009-ai-orchestration.md) |
 | 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md) |
-| 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md) |
+| 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md) |
 | 12 | [12 AI recommendations and insights](#f12-ai-recommendations) | [FDR-012](FDRs/ToDo/FDR-012-ai-recommendations.md) |
 | 13 | [13 Proposal assistance](#f13-proposal-assistance) | [FDR-013](FDRs/ToDo/FDR-013-proposal-assistance.md) |
 | 14 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [FDR-014](FDRs/ToDo/FDR-014-pipeline-stage-automation.md) |
@@ -287,7 +287,7 @@
 - Updated lead records with qualification notes and AI insights
 - Stage moves after qualification (per pipeline rules)
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting)
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted** — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md))
 
 **Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created leads are qualified automatically and successful qualification advances linked opportunities to **Contact**.
 
