@@ -10,8 +10,8 @@ return [
     | Prospecting Enabled
     |--------------------------------------------------------------------------
     |
-    | When false, artisan prospecting:run and the weekday schedule do not
-    | dispatch the prospecting agent.
+    | When false, the weekday 08:00 schedule does not run prospecting:run.
+    | Manual `php artisan prospecting:run` always dispatches.
     |
     */
 

@@ -14,14 +14,6 @@ class RunProspectingCommand extends Command
 {
     public function handle(AiOrchestrationService $orchestration): int
     {
-        $enabled = config('prospecting.enabled');
-
-        if ($enabled !== true) {
-            $this->info('Prospecting is disabled (PROSPECTING_ENABLED).');
-
-            return self::SUCCESS;
-        }
-
         $payload = [
             'triggered_by' => 'prospecting:run',
             'triggered_at' => now()->toIso8601String(),
