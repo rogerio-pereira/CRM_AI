@@ -33,7 +33,7 @@ grep -q "^APP_KEY=$" .env && ./vendor/bin/sail artisan key:generate
 - Cache/session: Redis
 - Queue monitoring: Laravel Horizon (`/horizon`)
 - Timezone: `America/New_York` in `config/app.php` (required for weekday **08:00** prospecting per ADR-007)
-- Prospecting: **off by default**. Set `PROSPECTING_ENABLED=true` in `.env` to run `prospecting:run` and the weekday 08:00 schedule. Leave it `false` unless you intend to call the live AI provider.
+- Prospecting schedule: **off by default**. Set `PROSPECTING_ENABLED=true` in `.env` to let the weekday 08:00 cron run `prospecting:run`. Manual `php artisan prospecting:run` always dispatches, even when the flag is `false`.
 
 ## Daily development commands
 
@@ -110,7 +110,7 @@ Production requirement:
 
 - Configure cron to run `php artisan schedule:run` every minute
 - Application timezone is fixed in `config/app.php` before enabling prospecting (FDR-010)
-- Set `PROSPECTING_ENABLED=true` before the weekday 08:00 job should dispatch; the default is `false`
+- Set `PROSPECTING_ENABLED=true` before the weekday 08:00 cron should dispatch; the default is `false`. Manual `php artisan prospecting:run` is not gated by this flag.
 
 ## Laravel Cloud deployment
 
@@ -124,7 +124,7 @@ Baseline for production on [Laravel Cloud](https://cloud.laravel.com):
 6. **Scheduler** — Cloud scheduler or cron every minute: `php artisan schedule:run`.
 7. **Users** — public registration is disabled; provision internal users via seeding or admin tools (see Authentication below).
 
-After deploy, verify `/horizon` for allowlisted operators. With `PROSPECTING_ENABLED=true`, `schedule:list` shows `prospecting:run` weekdays at 08:00 (`America/New_York`). The command is a no-op while the flag is `false`.
+After deploy, verify `/horizon` for allowlisted operators and `schedule:list` shows `prospecting:run` weekdays at 08:00 (`America/New_York`). The scheduled run is skipped while `PROSPECTING_ENABLED` is `false`; a manual `php artisan prospecting:run` still dispatches.
 
 ## Test and quality gates
 
