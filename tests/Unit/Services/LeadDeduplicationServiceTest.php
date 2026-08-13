@@ -83,4 +83,55 @@ class LeadDeduplicationServiceTest extends TestCase
         $this->assertNotNull($byEmail);
         $this->assertNotNull($byPhone);
     }
+
+    public function test_returns_null_when_candidate_fields_are_blank(): void
+    {
+        Client::factory()->create([
+            'company_name' => 'Kept Co',
+            'website' => null,
+            'contact_email' => null,
+            'contact_phone' => null,
+        ]);
+
+        $blankName = $this->service->findDuplicate([
+            'company_name' => '   ',
+            'website' => null,
+            'email' => null,
+            'phone' => '123',
+        ]);
+
+        $missingName = $this->service->findDuplicate([
+            'website' => '',
+            'email' => null,
+            'phone' => '12-34',
+        ]);
+
+        $this->assertNull($blankName);
+        $this->assertNull($missingName);
+    }
+
+    public function test_ignores_websites_without_a_usable_host(): void
+    {
+        Client::factory()->create([
+            'company_name' => 'Host Edge Co',
+            'website' => 'https://www.',
+            'contact_email' => 'host-edge@example.com',
+            'contact_phone' => '8135557777',
+        ]);
+
+        $byEmptyHost = $this->service->findDuplicate([
+            'company_name' => 'Other Co',
+            'website' => 'https://',
+            'email' => 'other@example.com',
+        ]);
+
+        $byStrippedWww = $this->service->findDuplicate([
+            'company_name' => 'Other Co',
+            'website' => 'www.',
+            'email' => 'other@example.com',
+        ]);
+
+        $this->assertNull($byEmptyHost);
+        $this->assertNull($byStrippedWww);
+    }
 }

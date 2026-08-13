@@ -3,6 +3,7 @@
 namespace Tests\Feature\Prospecting;
 
 use App\Ai\Agents\ProspectingAgent;
+use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use App\Enums\PipelineStage;
 use App\Jobs\RunProspectingAgentJob;
@@ -10,7 +11,10 @@ use App\Jobs\RunQualificationAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Queue;
+use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 class ProspectingAgentTest extends TestCase
@@ -172,6 +176,101 @@ class ProspectingAgentTest extends TestCase
             'company_name' => 'BrightPool Service',
             'lead_source' => 'prospecting',
             'contact_email' => 'hello@brightpool.example',
+        ]);
+    }
+
+    public function test_agent_skips_invalid_social_links(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discoveredPayload = [
+                'leads' => [
+                    [
+                        'company_name' => 'No Social Co',
+                        'email' => 'hello@nosocial.example',
+                        'social_links' => 'not-an-array',
+                    ],
+                    [
+                        'company_name' => 'Mixed Social Co',
+                        'email' => 'hello@mixedsocial.example',
+                        'social_links' => [
+                            123,
+                            '   ',
+                            'https://instagram.com/mixedsocial',
+                        ],
+                    ],
+                ],
+                'skipped' => [],
+            ];
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+                    ->once()
+                    ->andReturn($discoveredPayload);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 5,
+        ]);
+
+        $noSocial = Client::query()
+                        ->where('company_name', 'No Social Co')
+                        ->first();
+        $mixedSocial = Client::query()
+                            ->where('company_name', 'Mixed Social Co')
+                            ->first();
+
+        $this->assertSame(2, $result['created_count']);
+        $this->assertNotNull($noSocial);
+        $this->assertSame([], $noSocial->social_links);
+        $this->assertNotNull($mixedSocial);
+        $this->assertSame(
+            [
+                [
+                    'platform' => 'Web',
+                    'url' => 'https://instagram.com/mixedsocial',
+                ],
+            ],
+            $mixedSocial->social_links,
+        );
+    }
+
+    public function test_agent_throws_when_prompt_file_is_missing(): void
+    {
+        File::partialMock()
+            ->shouldReceive('exists')
+            ->andReturn(false);
+
+        $agent = app(ProspectingAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting prompt file not found');
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
+    }
+
+    public function test_agent_throws_when_prompt_file_is_empty(): void
+    {
+        $file = File::partialMock();
+        $file->shouldReceive('exists')
+            ->andReturn(true);
+        $file->shouldReceive('get')
+            ->andReturn('   ');
+
+        $agent = app(ProspectingAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting prompt file is empty');
+
+        $agent->handle([
+            'limit' => 1,
         ]);
     }
 }
