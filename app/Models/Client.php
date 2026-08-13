@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ClientStatus;
+use App\Enums\QualificationStatus;
 use Database\Factories\ClientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,13 @@ class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
     use HasFactory;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'qualification_status' => 'pending',
+    ];
 
     /**
      * @var list<string>
@@ -25,6 +33,9 @@ class Client extends Model
         'social_links',
         'lead_source',
         'qualification_notes',
+        'qualification_status',
+        'qualification_last_error',
+        'qualified_at',
         'ai_insights',
         'status',
     ];
@@ -37,6 +48,8 @@ class Client extends Model
         return [
             'social_links' => 'array',
             'ai_insights' => 'array',
+            'qualification_status' => QualificationStatus::class,
+            'qualified_at' => 'datetime',
             'status' => ClientStatus::class,
         ];
     }

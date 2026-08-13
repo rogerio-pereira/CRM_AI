@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ClientStatus;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
@@ -33,6 +34,9 @@ class ClientFactory extends Factory
             ],
             'lead_source' => fake()->randomElement(['Website', 'Referral', 'Prospecting', 'Event']),
             'qualification_notes' => fake()->optional()->paragraph(),
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
             'ai_insights' => null,
             'status' => ClientStatus::Active,
         ];
@@ -56,6 +60,46 @@ class ClientFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ClientStatus::ContactIntent,
+        ]);
+    }
+
+    public function qualificationPending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationProcessing(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Processing,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationQualified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Qualified,
+            'qualification_last_error' => null,
+            'qualified_at' => now(),
+            'ai_insights' => [
+                'schema_version' => 1,
+                'summary' => 'Ready for a first conversation.',
+            ],
+        ]);
+    }
+
+    public function qualificationFailed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Failed,
+            'qualification_last_error' => 'Qualification could not be completed. The team can try again later.',
+            'qualified_at' => null,
         ]);
     }
 
