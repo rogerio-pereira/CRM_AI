@@ -5,7 +5,6 @@ namespace App\Ai\Agents;
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Enums\ClientStatus;
-use App\Models\Client;
 use App\Services\ClientService;
 use App\Services\LeadDeduplicationService;
 use App\Services\OpportunityService;
@@ -34,13 +33,11 @@ class ProspectingAgent implements AiAgent
         $limit = (int) $requestedLimit;
         $instructions = $this->loadApprovedPrompt();
 
-        $discoveryOptions = [
-                'limit' => $limit,
-                'instructions' => $instructions,
-            ];
-
         $discovery = $this->discovery
-                            ->discover($discoveryOptions);
+                            ->discover([
+                                'limit' => $limit,
+                                'instructions' => $instructions,
+                            ]);
 
         $created = [];
         $duplicates = [];
@@ -48,7 +45,18 @@ class ProspectingAgent implements AiAgent
         foreach ($discovery['leads'] as $lead) {
             $rawCompanyName = $lead['company_name'] ?? '';
             $companyName = (string) $rawCompanyName;
-            $duplicate = $this->findDuplicate($lead, $companyName);
+            $website = $lead['website'] ?? null;
+            $email = $lead['email'] ?? null;
+            $phone = $lead['phone'] ?? null;
+            $candidate = [
+                    'company_name' => $companyName,
+                    'website' => $website,
+                    'email' => $email,
+                    'phone' => $phone,
+                ];
+
+            $duplicate = $this->deduplication
+                                ->findDuplicate($candidate);
 
             if ($duplicate !== null) {
                 $duplicates[] = [
@@ -78,33 +86,12 @@ class ProspectingAgent implements AiAgent
 
     /**
      * @param  array<string, mixed>  $lead
-     */
-    private function findDuplicate(array $lead, string $companyName): ?Client
-    {
-        $website = $lead['website'] ?? null;
-        $email = $lead['email'] ?? null;
-        $phone = $lead['phone'] ?? null;
-
-        $candidate = [
-                'company_name' => $companyName,
-                'website' => $website,
-                'email' => $email,
-                'phone' => $phone,
-            ];
-
-        return $this->deduplication
-                        ->findDuplicate($candidate);
-    }
-
-    /**
-     * @param  array<string, mixed>  $lead
      * @return array{client_id: int, opportunity_id: int, company_name: string}
      */
     private function createLeadAndOpportunity(array $lead, string $companyName): array
     {
         $socialLinks = $this->mapSocialLinks($lead);
-        $whyGoodFit = $lead['why_good_fit'] ?? null;
-        $notes = $this->normalizeQualificationNotes($whyGoodFit);
+        $notes = $lead['why_good_fit'] ?? null;
         $contactName = $lead['contact_name'] ?? null;
         $email = $lead['email'] ?? null;
         $phone = $lead['phone'] ?? null;
@@ -133,7 +120,7 @@ class ProspectingAgent implements AiAgent
             ];
 
         $opportunity = $this->opportunities
-                        ->create($opportunityAttributes);
+                            ->create($opportunityAttributes);
 
         return [
                 'client_id' => $client->id,
@@ -149,6 +136,11 @@ class ProspectingAgent implements AiAgent
     private function mapSocialLinks(array $lead): array
     {
         $discoveredSocialLinks = $lead['social_links'] ?? [];
+
+        if (! is_array($discoveredSocialLinks)) {
+            return [];
+        }
+
         $socialLinks = [];
 
         foreach ($discoveredSocialLinks as $url) {
@@ -171,21 +163,6 @@ class ProspectingAgent implements AiAgent
         return $socialLinks;
     }
 
-    private function normalizeQualificationNotes(mixed $notes): ?string
-    {
-        if (! is_string($notes)) {
-            return null;
-        }
-
-        $trimmedNotes = trim($notes);
-
-        if ($trimmedNotes === '') {
-            return null;
-        }
-
-        return $trimmedNotes;
-    }
-
     private function loadApprovedPrompt(): string
     {
         $path = base_path(self::APPROVED_PROMPT_PATH);
@@ -195,40 +172,12 @@ class ProspectingAgent implements AiAgent
         }
 
         $contents = File::get($path);
+        $prompt = trim((string) $contents);
 
-        if (
-            ! is_string($contents) ||
-            trim($contents) === ''
-        ) {
+        if ($prompt === '') {
             throw new RuntimeException('Prospecting prompt file is empty: '.$path);
         }
 
-        $trimmedContents = trim($contents);
-        $heading = '## System Prompt';
-        $lines = explode("\n", $contents);
-        $sectionStart = null;
-
-        foreach ($lines as $index => $line) {
-            $trimmedLine = trim($line);
-
-            if ($trimmedLine === $heading) {
-                $sectionStart = $index + 1;
-
-                break;
-            }
-        }
-
-        if ($sectionStart === null) {
-            return $trimmedContents;
-        }
-
-        $sectionLines = array_slice($lines, $sectionStart);
-        $section = trim(implode("\n", $sectionLines));
-
-        if ($section === '') {
-            return $trimmedContents;
-        }
-
-        return $section;
+        return $prompt;
     }
 }

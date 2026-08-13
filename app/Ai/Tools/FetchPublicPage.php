@@ -52,8 +52,7 @@ class FetchPublicPage implements Tool
 
         $strippedBody = strip_tags($body);
         $decodedText = html_entity_decode($strippedBody, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $collapsed = $this->collapseWhitespace($decodedText);
-        $text = trim($collapsed);
+        $text = trim($decodedText);
 
         if ($text === '') {
             return 'Fetch succeeded but no readable text was found.';
@@ -109,18 +108,5 @@ class FetchPublicPage implements Tool
         $publicIp = filter_var($host, FILTER_VALIDATE_IP, $flags);
 
         return $publicIp !== false;
-    }
-
-    private function collapseWhitespace(string $text): string
-    {
-        $parts = preg_split('/\s+/u', $text);
-
-        if (! is_array($parts)) {
-            return '';
-        }
-
-        $collapsed = implode(' ', $parts);
-
-        return $collapsed;
     }
 }

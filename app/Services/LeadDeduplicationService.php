@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Client;
 use App\Support\UrlNormalizer;
-use Illuminate\Support\Str;
 
 class LeadDeduplicationService
 {
@@ -15,33 +14,26 @@ class LeadDeduplicationService
      */
     public function findDuplicate(array $candidate): ?Client
     {
-        $rawCompanyName = $candidate['company_name'] ?? null;
-        $rawWebsite = $candidate['website'] ?? null;
-        $rawEmail = $candidate['email'] ?? null;
-        $rawPhone = $candidate['phone'] ?? null;
-
-        $companyName = $this->normalizeCompanyName($rawCompanyName);
-        $domain = $this->normalizeDomain($rawWebsite);
-        $email = $this->normalizeEmail($rawEmail);
-        $phone = $this->normalizePhone($rawPhone);
-
-        $columns = [
-                'id',
-                'company_name',
-                'website',
-                'contact_email',
-                'contact_phone',
-            ];
+        $companyName = $this->lowerText($candidate['company_name'] ?? null);
+        $domain = $this->host($candidate['website'] ?? null);
+        $email = $this->lowerText($candidate['email'] ?? null);
+        $phone = $this->digits($candidate['phone'] ?? null);
 
         $clients = Client::query()
                         ->orderBy('id')
-                        ->get($columns);
+                        ->get([
+                            'id',
+                            'company_name',
+                            'website',
+                            'contact_email',
+                            'contact_phone',
+                        ]);
 
         foreach ($clients as $client) {
-            $existingName = $this->normalizeCompanyName($client->company_name);
-            $existingDomain = $this->normalizeDomain($client->website);
-            $existingEmail = $this->normalizeEmail($client->contact_email);
-            $existingPhone = $this->normalizePhone($client->contact_phone);
+            $existingName = $this->lowerText($client->company_name);
+            $existingDomain = $this->host($client->website);
+            $existingEmail = $this->lowerText($client->contact_email);
+            $existingPhone = $this->digits($client->contact_phone);
 
             if ($companyName !== null && $existingName === $companyName) {
                 return $client;
@@ -63,35 +55,23 @@ class LeadDeduplicationService
         return null;
     }
 
-    private function normalizeCompanyName(?string $name): ?string
+    private function lowerText(?string $value): ?string
     {
-        if ($name === null) {
+        if ($value === null) {
             return null;
         }
 
-        $normalized = Str::lower(trim($name));
-        $withoutExtraSpaces = preg_replace('/\s+/u', ' ', $normalized);
+        $trimmed = trim($value);
+        $text = strtolower($trimmed);
 
-        if (! is_string($withoutExtraSpaces)) {
-            $withoutExtraSpaces = '';
-        }
-
-        $withoutPunctuation = preg_replace('/[^\p{L}\p{N}\s]/u', '', $withoutExtraSpaces);
-
-        if (! is_string($withoutPunctuation)) {
-            $withoutPunctuation = '';
-        }
-
-        $normalized = trim($withoutPunctuation);
-
-        if ($normalized === '') {
+        if ($text === '') {
             return null;
         }
 
-        return $normalized;
+        return $text;
     }
 
-    private function normalizeDomain(?string $website): ?string
+    private function host(?string $website): ?string
     {
         $url = UrlNormalizer::normalize($website);
 
@@ -101,11 +81,15 @@ class LeadDeduplicationService
 
         $host = parse_url($url, PHP_URL_HOST);
 
-        if (! is_string($host) || $host === '') {
+        if (! is_string($host)) {
             return null;
         }
 
-        $host = Str::lower($host);
+        if ($host === '') {
+            return null;
+        }
+
+        $host = strtolower($host);
 
         if (str_starts_with($host, 'www.')) {
             $host = substr($host, 4);
@@ -118,38 +102,13 @@ class LeadDeduplicationService
         return $host;
     }
 
-    private function normalizeEmail(?string $email): ?string
-    {
-        if ($email === null) {
-            return null;
-        }
-
-        $trimmed = trim($email);
-
-        if ($trimmed === '') {
-            return null;
-        }
-
-        $validated = filter_var($trimmed, FILTER_VALIDATE_EMAIL);
-
-        if ($validated === false) {
-            return null;
-        }
-
-        return Str::lower($validated);
-    }
-
-    private function normalizePhone(?string $phone): ?string
+    private function digits(?string $phone): ?string
     {
         if ($phone === null) {
             return null;
         }
 
-        $digits = preg_replace('/\D+/', '', $phone);
-
-        if (! is_string($digits)) {
-            $digits = '';
-        }
+        $digits = str_replace([' ', '-', '(', ')', '.', '+'], '', $phone);
 
         if (strlen($digits) < 7) {
             return null;

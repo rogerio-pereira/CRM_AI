@@ -16,7 +16,11 @@ class UrlNormalizer
             return null;
         }
 
-        if (preg_match('#^https?://#i', $trimmed) === 1) {
+        $lowered = strtolower($trimmed);
+        $hasHttp = str_starts_with($lowered, 'http://');
+        $hasHttps = str_starts_with($lowered, 'https://');
+
+        if ($hasHttp || $hasHttps) {
             return $trimmed;
         }
 
