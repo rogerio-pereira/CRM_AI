@@ -48,13 +48,18 @@ class PublicWebDiscoveryAdapterTest extends TestCase
             'instructions' => 'Approved prospecting instructions for tests.',
         ]);
 
-        $this->assertCount(1, $result['leads']);
-        $this->assertSame('hello@greensprout.example', $result['leads'][0]['email']);
-        $this->assertSame('https://greensprout.example', $result['leads'][0]['website']);
-        $this->assertSame('prospecting', $result['leads'][0]['lead_source']);
+        $leads = $result['leads'];
+        $firstLead = $leads[0];
+
+        $this->assertCount(1, $leads);
+        $this->assertSame('hello@greensprout.example', $firstLead['email']);
+        $this->assertSame('https://greensprout.example', $firstLead['website']);
+        $this->assertSame('prospecting', $firstLead['lead_source']);
 
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
-            return str_contains($prompt->prompt, 'Discover up to 5 lead candidates');
+            $promptText = $prompt->prompt;
+
+            return str_contains($promptText, 'Discover up to 5 lead candidates');
         });
     }
 }

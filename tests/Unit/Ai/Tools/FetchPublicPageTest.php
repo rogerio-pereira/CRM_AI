@@ -13,11 +13,14 @@ class FetchPublicPageTest extends TestCase
     {
         $tool = app(FetchPublicPage::class);
 
-        $result = $tool->handle(new Request([
+        $request = new Request([
             'url' => 'http://127.0.0.1/secret',
-        ]));
+        ]);
 
-        $this->assertStringContainsString('Rejected', (string) $result);
+        $result = $tool->handle($request);
+        $resultText = (string) $result;
+
+        $this->assertStringContainsString('Rejected', $resultText);
     }
 
     public function test_fetches_plain_text_from_public_page(): void
@@ -31,11 +34,14 @@ class FetchPublicPageTest extends TestCase
 
         $tool = app(FetchPublicPage::class);
 
-        $result = (string) $tool->handle(new Request([
+        $request = new Request([
             'url' => 'https://example.com/biz',
-        ]));
+        ]);
 
-        $this->assertStringContainsString('GreenSprout', $result);
-        $this->assertStringNotContainsString('<h1>', $result);
+        $result = $tool->handle($request);
+        $resultText = (string) $result;
+
+        $this->assertStringContainsString('GreenSprout', $resultText);
+        $this->assertStringNotContainsString('<h1>', $resultText);
     }
 }

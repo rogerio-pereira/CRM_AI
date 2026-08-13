@@ -26,8 +26,16 @@ class SchedulerTest extends TestCase
         $events = $this->app->make(Schedule::class)->events();
 
         $prospectingEvents = collect($events)->filter(function ($event): bool {
-            return str_contains($event->command ?? '', 'prospecting:run')
-                || str_contains($event->description ?? '', 'prospecting:run');
+            $command = $event->command ?? '';
+            $description = $event->description ?? '';
+            $matchesCommand = str_contains($command, 'prospecting:run');
+            $matchesDescription = str_contains($description, 'prospecting:run');
+
+            if ($matchesCommand) {
+                return true;
+            }
+
+            return $matchesDescription;
         });
 
         $this->assertTrue(
@@ -36,13 +44,14 @@ class SchedulerTest extends TestCase
         );
 
         $event = $prospectingEvents->first();
+        $timezone = config('app.timezone');
 
         $this->assertSame('0 8 * * 1-5', $event->expression);
 
-        Carbon::setTestNow(Carbon::parse('2026-08-10 08:00:00', config('app.timezone')));
+        Carbon::setTestNow(Carbon::parse('2026-08-10 08:00:00', $timezone));
         $this->assertTrue($event->isDue($this->app));
 
-        Carbon::setTestNow(Carbon::parse('2026-08-08 08:00:00', config('app.timezone')));
+        Carbon::setTestNow(Carbon::parse('2026-08-08 08:00:00', $timezone));
         $this->assertFalse($event->isDue($this->app));
 
         Carbon::setTestNow();

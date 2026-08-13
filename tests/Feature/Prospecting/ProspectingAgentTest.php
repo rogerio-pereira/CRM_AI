@@ -41,7 +41,9 @@ class ProspectingAgentTest extends TestCase
             ],
         ]);
 
-        $result = app(ProspectingAgent::class)->handle([
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
             'triggered_by' => 'prospecting:run',
             'limit' => 5,
         ]);
@@ -57,7 +59,12 @@ class ProspectingAgentTest extends TestCase
         $this->assertNotNull($client);
         $this->assertSame('prospecting', $client->lead_source);
         $this->assertSame('sarah@greensprout.example', $client->contact_email);
-        $this->assertSame('Web', $client->social_links[0]['platform'] ?? null);
+
+        $socialLinks = $client->social_links;
+        $firstSocialLink = $socialLinks[0] ?? null;
+        $platform = $firstSocialLink['platform'] ?? null;
+
+        $this->assertSame('Web', $platform);
 
         $opportunity = Opportunity::query()
                             ->where('client_id', $client->id)
@@ -65,9 +72,12 @@ class ProspectingAgentTest extends TestCase
 
         $this->assertNotNull($opportunity);
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
+        $this->assertSame($client->company_name, $opportunity->title);
 
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($client): bool {
-            return ($job->payload['client_id'] ?? null) === $client->id;
+            $payloadClientId = $job->payload['client_id'] ?? null;
+
+            return $payloadClientId === $client->id;
         });
     }
 
@@ -110,14 +120,17 @@ class ProspectingAgentTest extends TestCase
         ]);
 
         $beforeClients = Client::query()->count();
+        $agent = app(ProspectingAgent::class);
 
-        $result = app(ProspectingAgent::class)->handle([
+        $result = $agent->handle([
             'limit' => 10,
         ]);
 
+        $afterClients = Client::query()->count();
+
         $this->assertSame(0, $result['created_count']);
         $this->assertSame(2, $result['duplicate_count']);
-        $this->assertSame($beforeClients, Client::query()->count());
+        $this->assertSame($beforeClients, $afterClients);
         Queue::assertNothingPushed();
     }
 
@@ -139,15 +152,17 @@ class ProspectingAgentTest extends TestCase
             ],
         ]);
 
-        $this->artisan('prospecting:run')->assertSuccessful();
+        $this->artisan('prospecting:run')
+            ->assertSuccessful();
 
         /** @var RunProspectingAgentJob|null $dispatched */
         $dispatched = null;
 
         Queue::assertPushed(RunProspectingAgentJob::class, function (RunProspectingAgentJob $job) use (&$dispatched): bool {
+            $triggeredBy = $job->payload['triggered_by'] ?? null;
             $dispatched = $job;
 
-            return ($job->payload['triggered_by'] ?? null) === 'prospecting:run';
+            return $triggeredBy === 'prospecting:run';
         });
 
         $this->assertNotNull($dispatched);

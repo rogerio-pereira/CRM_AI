@@ -20,8 +20,14 @@ class RunProspectingCommandTest extends TestCase
             ->expectsOutputToContain('Prospecting agent job dispatched.');
 
         Queue::assertPushed(RunProspectingAgentJob::class, function (RunProspectingAgentJob $job): bool {
-            return ($job->payload['triggered_by'] ?? null) === 'prospecting:run'
-                && isset($job->payload['triggered_at']);
+            $triggeredBy = $job->payload['triggered_by'] ?? null;
+            $triggeredAt = $job->payload['triggered_at'] ?? null;
+
+            if ($triggeredBy !== 'prospecting:run') {
+                return false;
+            }
+
+            return $triggeredAt !== null;
         });
     }
 }
