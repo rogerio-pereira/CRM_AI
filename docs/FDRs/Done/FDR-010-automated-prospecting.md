@@ -37,7 +37,7 @@
 4. Agent behavior driven by **approved prompt** (stakeholder-provided).
 5. For each discovered company: create **Lead/Client** + **Opportunity** in stage **Lead**; mark source as prospecting.
 6. **Deduplicate** before insert: match normalized company name or website domain; also email/phone when available.
-7. If not duplicated, enqueue **qualification** job (feature 11).
+7. The new **opportunity** enters the qualification queue (feature 11). Client-only rows are not qualified.
 
 ```mermaid
 flowchart TD
@@ -47,14 +47,14 @@ flowchart TD
     Agent --> Disc[AI-led discovery adapter]
     Disc --> Dedup[Deduplicate name/domain/email/phone]
     Dedup --> Save[Create lead + opportunity Lead stage]
-    Save --> Q[Enqueue qualification]
+    Save --> Q[Enqueue qualification for that opportunity]
 ```
 
 ## How to test
 
 - Schedule fake: run command manually; verify leads created.
 - Mock discovery returns N records; dedup prevents duplicates (name, domain, email, phone cases).
-- Qualification job dispatched for each new lead.
+- Qualification job dispatched for each new **opportunity**.
 - No run on Saturday/Sunday.
 - No live paid data API calls in CI; use mocks/fakes.
 
@@ -70,7 +70,7 @@ flowchart TD
 - [x] AI-led discovery adapter implemented per ADR-015 (public/free sources only).
 - [x] Dedup: company name, website; email/phone when present.
 - [x] New records in Lead stage with source marked as prospecting.
-- [x] Qualification queue receives new leads.
+- [x] Qualification queue receives the new **opportunity**.
 - [x] Tests use mocked discovery only (no live AI/data APIs in CI).
 
 ---

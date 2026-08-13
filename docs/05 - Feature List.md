@@ -8,7 +8,7 @@
 
 **FDR locations:** Active specs live in `docs/FDRs/ToDo/`; completed features in `docs/FDRs/Done/`; archived or superseded specs in `docs/FDRs/Closed/`.
 
-**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) is **Accepted** (2026-07-31) for Wave 4 qualification flow, statuses, and AI insight schema. Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) follows ADR-017.
+**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) is **Accepted** (amended 2026-08-13) for Wave 4 qualification flow: qualification belongs to the **opportunity**, not the client; statuses and AI insight schema version 1 still apply. Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) follows ADR-017 (rework in [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md)).
 
 ---
 
@@ -28,7 +28,7 @@
 | 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/Done/FDR-008-operational-dashboard.md) |
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/Done/FDR-009-ai-orchestration.md) |
 | 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md) |
-| 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md) |
+| 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md) |
 | 12 | [12 AI recommendations and insights](#f12-ai-recommendations) | [FDR-012](FDRs/ToDo/FDR-012-ai-recommendations.md) |
 | 13 | [13 Proposal assistance](#f13-proposal-assistance) | [FDR-013](FDRs/ToDo/FDR-013-proposal-assistance.md) |
 | 14 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [FDR-014](FDRs/ToDo/FDR-014-pipeline-stage-automation.md) |
@@ -260,7 +260,7 @@
 **Produces:**
 
 - New leads in pipeline stage Lead
-- Entries in qualification queue
+- New opportunities that enter the qualification queue
 
 **ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md))
 
@@ -272,7 +272,7 @@
 
 ### 11 · Automated lead qualification
 
-**Objective:** Qualify leads asynchronously when they enter the queue: digital presence analysis, pain points, CRM enrichment, stage advancement after analysis.
+**Objective:** Qualify each **opportunity** asynchronously when it is created: digital presence analysis, pain points, CRM enrichment for that deal, stage advancement after analysis. The same client may have many opportunities over time; each is qualified independently.
 
 **Dependencies:** [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration)
 
@@ -284,12 +284,12 @@
 
 **Produces:**
 
-- Updated lead records with qualification notes and AI insights
-- Stage moves after qualification (per pipeline rules)
+- Updated opportunity records with qualification notes and AI insights
+- Stage moves after qualification (per pipeline rules) for **that** opportunity
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted** — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md))
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, amended 2026-08-13 — see [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md))
 
-**Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created leads are qualified automatically and successful qualification advances linked opportunities to **Contact**.
+**Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created **opportunities** are qualified automatically. Prospecting creates **one** opportunity and that initial job scores every file in `docs/services/` (no extra opportunities per service). Successful qualification advances **that** opportunity to **Contact**. A later deal on the same client is qualified again as that opportunity only.
 
 ---
 
@@ -297,7 +297,7 @@
 
 ### 12 · AI recommendations and insights
 
-**Objective:** Generate outreach suggestions, next-step recommendations, opportunity analysis, and labeled AI insight panels for qualified leads.
+**Objective:** Generate outreach suggestions, next-step recommendations, opportunity analysis, and labeled AI insight panels for **qualified opportunities**.
 
 **Dependencies:** [04 Lead and client management](#f04-lead-client-management), [11 Automated lead qualification](#f11-automated-lead-qualification)
 
@@ -484,4 +484,4 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | [ADR-014](ADRs/ADR-014-dashboard-observability-scope.md) | Accepted | Dashboard and observability scope |
 | [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | Accepted | AI-led prospecting on public/free sources (no paid data APIs) |
 | [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | Proposal generation undefined in MVP |
-| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted | Wave 4 AI qualification flow and insight schema |
+| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted (amended 2026-08-13) | Wave 4 AI qualification flow and insight schema (opportunity-scoped) |

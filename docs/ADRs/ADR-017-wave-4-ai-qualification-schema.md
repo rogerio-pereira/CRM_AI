@@ -2,49 +2,64 @@
 
 ## Status
 
-Accepted
+Accepted (amended 2026-08-13)
 
 ## Context
 
 Wave 4 implements automated prospecting, automated lead qualification, and AI recommendations. Earlier planning left several Wave 4 product decisions open: whether manually created leads are qualified automatically, which pipeline stage follows successful qualification, how AI status/errors are displayed, and what schema should be used for persisted AI insight data.
 
-Stakeholder review on 2026-07-31 closed these gaps. The CRM remains intentionally simple: all leads are qualified automatically, users do not manually start qualification, and AI state is shown through database status values rendered as labels/chips in the UI.
+Stakeholder review on 2026-07-31 closed the original gaps with a **client-scoped** qualification model: all created leads were qualified automatically, users did not manually start qualification, and AI state was shown through database status values rendered as labels/chips in the UI.
+
+Stakeholder review on 2026-08-13 superseded the storage owner. A Client is the company. The same company can have many commercial deals over time (for example a website now, content creation months later, email marketing and automation after that, and a new website years later). Prospecting finds the company; it does not freeze that company to a single opportunity. Qualification is therefore an **Opportunity** concern.
+
+The 2026-07-31 decisions below that placed qualification status, errors, timestamps, and schema v1 insights on the Client are **superseded** by the 2026-08-13 amendment. Pipeline target **Contact**, status vocabulary, retry count, schema version 1, required `contact_example`, and “no automatic outreach” still stand.
 
 ## Decision
 
-1. **All created leads are automatically qualified.**
-   - Any new Lead/Client record enters the qualification flow, whether created by prospecting or manually by a user.
-   - The UI must not require users to click a "Qualify" action for normal lead processing.
+### Amendment 2026-08-13 — qualification belongs to the opportunity
 
-2. **Successful qualification advances opportunities to Contact.**
-   - When a qualification job starts, linked opportunities in `Lead` may move to `Qualification`.
-   - When qualification succeeds, linked opportunities move to `Contact`.
+1. **All created opportunities are automatically qualified.**
+   - Any new Opportunity enters the qualification flow, whether created by prospecting or manually by a user.
+   - Creating a Client without an Opportunity does not start qualification.
+   - The UI must not require users to click a "Qualify" action for normal processing.
+   - A client that already has a qualified opportunity must not skip qualification of a later opportunity.
+
+2. **Successful qualification advances that opportunity to Contact.**
+   - When a qualification job starts, **that** opportunity in `Lead` may move to `Qualification`.
+   - When qualification succeeds, **that** opportunity moves to `Contact`.
+   - Sibling opportunities on the same client are not moved.
    - `Contact` remains human-driven per ADR-011; AI does not send outreach.
 
-3. **Use a simple qualification status column and UI chips.**
-   - Add a dedicated lead qualification status field rather than overloading the existing client lifecycle `status`.
-   - Recommended values:
-     - `pending` - lead exists and qualification is waiting to run.
+3. **Use a simple qualification status column and UI chips on the opportunity.**
+   - Add dedicated opportunity qualification fields rather than overloading client lifecycle `status` or treating the company as the qualified record.
+   - Values:
+     - `pending` - opportunity exists and qualification is waiting to run.
      - `processing` - qualification job is running.
-     - `qualified` - AI qualification completed successfully.
+     - `qualified` - AI qualification completed successfully for this opportunity (`qualified` is job success, not “good commercial fit”).
      - `failed` - AI qualification failed after retries or terminal error.
         - Should retry 3 times.
-   - Render the status as a compact label/chip in lead tables, lead detail, and relevant opportunity detail views.
+   - Render the status as a compact label/chip on the Kanban and opportunity detail.
 
-4. **Persist user-safe AI error state on the lead.**
+4. **Persist user-safe AI error state on the opportunity.**
    - Store a short, non-sensitive error message for failed qualification.
    - Keep detailed stack traces and provider diagnostics in Laravel logs/Horizon, not in CRM UI.
-   - Recommended fields:
+   - Fields on **opportunities**:
      - `qualification_status`
      - `qualification_last_error`
      - `qualified_at`
+     - `qualification_notes` (AI summary for this deal)
 
-5. **Persist AI insights using schema version 1.**
-   - Store the canonical lead-level payload in `clients.ai_insights`.
-   - Store opportunity-specific recommendations in `opportunities.ai_recommendations` when the recommendation depends on an opportunity.
+5. **Persist AI insights using schema version 1 on the opportunity.**
+   - Store the canonical qualification payload in `opportunities` (schema version 1 JSON; `ai_insights` on the opportunity).
+   - Store later opportunity-specific recommendations in `opportunities.ai_recommendations` when the recommendation depends on that opportunity ([12 AI recommendations and insights](../05%20-%20Feature%20List.md#f12-ai-recommendations)).
    - Schema versioning allows later extension without breaking old records.
    - Every successful qualification must include an email `contact_example` inside `outreach_strategy`.
    - The email example is required for internal guidance only; it is never sent automatically.
+
+6. **Initial prospecting qualification uses the full `docs/services/` catalog on one opportunity.**
+   - When the lead is created by the Prospecting Agent, the first opportunity is qualified against **every** service markdown file in `docs/services/` (read each file in full).
+   - Do **not** create one opportunity per service for a new client. Prospecting still creates a single opportunity; that record stores the catalog scan in `ai_insights.opportunities` (one entry per service, including low-fit).
+   - Later opportunities on the same client are qualified as **that** deal only. The catalog files remain the service source of truth.
 
 ```json
 {
@@ -257,6 +272,8 @@ Wave 4 agent prompts are versioned in:
 - `docs/prompts/qualification-agent.md`
 - `docs/prompts/recommendation-agent.md`
 
+The qualification service catalog is the markdown files in `docs/services/` (read in full; do not parse).
+
 Cold outreach email examples and generated `contact_example` output must follow:
 
 - `docs/prompts/references/frontporch-creative-briefing.md`
@@ -265,6 +282,16 @@ Cold outreach email examples and generated `contact_example` output must follow:
 
 Prompt content is source-controlled, but production logs must not include full prompt text or sensitive lead content.
 
+### Original 2026-07-31 decisions (client-scoped; superseded)
+
+The following text is retained for history. Do not implement it.
+
+1. ~~All created leads are automatically qualified.~~
+2. ~~Successful qualification advances linked opportunities to Contact.~~
+3. ~~Dedicated qualification status column on the lead/client.~~
+4. ~~Persist user-safe AI error state on the lead.~~
+5. ~~Store the canonical payload in `clients.ai_insights`.~~
+
 ## Consequences
 
 - **Positive:**
@@ -272,8 +299,10 @@ Prompt content is source-controlled, but production logs must not include full p
   - Keeps the CRM simple for a non-specialist sales team.
   - Makes UI states easy to understand through status chips.
   - Gives tests and Livewire components a stable AI payload contract.
+  - A returning client can open a new opportunity months or years later and receive a fresh analysis for that deal.
 - **Negative:**
-  - Automatically qualifying every manually created lead can increase AI usage.
+  - Automatically qualifying every created opportunity can increase AI usage over the client-scoped model.
   - Simple status values do not expose detailed AI observability in the product UI.
 - **Neutral:**
-  - Deduplication remains per ADR-015; repeated prospecting runs are acceptable because duplicates are filtered and additional valid leads create more sales opportunities.
+  - Deduplication remains per ADR-015 at **company** create time; additional valid opportunities on an existing client are new sales cycles, not duplicates.
+  - PRD/HLD still list qualification notes and AI insights on Lead/Client as company attributes; this amendment stores **job** qualification state and schema v1 analysis on the Opportunity. Client may keep free-text company notes from prospecting or humans; those notes are not the qualification chip.
