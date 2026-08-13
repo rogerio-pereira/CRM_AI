@@ -156,8 +156,10 @@ class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
                                             ->required(),
                 'agent' => $schema->string()
                                 ->required(),
-                'lead_id' => $schema->string()
-                                    ->required(),
+                'opportunity_id' => $schema->string()
+                                            ->required(),
+                'client_id' => $schema->string()
+                                        ->required(),
                 'qualification_status' => $schema->string()
                                                 ->required(),
                 'qualification_notes' => $schema->string()

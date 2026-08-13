@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use App\Events\ClientCreated;
 use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
+use App\Events\OpportunityCreated;
 use App\Events\OpportunityStageChanged;
 use App\Events\TaskCreated;
 use App\Events\TaskUpdated;
-use App\Listeners\DispatchAiOnClientCreated;
+use App\Listeners\DispatchAiOnOpportunityCreated;
 use App\Listeners\DispatchAiOnOpportunityStageChanged;
 use App\Listeners\EvaluateSlackRulesForFollowUp;
 use App\Listeners\EvaluateSlackRulesForTask;
@@ -25,8 +25,8 @@ class EventServiceProvider extends ServiceProvider
         OpportunityStageChanged::class => [
             DispatchAiOnOpportunityStageChanged::class,
         ],
-        ClientCreated::class => [
-            DispatchAiOnClientCreated::class,
+        OpportunityCreated::class => [
+            DispatchAiOnOpportunityCreated::class,
         ],
         FollowUpCreated::class => [
             QueueCalendarEventForFollowUp::class,

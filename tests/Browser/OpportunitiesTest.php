@@ -33,8 +33,7 @@ it('displays the kanban board and creates an opportunity', function () {
 
 it('moves an opportunity via the action menu', function () {
     $user = User::factory()->create();
-    $client = Client::factory()->qualificationProcessing()->create();
-    $opportunity = Opportunity::factory()->for($client)->create([
+    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
         'title' => 'Move Menu Deal',
         'stage' => PipelineStage::Lead,
     ]);
@@ -131,8 +130,7 @@ it('creates a task from the kanban card button', function () {
 
 it('drags an opportunity card to another stage', function () {
     $user = User::factory()->create();
-    $client = Client::factory()->qualificationProcessing()->create();
-    $opportunity = Opportunity::factory()->for($client)->create([
+    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
         'title' => 'Drag Deal',
         'stage' => PipelineStage::Lead,
     ]);

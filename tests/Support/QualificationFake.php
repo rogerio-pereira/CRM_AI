@@ -9,12 +9,13 @@ class QualificationFake
     /**
      * @return array<string, mixed>
      */
-    public static function successfulPayload(string $leadId = '1'): array
+    public static function successfulPayload(string $opportunityId = '1', string $clientId = '1'): array
     {
         return [
             'schema_version' => 1,
             'agent' => 'qualification',
-            'lead_id' => $leadId,
+            'opportunity_id' => $opportunityId,
+            'client_id' => $clientId,
             'qualification_status' => 'qualified',
             'qualification_notes' => 'Local service business with a weak website and referral-heavy growth.',
             'qualification_last_error' => null,
@@ -80,7 +81,8 @@ class QualificationFake
         return [
             'schema_version' => 1,
             'agent' => 'qualification',
-            'lead_id' => '1',
+            'opportunity_id' => '1',
+            'client_id' => '1',
             'qualification_status' => 'failed',
             'qualification_notes' => null,
             'qualification_last_error' => $error,
@@ -90,16 +92,34 @@ class QualificationFake
         ];
     }
 
-    public static function fakeSuccessful(?string $leadId = null): void
-    {
-        $payloadLeadId = $leadId;
+    /**
+     * @param  list<array{service: string, title: string, why_it_matters: string, priority: string}>|null  $catalogOpportunities
+     */
+    public static function fakeSuccessful(
+        ?string $opportunityId = null,
+        ?string $clientId = null,
+        ?array $catalogOpportunities = null,
+    ): void {
+        $payloadOpportunityId = $opportunityId;
 
-        if ($payloadLeadId === null) {
-            $payloadLeadId = '1';
+        if ($payloadOpportunityId === null) {
+            $payloadOpportunityId = '1';
+        }
+
+        $payloadClientId = $clientId;
+
+        if ($payloadClientId === null) {
+            $payloadClientId = '1';
+        }
+
+        $payload = self::successfulPayload($payloadOpportunityId, $payloadClientId);
+
+        if ($catalogOpportunities !== null) {
+            $payload['ai_insights']['opportunities'] = $catalogOpportunities;
         }
 
         QualificationAnalysisAgent::fake([
-            self::successfulPayload($payloadLeadId),
+            $payload,
         ]);
     }
 

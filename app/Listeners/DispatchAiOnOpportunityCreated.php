@@ -3,20 +3,21 @@
 namespace App\Listeners;
 
 use App\Enums\AgentType;
-use App\Events\ClientCreated;
+use App\Events\OpportunityCreated;
 use App\Services\AiOrchestrationService;
 
-class DispatchAiOnClientCreated
+class DispatchAiOnOpportunityCreated
 {
     public function __construct(
         private readonly AiOrchestrationService $orchestration,
     ) {}
 
-    public function handle(ClientCreated $event): void
+    public function handle(OpportunityCreated $event): void
     {
         $this->orchestration->dispatch(AgentType::Qualification, [
-            'trigger' => 'client_created',
-            'client_id' => $event->client->id,
+            'trigger' => 'opportunity_created',
+            'opportunity_id' => $event->opportunity->id,
+            'client_id' => $event->opportunity->client_id,
         ]);
     }
 }

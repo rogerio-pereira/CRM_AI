@@ -11,6 +11,7 @@ use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -29,6 +30,8 @@ class OpportunityManagementTest extends TestCase
 
     public function test_user_can_create_an_opportunity_in_lead_stage(): void
     {
+        Queue::fake();
+
         $user = User::factory()->create();
         $client = Client::factory()->create();
 

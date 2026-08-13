@@ -26,10 +26,6 @@ it('displays the leads page and creates a lead', function () {
     $client = Client::where('company_name', 'Browser Test Co')->first();
 
     expect($client)->not->toBeNull();
-    expect($client->qualification_status)->toBe(QualificationStatus::Qualified);
-
-    visit('/leads')
-        ->assertPresent('[data-test="leads-qualification-badge-'.$client->id.'"][data-status="qualified"]');
 });
 
 it('opens detail modal and archives a lead from the actions menu', function () {

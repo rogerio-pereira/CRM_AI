@@ -78,10 +78,10 @@ class ProspectingAgentTest extends TestCase
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
         $this->assertSame($client->company_name, $opportunity->title);
 
-        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($client): bool {
-            $payloadClientId = $job->payload['client_id'] ?? null;
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
 
-            return $payloadClientId === $client->id;
+            return $payloadOpportunityId === $opportunity->id;
         });
     }
 

@@ -53,13 +53,7 @@ class DispatchAiOnOpportunityStageChanged
 
     private function qualificationAgentType(OpportunityStageChanged $event): ?AgentType
     {
-        $client = $event->opportunity->client;
-
-        if ($client === null) {
-            return AgentType::Qualification;
-        }
-
-        $status = $client->qualification_status;
+        $status = $event->opportunity->qualification_status;
 
         if ($status === QualificationStatus::Processing) {
             return null;

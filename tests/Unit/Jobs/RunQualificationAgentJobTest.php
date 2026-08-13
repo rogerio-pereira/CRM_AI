@@ -27,7 +27,7 @@ class RunQualificationAgentJobTest extends TestCase
             ->once()
             ->with('ai.agent.failed', Mockery::type('array'));
 
-        $job = new RunQualificationAgentJob(['client_id' => 1]);
+        $job = new RunQualificationAgentJob(['opportunity_id' => 1]);
 
         $this->expectException(RuntimeException::class);
 
@@ -70,7 +70,7 @@ class RunQualificationAgentJobTest extends TestCase
                 return $hasResultKeys;
             }));
 
-        $job = new RunQualificationAgentJob(['client_id' => 1]);
+        $job = new RunQualificationAgentJob(['opportunity_id' => 1]);
         $job->handle();
 
         $this->assertTrue(true);

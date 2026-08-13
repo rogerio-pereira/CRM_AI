@@ -2,9 +2,8 @@
 
 namespace Tests\Feature\Ai;
 
-use App\Enums\ClientStatus;
 use App\Enums\PipelineStage;
-use App\Events\ClientCreated;
+use App\Events\OpportunityCreated;
 use App\Jobs\RunProposalAssistantAgentJob;
 use App\Jobs\RunQualificationAgentJob;
 use App\Jobs\RunRecommendationAgentJob;
@@ -12,7 +11,6 @@ use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\User;
-use App\Services\ClientService;
 use App\Services\OpportunityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -29,8 +27,7 @@ class AiOrchestrationTest extends TestCase
         Queue::fake();
 
         $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create([
+        $opportunity = Opportunity::factory()->create([
             'stage' => PipelineStage::Lead,
         ]);
 
@@ -51,8 +48,7 @@ class AiOrchestrationTest extends TestCase
         Queue::fake();
 
         $user = User::factory()->create();
-        $client = Client::factory()->qualificationProcessing()->create();
-        $opportunity = Opportunity::factory()->for($client)->create([
+        $opportunity = Opportunity::factory()->qualificationProcessing()->create([
             'stage' => PipelineStage::Lead,
         ]);
 
@@ -70,8 +66,7 @@ class AiOrchestrationTest extends TestCase
         Queue::fake();
 
         $user = User::factory()->create();
-        $client = Client::factory()->qualificationQualified()->create();
-        $opportunity = Opportunity::factory()->for($client)->create([
+        $opportunity = Opportunity::factory()->qualificationQualified()->create([
             'stage' => PipelineStage::Lead,
         ]);
 
@@ -82,6 +77,32 @@ class AiOrchestrationTest extends TestCase
             ->assertHasNoErrors();
 
         Queue::assertNotPushed(RunQualificationAgentJob::class);
+    }
+
+    public function test_moving_a_new_opportunity_to_qualification_enqueues_even_when_a_sibling_is_qualified(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+        Opportunity::factory()->for($client)->qualificationQualified()->create([
+            'stage' => PipelineStage::Contact,
+        ]);
+        $newDeal = Opportunity::factory()->for($client)->create([
+            'stage' => PipelineStage::Lead,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(OpportunitiesIndex::class)
+            ->call('moveToStage', $newDeal->id, PipelineStage::Qualification->value)
+            ->assertHasNoErrors();
+
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($newDeal): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+
+            return $payloadOpportunityId === $newDeal->id;
+        });
     }
 
     public function test_moving_opportunity_to_proposal_generation_enqueues_proposal_assistant_job(): void
@@ -122,18 +143,22 @@ class AiOrchestrationTest extends TestCase
         });
     }
 
-    public function test_client_creation_enqueues_qualification_job(): void
+    public function test_opportunity_creation_enqueues_qualification_job(): void
     {
         Queue::fake();
 
-        app(ClientService::class)->create([
-            'company_name' => 'AI Orchestration Co',
-            'status' => ClientStatus::Active,
+        $client = Client::factory()->create();
+        $opportunity = app(OpportunityService::class)->create([
+            'client_id' => $client->id,
+            'title' => 'AI Orchestration Deal',
         ]);
 
-        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job): bool {
-            return $job->payload['trigger'] === 'client_created'
-                && isset($job->payload['client_id']);
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+            $trigger = $job->payload['trigger'] ?? null;
+
+            return $payloadOpportunityId === $opportunity->id
+                && $trigger === 'opportunity_created';
         });
     }
 
@@ -153,15 +178,17 @@ class AiOrchestrationTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_client_created_listener_can_be_faked_without_queue_work(): void
+    public function test_opportunity_created_listener_can_be_faked_without_queue_work(): void
     {
-        Event::fake([ClientCreated::class]);
+        Event::fake([OpportunityCreated::class]);
 
-        app(ClientService::class)->create([
-            'company_name' => 'Event Fake Co',
-            'status' => ClientStatus::Active,
+        $client = Client::factory()->create();
+
+        app(OpportunityService::class)->create([
+            'client_id' => $client->id,
+            'title' => 'Event Fake Deal',
         ]);
 
-        Event::assertDispatched(ClientCreated::class);
+        Event::assertDispatched(OpportunityCreated::class);
     }
 }

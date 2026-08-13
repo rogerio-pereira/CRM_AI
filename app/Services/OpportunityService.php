@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Events\OpportunityCreated;
 use App\Events\OpportunityStageChanged;
 use App\Models\Opportunity;
 use Illuminate\Support\Collection;
@@ -18,7 +19,16 @@ class OpportunityService
         $attributes['stage'] = PipelineStage::Lead;
         $attributes['status'] = OpportunityStatus::Open;
 
-        return Opportunity::create($attributes);
+        $opportunity = Opportunity::create($attributes);
+        $freshOpportunity = $opportunity->fresh(['client']);
+
+        if ($freshOpportunity === null) {
+            return $opportunity;
+        }
+
+        OpportunityCreated::dispatch($freshOpportunity);
+
+        return $opportunity;
     }
 
     /**

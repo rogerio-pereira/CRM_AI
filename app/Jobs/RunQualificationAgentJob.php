@@ -8,7 +8,7 @@ use App\Ai\Exceptions\QualificationFailedException;
 use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
 use App\Jobs\Concerns\RunsAiAgentJob;
-use App\Models\Client;
+use App\Models\Opportunity;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -39,20 +39,20 @@ class RunQualificationAgentJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        $rawClientId = $this->payload['client_id'] ?? null;
+        $rawOpportunityId = $this->payload['opportunity_id'] ?? null;
 
-        if ($rawClientId === null) {
+        if ($rawOpportunityId === null) {
             return;
         }
 
-        $clientId = (int) $rawClientId;
-        $client = Client::find($clientId);
+        $opportunityId = (int) $rawOpportunityId;
+        $opportunity = Opportunity::find($opportunityId);
 
-        if ($client === null) {
+        if ($opportunity === null) {
             return;
         }
 
-        if ($client->qualification_status === QualificationStatus::Qualified) {
+        if ($opportunity->qualification_status === QualificationStatus::Qualified) {
             return;
         }
 
@@ -62,7 +62,7 @@ class RunQualificationAgentJob implements ShouldQueue
             $error = $exception->getMessage();
         }
 
-        $client->update([
+        $opportunity->update([
             'qualification_status' => QualificationStatus::Failed,
             'qualification_last_error' => $error,
         ]);

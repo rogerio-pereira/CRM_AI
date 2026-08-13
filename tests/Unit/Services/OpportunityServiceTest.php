@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Events\OpportunityCreated;
 use App\Events\OpportunityStageChanged;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -28,6 +29,8 @@ class OpportunityServiceTest extends TestCase
 
     public function test_create_sets_lead_stage_and_open_status(): void
     {
+        Event::fake([OpportunityCreated::class]);
+
         $client = Client::factory()->create();
 
         $opportunity = $this->service->create([
@@ -39,6 +42,7 @@ class OpportunityServiceTest extends TestCase
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
         $this->assertSame(OpportunityStatus::Open, $opportunity->status);
         $this->assertSame('Created via service', $opportunity->title);
+        Event::assertDispatched(OpportunityCreated::class);
     }
 
     public function test_update_persists_attributes_and_refreshes_client(): void
