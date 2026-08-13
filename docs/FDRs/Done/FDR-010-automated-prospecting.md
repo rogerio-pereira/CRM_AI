@@ -64,14 +64,14 @@ flowchart TD
 
 - [x] ADR-015 status is **Accepted**; discovery/dedup/source choices recorded in this FDR.
 - [x] Approved prospecting prompt supplied and versioned in `docs/prompts/prospecting-agent.md`.
-- [ ] Approved prospecting prompt integrated and referenced in code/config.
-- [ ] Weekday 08:00 schedule registered.
-- [ ] Prospecting agent invoked via orchestration.
-- [ ] AI-led discovery adapter implemented per ADR-015 (public/free sources only).
-- [ ] Dedup: company name, website; email/phone when present.
-- [ ] New records in Lead stage with source marked as prospecting.
-- [ ] Qualification queue receives new leads.
-- [ ] Tests use mocked discovery only (no live AI/data APIs in CI).
+- [x] Approved prospecting prompt integrated and referenced in code/config.
+- [x] Weekday 08:00 schedule registered.
+- [x] Prospecting agent invoked via orchestration.
+- [x] AI-led discovery adapter implemented per ADR-015 (public/free sources only).
+- [x] Dedup: company name, website; email/phone when present.
+- [x] New records in Lead stage with source marked as prospecting.
+- [x] Qualification queue receives new leads.
+- [x] Tests use mocked discovery only (no live AI/data APIs in CI).
 
 ---
 

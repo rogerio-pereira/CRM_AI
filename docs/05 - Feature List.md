@@ -27,7 +27,7 @@
 | 07 | [07 Task management](#f07-task-management) | [FDR-007](FDRs/Done/FDR-007-task-management.md) |
 | 08 | [08 Operational dashboard](#f08-operational-dashboard) | [FDR-008](FDRs/Done/FDR-008-operational-dashboard.md) |
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/Done/FDR-009-ai-orchestration.md) |
-| 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md) |
+| 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md) |
 | 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md) |
 | 12 | [12 AI recommendations and insights](#f12-ai-recommendations) | [FDR-012](FDRs/ToDo/FDR-012-ai-recommendations.md) |
 | 13 | [13 Proposal assistance](#f13-proposal-assistance) | [FDR-013](FDRs/ToDo/FDR-013-proposal-assistance.md) |
@@ -262,7 +262,7 @@
 - New leads in pipeline stage Lead
 - Entries in qualification queue
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/ToDo/FDR-010-automated-prospecting.md))
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md))
 
 **Implementation note:** Discovery per ADR-015: compliant in-repo scraping on public/free sources allowed; **approved prospecting prompt** required before production; no paid data APIs; no external unmanaged discovery code.
 

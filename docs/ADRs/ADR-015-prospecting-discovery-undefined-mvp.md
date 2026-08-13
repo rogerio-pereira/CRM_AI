@@ -47,7 +47,7 @@ References:
 
 - [HLD Prospecting Agent](../02%20HLD.md#prospecting-agent)
 - [PRD Lead Collection](../01%20PRD.md#2-lead-collection)
-- [FDR-010](../FDRs/ToDo/FDR-010-automated-prospecting.md)
+- [FDR-010](../FDRs/Done/FDR-010-automated-prospecting.md)
 
 ## Decision
 
