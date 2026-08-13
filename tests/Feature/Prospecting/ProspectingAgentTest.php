@@ -142,10 +142,6 @@ class ProspectingAgentTest extends TestCase
     {
         Queue::fake();
 
-        config([
-            'prospecting.enabled' => true,
-        ]);
-
         ProspectingDiscoveryAgent::fake([
             [
                 'leads' => [

@@ -15,10 +15,6 @@ class RunProspectingCommandTest extends TestCase
     {
         Queue::fake();
 
-        config([
-            'prospecting.enabled' => true,
-        ]);
-
         $this->artisan('prospecting:run')
             ->assertSuccessful()
             ->expectsOutputToContain('Prospecting agent job dispatched.');
@@ -35,7 +31,7 @@ class RunProspectingCommandTest extends TestCase
         });
     }
 
-    public function test_command_does_not_dispatch_when_prospecting_is_disabled(): void
+    public function test_command_dispatches_even_when_the_schedule_is_disabled(): void
     {
         Queue::fake();
 
@@ -45,8 +41,8 @@ class RunProspectingCommandTest extends TestCase
 
         $this->artisan('prospecting:run')
             ->assertSuccessful()
-            ->expectsOutputToContain('Prospecting is disabled');
+            ->expectsOutputToContain('Prospecting agent job dispatched.');
 
-        Queue::assertNothingPushed();
+        Queue::assertPushed(RunProspectingAgentJob::class);
     }
 }
