@@ -2,7 +2,6 @@
 
 namespace App\Ai\Discovery;
 
-use App\Ai\Tools\FetchPublicPage;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Timeout;
@@ -10,6 +9,8 @@ use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
+use Laravel\Ai\Providers\Tools\WebFetch;
+use Laravel\Ai\Providers\Tools\WebSearch;
 
 #[MaxSteps(8)]
 #[Timeout(120)]
@@ -18,7 +19,6 @@ class ProspectingDiscoveryAgent implements Agent, HasStructuredOutput, HasTools
     use Promptable;
 
     public function __construct(
-        private readonly FetchPublicPage $fetchPublicPage,
         private readonly string $instructions,
     ) {}
 
@@ -28,12 +28,22 @@ class ProspectingDiscoveryAgent implements Agent, HasStructuredOutput, HasTools
     }
 
     /**
-     * @return iterable<int, FetchPublicPage>
+     * @return iterable<int, WebSearch|WebFetch>
      */
     public function tools(): iterable
     {
+        $webSearch = new WebSearch;
+        $webSearch->location(
+            city: 'Plant City',
+            region: 'FL',
+            country: 'US',
+        );
+
+        $webFetch = new WebFetch;
+
         return [
-                $this->fetchPublicPage,
+                $webSearch,
+                $webFetch,
             ];
     }
 

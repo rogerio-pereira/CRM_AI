@@ -3,7 +3,6 @@
 namespace App\Ai\Discovery;
 
 use App\Ai\Contracts\DiscoveryAdapter;
-use App\Ai\Tools\FetchPublicPage;
 use App\Support\UrlNormalizer;
 use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\StructuredAgentResponse;
@@ -11,10 +10,6 @@ use RuntimeException;
 
 class PublicWebDiscoveryAdapter implements DiscoveryAdapter
 {
-    public function __construct(
-        private readonly FetchPublicPage $fetchPublicPage,
-    ) {}
-
     /**
      * {@inheritdoc}
      */
@@ -109,10 +104,7 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
 
     protected function promptDiscovery(string $instructions, string $userPrompt): AgentResponse
     {
-        $agent = new ProspectingDiscoveryAgent(
-            $this->fetchPublicPage,
-            $instructions,
-        );
+        $agent = new ProspectingDiscoveryAgent($instructions);
 
         return $agent->prompt($userPrompt);
     }

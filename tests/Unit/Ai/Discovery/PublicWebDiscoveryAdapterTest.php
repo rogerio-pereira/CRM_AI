@@ -5,7 +5,8 @@ namespace Tests\Unit\Ai\Discovery;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use App\Ai\Discovery\PublicWebDiscoveryAdapter;
-use App\Ai\Tools\FetchPublicPage;
+use Laravel\Ai\Providers\Tools\WebFetch;
+use Laravel\Ai\Providers\Tools\WebSearch;
 use Laravel\Ai\Responses\AgentResponse;
 use Mockery;
 use RuntimeException;
@@ -159,12 +160,31 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         $this->assertSame([], $result['skipped']);
     }
 
+    public function test_discovery_agent_exposes_provider_web_search_and_fetch_tools(): void
+    {
+        $agent = new ProspectingDiscoveryAgent('Approved prospecting instructions for tests.');
+        $tools = [];
+
+        foreach ($agent->tools() as $tool) {
+            $tools[] = $tool;
+        }
+
+        $webSearch = $tools[0] ?? null;
+        $webFetch = $tools[1] ?? null;
+
+        $this->assertCount(2, $tools);
+        $this->assertInstanceOf(WebSearch::class, $webSearch);
+        $this->assertInstanceOf(WebFetch::class, $webFetch);
+        $this->assertSame('Plant City', $webSearch->city);
+        $this->assertSame('FL', $webSearch->region);
+        $this->assertSame('US', $webSearch->country);
+    }
+
     public function test_discover_throws_when_response_is_not_structured(): void
     {
-        $fetchPublicPage = $this->app->make(FetchPublicPage::class);
         $unstructuredResponse = Mockery::mock(AgentResponse::class);
 
-        $adapter = Mockery::mock(PublicWebDiscoveryAdapter::class, [$fetchPublicPage])
+        $adapter = Mockery::mock(PublicWebDiscoveryAdapter::class)
                         ->makePartial()
                         ->shouldAllowMockingProtectedMethods();
 
