@@ -56,4 +56,41 @@ class SchedulerTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_prospecting_schedule_is_skipped_when_disabled(): void
+    {
+        $events = $this->app->make(Schedule::class)->events();
+
+        $prospectingEvents = collect($events)->filter(function ($event): bool {
+            $command = $event->command ?? '';
+            $description = $event->description ?? '';
+            $matchesCommand = str_contains($command, 'prospecting:run');
+            $matchesDescription = str_contains($description, 'prospecting:run');
+
+            if ($matchesCommand) {
+                return true;
+            }
+
+            return $matchesDescription;
+        });
+
+        $event = $prospectingEvents->first();
+
+        $this->assertNotNull($event);
+
+        config([
+            'prospecting.enabled' => false,
+        ]);
+
+        $disabledPasses = $event->filtersPass($this->app);
+
+        config([
+            'prospecting.enabled' => true,
+        ]);
+
+        $enabledPasses = $event->filtersPass($this->app);
+
+        $this->assertFalse($disabledPasses);
+        $this->assertTrue($enabledPasses);
+    }
 }

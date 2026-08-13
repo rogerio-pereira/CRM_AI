@@ -30,4 +30,19 @@ class RunProspectingCommandTest extends TestCase
             return $triggeredAt !== null;
         });
     }
+
+    public function test_command_does_not_dispatch_when_prospecting_is_disabled(): void
+    {
+        Queue::fake();
+
+        config([
+            'prospecting.enabled' => false,
+        ]);
+
+        $this->artisan('prospecting:run')
+            ->assertSuccessful()
+            ->expectsOutputToContain('Prospecting is disabled');
+
+        Queue::assertNothingPushed();
+    }
 }
