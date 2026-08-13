@@ -8,7 +8,7 @@
 
 **FDR locations:** Active specs live in `docs/FDRs/ToDo/`; completed features in `docs/FDRs/Done/`; archived or superseded specs in `docs/FDRs/Closed/`.
 
-**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) has separate product decisions in its FDR.
+**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) is **Accepted** (2026-07-31) for Wave 4 qualification flow, statuses, and AI insight schema. Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) follows ADR-017.
 
 ---
 
@@ -289,7 +289,7 @@
 
 **ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting)
 
-**Implementation note:** Core qualification can proceed with manual/mock leads; prospecting handoff and post-qualification stage target need confirmation ([FDR-011](FDRs/ToDo/FDR-011-automated-lead-qualification.md)).
+**Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created leads are qualified automatically and successful qualification advances linked opportunities to **Contact**.
 
 ---
 
@@ -484,3 +484,4 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | [ADR-014](ADRs/ADR-014-dashboard-observability-scope.md) | Accepted | Dashboard and observability scope |
 | [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | Accepted | AI-led prospecting on public/free sources (no paid data APIs) |
 | [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | Proposal generation undefined in MVP |
+| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted | Wave 4 AI qualification flow and insight schema |
