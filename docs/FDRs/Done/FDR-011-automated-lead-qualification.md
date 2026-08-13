@@ -1,7 +1,7 @@
 # FDR-011: Automated lead qualification
 
 **Feature:** 11  
-**Status:** Approved (rework — opportunity-scoped)  
+**Status:** Implemented (opportunity-scoped)  
 **Reference:** [11 Automated lead qualification](../../05%20-%20Feature%20List.md#f11-automated-lead-qualification), [ADR-003](../../ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](../../ADRs/ADR-006-queue-async-processing.md), [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via [FDR-010](../Done/FDR-010-automated-prospecting.md)), [ADR-017](../../ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, amended 2026-08-13)
 
 ---
@@ -77,17 +77,17 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] Qualification fields live on **opportunities** (`qualification_status`, `qualification_last_error`, `qualified_at`, AI `qualification_notes`, schema v1 insights). Client is not the qualification record.
-- [ ] Async qualification via Redis queue, keyed by `opportunity_id`.
-- [ ] New opportunities are qualified automatically (prospecting and manual create). Client-only create does not start qualification.
-- [ ] A new opportunity on a client that already has a qualified deal is analyzed again.
-- [ ] Only the opportunity being qualified advances to **Contact** after success.
-- [ ] Failures isolated per ADR-012 on that opportunity.
-- [ ] Dispatches recommendation job (feature 12) for that opportunity on success.
-- [ ] Qualification status chips render `pending`, `processing`, `qualified`, and `failed` on the Kanban and opportunity detail.
-- [ ] Approved prompt is opportunity-scoped (`docs/prompts/qualification-agent.md`). Initial prospecting runs include every file in `docs/services/`; later runs qualify that deal only.
-- [ ] Prospecting initial qualification does **not** create one opportunity per service.
-- [ ] Tests with mocked AI responses, including: (a) repeat-deal case; (b) prospecting initial run returns an `opportunities` entry for every `docs/services` file and a single opportunity row.
+- [x] Qualification fields live on **opportunities** (`qualification_status`, `qualification_last_error`, `qualified_at`, AI `qualification_notes`, schema v1 insights). Client is not the qualification record.
+- [x] Async qualification via Redis queue, keyed by `opportunity_id`.
+- [x] New opportunities are qualified automatically (prospecting and manual create). Client-only create does not start qualification.
+- [x] A new opportunity on a client that already has a qualified deal is analyzed again.
+- [x] Only the opportunity being qualified advances to **Contact** after success.
+- [x] Failures isolated per ADR-012 on that opportunity.
+- [x] Dispatches recommendation job (feature 12) for that opportunity on success.
+- [x] Qualification status chips render `pending`, `processing`, `qualified`, and `failed` on the Kanban and opportunity detail.
+- [x] Approved prompt is opportunity-scoped (`docs/prompts/qualification-agent.md`). Initial prospecting runs include every file in `docs/services/`; later runs qualify that deal only.
+- [x] Prospecting initial qualification does **not** create one opportunity per service.
+- [x] Tests with mocked AI responses, including: (a) repeat-deal case; (b) prospecting initial run returns an `opportunities` entry for every `docs/services` file and a single opportunity row.
 
 ---
 
