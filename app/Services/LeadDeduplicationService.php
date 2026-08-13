@@ -9,40 +9,46 @@ use Illuminate\Support\Str;
 class LeadDeduplicationService
 {
     /**
-     * Find an existing lead that matches company name, website domain, email, or phone (ADR-015).
+     * Match by company name or website domain (primary), email or phone (secondary). ADR-015.
      *
-     * @param  array{
-     *     company_name?: ?string,
-     *     website?: ?string,
-     *     email?: ?string,
-     *     contact_email?: ?string,
-     *     phone?: ?string,
-     *     contact_phone?: ?string,
-     * }  $candidate
+     * @param  array{company_name?: ?string, website?: ?string, email?: ?string, phone?: ?string}  $candidate
      */
     public function findDuplicate(array $candidate): ?Client
     {
         $companyName = $this->normalizeCompanyName($candidate['company_name'] ?? null);
         $domain = $this->normalizeDomain($candidate['website'] ?? null);
-        $email = $this->normalizeEmail($candidate['email'] ?? $candidate['contact_email'] ?? null);
-        $phone = $this->normalizePhone($candidate['phone'] ?? $candidate['contact_phone'] ?? null);
+        $email = $this->normalizeEmail($candidate['email'] ?? null);
+        $phone = $this->normalizePhone($candidate['phone'] ?? null);
 
         $clients = Client::query()
-            ->orderBy('id')
-            ->get([
-                'id',
-                'company_name',
-                'website',
-                'contact_email',
-                'contact_phone',
-            ]);
+                        ->orderBy('id')
+                        ->get([
+                            'id',
+                            'company_name',
+                            'website',
+                            'contact_email',
+                            'contact_phone',
+                        ]);
 
         foreach ($clients as $client) {
-            if ($this->matchesPrimary($client, $companyName, $domain)) {
+            $existingName = $this->normalizeCompanyName($client->company_name);
+            $existingDomain = $this->normalizeDomain($client->website);
+            $existingEmail = $this->normalizeEmail($client->contact_email);
+            $existingPhone = $this->normalizePhone($client->contact_phone);
+
+            if ($companyName !== null && $existingName === $companyName) {
                 return $client;
             }
 
-            if ($this->matchesSecondary($client, $email, $phone)) {
+            if ($domain !== null && $existingDomain === $domain) {
+                return $client;
+            }
+
+            if ($email !== null && $existingEmail === $email) {
+                return $client;
+            }
+
+            if ($phone !== null && $existingPhone === $phone) {
                 return $client;
             }
         }
@@ -50,12 +56,7 @@ class LeadDeduplicationService
         return null;
     }
 
-    public function isDuplicate(array $candidate): bool
-    {
-        return $this->findDuplicate($candidate) !== null;
-    }
-
-    public function normalizeCompanyName(?string $name): ?string
+    private function normalizeCompanyName(?string $name): ?string
     {
         if ($name === null) {
             return null;
@@ -73,15 +74,15 @@ class LeadDeduplicationService
         return $normalized;
     }
 
-    public function normalizeDomain(?string $website): ?string
+    private function normalizeDomain(?string $website): ?string
     {
-        $normalizedUrl = UrlNormalizer::normalize($website);
+        $url = UrlNormalizer::normalize($website);
 
-        if ($normalizedUrl === null) {
+        if ($url === null) {
             return null;
         }
 
-        $host = parse_url($normalizedUrl, PHP_URL_HOST);
+        $host = parse_url($url, PHP_URL_HOST);
 
         if (! is_string($host) || $host === '') {
             return null;
@@ -100,7 +101,7 @@ class LeadDeduplicationService
         return $host;
     }
 
-    public function normalizeEmail(?string $email): ?string
+    private function normalizeEmail(?string $email): ?string
     {
         if ($email === null) {
             return null;
@@ -121,7 +122,7 @@ class LeadDeduplicationService
         return Str::lower($validated);
     }
 
-    public function normalizePhone(?string $phone): ?string
+    private function normalizePhone(?string $phone): ?string
     {
         if ($phone === null) {
             return null;
@@ -129,56 +130,10 @@ class LeadDeduplicationService
 
         $digits = preg_replace('/\D+/', '', $phone) ?? '';
 
-        if ($digits === '') {
-            return null;
-        }
-
         if (strlen($digits) < 7) {
             return null;
         }
 
         return $digits;
-    }
-
-    protected function matchesPrimary(Client $client, ?string $companyName, ?string $domain): bool
-    {
-        if ($companyName !== null) {
-            $existingName = $this->normalizeCompanyName($client->company_name);
-
-            if ($existingName !== null && $existingName === $companyName) {
-                return true;
-            }
-        }
-
-        if ($domain !== null) {
-            $existingDomain = $this->normalizeDomain($client->website);
-
-            if ($existingDomain !== null && $existingDomain === $domain) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected function matchesSecondary(Client $client, ?string $email, ?string $phone): bool
-    {
-        if ($email !== null) {
-            $existingEmail = $this->normalizeEmail($client->contact_email);
-
-            if ($existingEmail !== null && $existingEmail === $email) {
-                return true;
-            }
-        }
-
-        if ($phone !== null) {
-            $existingPhone = $this->normalizePhone($client->contact_phone);
-
-            if ($existingPhone !== null && $existingPhone === $phone) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

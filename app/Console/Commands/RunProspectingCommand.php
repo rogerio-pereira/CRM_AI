@@ -12,15 +12,14 @@ use Illuminate\Console\Command;
 #[Description('Dispatch the automated prospecting agent via AI orchestration')]
 class RunProspectingCommand extends Command
 {
-    /**
-     * Execute the console command.
-     */
     public function handle(AiOrchestrationService $orchestration): int
     {
-        $orchestration->dispatch(AgentType::Prospecting, [
+        $payload = [
             'triggered_by' => 'prospecting:run',
             'triggered_at' => now()->toIso8601String(),
-        ]);
+        ];
+
+        $orchestration->dispatch(AgentType::Prospecting, $payload);
 
         $this->info('Prospecting agent job dispatched.');
 

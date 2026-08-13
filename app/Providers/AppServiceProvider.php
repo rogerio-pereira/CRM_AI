@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Ai\Contracts\DiscoveryAdapter;
-use App\Ai\Discovery\AiLedPublicWebDiscoveryAdapter;
+use App\Ai\Discovery\PublicWebDiscoveryAdapter;
 use App\Services\AiOrchestrationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AiOrchestrationService::class);
-        $this->app->bind(DiscoveryAdapter::class, AiLedPublicWebDiscoveryAdapter::class);
+        $this->app->bind(DiscoveryAdapter::class, PublicWebDiscoveryAdapter::class);
     }
 
     /**
