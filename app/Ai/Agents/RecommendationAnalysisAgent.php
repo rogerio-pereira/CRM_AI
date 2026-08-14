@@ -122,6 +122,56 @@ class RecommendationAnalysisAgent implements Agent, HasStructuredOutput
                                         ->required(),
             ]);
 
+        /*
+         * Complete payload:
+         *
+         * {
+         *   "schema_version": 1,
+         *   "agent": "recommendation",
+         *   "lead_id": "1",
+         *   "opportunity_id": "1",
+         *   "ai_recommendations": {
+         *     "schema_version": 1,
+         *     "generated_at": "2026-08-14T00:00:00Z",
+         *     "source_agent": "recommendation",
+         *     "language": "en",
+         *     "summary": "...",
+         *     "pain_points": [
+         *       {
+         *         "title": "...",
+         *         "evidence": "...",
+         *         "business_impact": "..."
+         *       }
+         *     ],
+         *     "recommended_focus": [
+         *       {
+         *         "service": "...",
+         *         "title": "...",
+         *         "why_it_matters": "...",
+         *         "priority": "high"
+         *       }
+         *     ],
+         *     "conversation_strategy": {
+         *       "positioning": "...",
+         *       "talking_points": ["..."],
+         *       "contact_example": {
+         *         "channel": "email",
+         *         "subject": "...",
+         *         "body": "..."
+         *       },
+         *       "questions_to_ask": ["..."],
+         *       "avoid": ["..."]
+         *     },
+         *     "next_steps": [
+         *       {
+         *         "title": "...",
+         *         "reason": "..."
+         *       }
+         *     ],
+         *     "confidence": "high"
+         *   }
+         * }
+         */
         return [
                 'schema_version' => $schema->integer()
                                             ->required(),
