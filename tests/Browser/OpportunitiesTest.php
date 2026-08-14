@@ -82,6 +82,7 @@ it('opens the opportunity detail modal with AI recommendations and a refresh act
     $user = User::factory()->create();
     $opportunity = Opportunity::factory()
         ->qualificationQualified()
+        ->withAiInsights()
         ->withAiRecommendations()
         ->create([
             'title' => 'AI Recommendations Deal',
@@ -93,16 +94,16 @@ it('opens the opportunity detail modal with AI recommendations and a refresh act
         ->click('@kanban-card-open-'.$opportunity->id)
         ->assertPresent('[data-test="opportunities-detail-modal"]')
         ->assertPresent('[data-test="ai-suggestion-panel"]')
-        ->assertPresent('[data-test="ai-suggestion-pain-points"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-insights"]')
+        ->assertSee('Ready for a first conversation.')
+        ->assertPresent('[data-test="opportunities-detail-ai-pain-points"]')
         ->assertSee('Outdated website')
-        ->assertPresent('[data-test="ai-suggestion-opportunities"]')
-        ->assertSee('Make the first impression easier to act on')
-        ->assertPresent('[data-test="ai-suggestion-outreach"]')
-        ->assertSee('Helpful local growth conversation.')
+        ->assertPresent('[data-test="ai-suggestion-questions"]')
+        ->assertSee('Where do most new customers hear about you today?')
         ->assertPresent('[data-test="ai-suggestion-next-steps"]')
         ->assertSee('Review the example email before any outreach')
         ->assertPresent('[data-test="ai-suggestion-refresh"]')
-        ->assertSee('AI-generated. Not a confirmed human decision. This is not sent automatically.');
+        ->assertSee('AI-generated. Not a confirmed human decision.');
 });
 
 it('opens the opportunity detail modal with client summary', function () {

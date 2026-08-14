@@ -23,6 +23,7 @@ class AiSuggestionPanelTest extends TestCase
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()
             ->qualificationQualified()
+            ->withAiInsights()
             ->withAiRecommendations()
             ->create([
                 'title' => 'Recommendation Detail Deal',
@@ -33,22 +34,19 @@ class AiSuggestionPanelTest extends TestCase
         Livewire::test(OpportunitiesIndex::class)
             ->call('openDetailModal', $opportunity->id)
             ->assertSeeHtml('data-test="ai-suggestion-panel"')
-            ->assertSeeHtml('data-test="ai-suggestion-summary"')
-            ->assertSee('Start with a clearer website, then a simple follow-up conversation.')
-            ->assertSeeHtml('data-test="ai-suggestion-pain-points"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-insights-summary"')
+            ->assertSee('Ready for a first conversation.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-pain-points"')
             ->assertSee('Outdated website')
-            ->assertSeeHtml('data-test="ai-suggestion-opportunities"')
-            ->assertSee('Make the first impression easier to act on')
-            ->assertSeeHtml('data-test="ai-suggestion-outreach"')
-            ->assertSee('Helpful local growth conversation.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-fit"')
+            ->assertSee('Ready to Contact')
             ->assertSeeHtml('data-test="ai-suggestion-questions"')
             ->assertSee('Where do most new customers hear about you today?')
-            ->assertSeeHtml('data-test="ai-suggestion-contact-example"')
-            ->assertSee('Helping more visitors feel ready to call')
             ->assertSeeHtml('data-test="ai-suggestion-next-steps"')
             ->assertSee('Review the example email before any outreach')
             ->assertSee('AI Insight')
-            ->assertSee('AI-generated. Not a confirmed human decision. This is not sent automatically.')
+            ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
             ->assertSee('Refresh AI insights');
     }
@@ -62,6 +60,7 @@ class AiSuggestionPanelTest extends TestCase
         $opportunity = Opportunity::factory()
             ->for($client)
             ->qualificationQualified()
+            ->withAiInsights()
             ->withAiRecommendations()
             ->create([
                 'title' => 'Related Recommendation Deal',
@@ -73,9 +72,11 @@ class AiSuggestionPanelTest extends TestCase
             ->call('openDetailModal', $client->id)
             ->assertSeeHtml('data-test="leads-detail-opportunity-'.$opportunity->id.'"')
             ->assertSeeHtml('data-test="ai-suggestion-panel"')
-            ->assertSee('Start with a clearer website, then a simple follow-up conversation.')
-            ->assertSee('Make the first impression easier to act on')
-            ->assertSee('AI-generated. Not a confirmed human decision. This is not sent automatically.');
+            ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
+            ->assertSee('Ready for a first conversation.')
+            ->assertSee('Where do most new customers hear about you today?')
+            ->assertSee('Review the example email before any outreach')
+            ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 
     public function test_refresh_queues_recommendation_job(): void
@@ -154,11 +155,34 @@ class AiSuggestionPanelTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_qualified_opportunity_without_recommendations_shows_empty_state(): void
+    public function test_qualified_opportunity_without_recommendations_shows_qualification_insights(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()
+            ->qualificationQualified()
+            ->withAiInsights()
+            ->create([
+                'ai_recommendations' => null,
+            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+            'opportunityId' => $opportunity->id,
+        ])
+            ->assertSeeHtml('data-test="ai-suggestion-panel"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
+            ->assertSee('Ready for a first conversation.')
+            ->assertDontSeeHtml('data-test="ai-suggestion-empty"')
+            ->assertSeeHtml('data-test="ai-suggestion-refresh"');
+    }
+
+    public function test_qualified_opportunity_without_insights_or_recommendations_shows_empty_state(): void
     {
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()->qualificationQualified()->create([
             'ai_recommendations' => null,
+            'ai_insights' => null,
         ]);
 
         $this->actingAs($user);

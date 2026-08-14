@@ -68,6 +68,7 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
     $opportunity = Opportunity::factory()
         ->for($client)
         ->qualificationQualified()
+        ->withAiInsights()
         ->withAiRecommendations()
         ->create([
             'title' => 'Related AI Deal',
@@ -81,11 +82,12 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
         ->assertPresent('[data-test="leads-detail-modal"]')
         ->assertPresent('[data-test="leads-detail-opportunity-'.$opportunity->id.'"]')
         ->assertPresent('[data-test="ai-suggestion-panel"]')
-        ->assertSee('Start with a clearer website, then a simple follow-up conversation.')
-        ->assertSee('Make the first impression easier to act on')
+        ->assertPresent('[data-test="opportunities-detail-ai-insights"]')
+        ->assertSee('Ready for a first conversation.')
+        ->assertSee('Where do most new customers hear about you today?')
         ->assertSee('Review the example email before any outreach')
         ->assertPresent('[data-test="ai-suggestion-refresh"]')
-        ->assertSee('AI-generated. Not a confirmed human decision. This is not sent automatically.');
+        ->assertSee('AI-generated. Not a confirmed human decision.');
 });
 
 it('creates a follow-up from the leads list actions menu', function () {
