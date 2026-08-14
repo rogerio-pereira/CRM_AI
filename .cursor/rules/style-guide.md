@@ -88,7 +88,8 @@ Keep `if` for real control flow: early return, throw, skip, or a business rule t
 #### Good
 
 ```php
-$now = now()->toIso8601String();
+$now = Carbon::now()
+    ->toIso8601String();
 $generatedAt = $rawRecommendations['generated_at'] ?? $now;
 $language = $rawRecommendations['language'] ?? 'en';
 $painPoints = $rawRecommendations['pain_points'] ?? [];
@@ -112,7 +113,8 @@ if (! is_array($painPoints)) {
 $generatedAt = $rawRecommendations['generated_at'] ?? '';
 
 if ($generatedAt === '') {
-    $generatedAt = now()->toIso8601String();
+    $generatedAt = Carbon::now()
+        ->toIso8601String();
 }
 ```
 

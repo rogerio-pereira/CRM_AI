@@ -27,11 +27,13 @@ if (! is_array($painPoints)) {
 
 $generatedAt = $raw['generated_at'] ?? '';
 if ($generatedAt === '') {
-    $generatedAt = now()->toIso8601String();
+    $generatedAt = Carbon::now()
+        ->toIso8601String();
 }
 
 // GOOD
-$now = now()->toIso8601String();
+$now = Carbon::now()
+    ->toIso8601String();
 $generatedAt = $raw['generated_at'] ?? $now;
 $language = $raw['language'] ?? 'en';
 $painPoints = $raw['pain_points'] ?? [];

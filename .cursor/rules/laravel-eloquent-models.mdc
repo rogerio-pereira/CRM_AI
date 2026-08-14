@@ -34,7 +34,7 @@ Use the query builder when you need to **scope or filter** before the operation:
 ```php
 User::query()->where('active', true)->orderBy('name')->get();
 User::where('status', 'pending')->update(['status' => 'archived']);
-User::where('expired_at', '<', now())->delete();
+User::where('expired_at', '<', Carbon::now())->delete();
 ```
 
 For these cases, `Model::where(...)` and `Model::query()->where(...)` are equivalent; pick whichever reads better in context.
