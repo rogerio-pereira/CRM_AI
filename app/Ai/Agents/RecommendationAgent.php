@@ -90,7 +90,11 @@ class RecommendationAgent implements AiAgent
         $subject = $contactExample['subject'] ?? '';
         $body = $contactExample['body'] ?? '';
 
-        if ($summary === '' || $subject === '' || $body === '') {
+        if (
+            $summary === '' ||
+            $subject === '' ||
+            $body === ''
+        ) {
             $payloadKeys = array_keys($payload);
 
             Log::warning('ai.recommendation.incomplete', [
