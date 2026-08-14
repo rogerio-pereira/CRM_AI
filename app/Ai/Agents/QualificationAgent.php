@@ -12,6 +12,7 @@ use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 
@@ -148,6 +149,16 @@ class QualificationAgent implements AiAgent
             $subject === '' ||
             $body === ''
         ) {
+            $payloadKeys = array_keys($payload);
+
+            Log::warning('ai.qualification.incomplete', [
+                'qualification_status' => $status,
+                'has_insights' => is_array($insights),
+                'subject_length' => strlen($subject),
+                'body_length' => strlen($body),
+                'payload_keys' => $payloadKeys,
+            ]);
+
             throw new QualificationFailedException('Qualification output was incomplete.');
         }
     }

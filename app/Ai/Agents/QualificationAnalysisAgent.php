@@ -169,7 +169,7 @@ class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
                 'retry_recommended' => $schema->boolean()
                                             ->nullable(),
                 'ai_insights' => $insights
-                                    ->nullable(),
+                                    ->required(),
                 'next_pipeline_stage' => $schema->string()
                                                 ->nullable(),
             ];
