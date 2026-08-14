@@ -4,6 +4,7 @@ use App\Livewire\Dashboard\Index as DashboardIndex;
 use App\Livewire\FollowUps\Index as FollowUpsIndex;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
+use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Tasks\Index as TasksIndex;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('follow-ups', FollowUpsIndex::class)->name('follow-ups.index');
 
     Route::livewire('tasks', TasksIndex::class)->name('tasks.index');
+
+    Route::livewire('services', ServicesIndex::class)->name('services.index');
 });
 
 require __DIR__.'/settings.php';
