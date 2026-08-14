@@ -35,7 +35,7 @@
 | 15 | [15 Slack notifications](#f15-slack-notifications) | [FDR-015](FDRs/ToDo/FDR-015-slack-notifications.md) |
 | 16 | [16 Google Calendar integration](#f16-google-calendar) | [FDR-016](FDRs/ToDo/FDR-016-google-calendar.md) |
 | 17 | [17 Integration settings](#f17-integration-settings) **Closed** | [FDR-017](FDRs/Closed/FDR-017-integration-settings.md) |
-| 18 | [18 Commercial service catalog](#f18-commercial-service-catalog) | [FDR-018](FDRs/ToDo/FDR-018-commercial-service-catalog.md) |
+| 18 | [18 Commercial service catalog](#f18-commercial-service-catalog) | [FDR-018](FDRs/Done/FDR-018-commercial-service-catalog.md) |
 | 19 | [19 Opportunity notes](#f19-opportunity-notes) | [FDR-019](FDRs/ToDo/FDR-019-opportunity-notes.md) |
 | 20 | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [FDR-020](FDRs/ToDo/FDR-020-proposal-artifacts-and-delivery.md) |
 

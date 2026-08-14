@@ -11,7 +11,7 @@
 | Dependency | Status | Impact |
 | ---------- | ------ | ------ |
 | [ADR-018](../../ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md) | Accepted | Supersedes ADR-016; domain and lifecycle decided |
-| [FDR-018](FDR-018-commercial-service-catalog.md) | ToDo (Wave 5) | Catalog line items required |
+| [FDR-018](../Done/FDR-018-commercial-service-catalog.md) | Done (Wave 5) | Catalog line items available |
 | [FDR-019](FDR-019-opportunity-notes.md) | ToDo (Wave 5) | Notes timeline required as AI context |
 | [FDR-020](FDR-020-proposal-artifacts-and-delivery.md) | ToDo (Wave 7) | Artifacts/PDF/email are a separate feature; this FDR stops at approved proposal content/line items |
 
