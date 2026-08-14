@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (amended 2026-08-13)
+Accepted (amended 2026-08-13; service catalog interpretation partially superseded by [ADR-020](ADR-020-commercial-service-catalog-boundary.md))
+
+ADR-017 remains authoritative for qualification. Where the historical text calls `docs/services/` the service source of truth, ADR-020 narrows that role to qualification categories and makes the database catalog authoritative for priced proposal line items.
 
 ## Context
 
@@ -28,7 +30,7 @@ The 2026-07-31 decisions below that placed qualification status, errors, timesta
    - When a qualification job starts, **that** opportunity in `Lead` may move to `Qualification`.
    - When qualification succeeds, **that** opportunity moves to `Contact`.
    - Sibling opportunities on the same client are not moved.
-   - `Contact` remains human-driven per ADR-011; AI does not send outreach.
+   - `Contact` remains human-driven per [ADR-019](ADR-019-human-controlled-proposal-delivery.md); AI does not send outreach.
 
 3. **Use a simple qualification status column and UI chips on the opportunity.**
    - Add dedicated opportunity qualification fields rather than overloading client lifecycle `status` or treating the company as the qualified record.

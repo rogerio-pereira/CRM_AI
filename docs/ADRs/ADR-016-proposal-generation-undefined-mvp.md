@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed
+Superseded by [ADR-018](ADR-018-proposal-artifact-rendering-and-delivery.md) (2026-08-14)
+
+The content below is retained unchanged as historical context. Its pending decisions are closed by ADR-018; do not implement this ADR.
 
 ## Pending approval
 

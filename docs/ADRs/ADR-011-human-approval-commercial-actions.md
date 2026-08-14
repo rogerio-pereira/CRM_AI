@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-019](ADR-019-human-controlled-proposal-delivery.md) (2026-08-14)
+
+The content below is retained unchanged as historical context. Use ADR-019 for current implementation decisions.
 
 ## Context
 
