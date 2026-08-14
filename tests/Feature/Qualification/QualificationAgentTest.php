@@ -17,6 +17,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Queue;
+use Laravel\Ai\Responses\AgentResponse;
+use Mockery;
+use ReflectionClass;
+use ReflectionMethod;
 use RuntimeException;
 use Tests\Support\QualificationFake;
 use Tests\TestCase;
@@ -511,6 +515,118 @@ class QualificationAgentTest extends TestCase
         $agent->handle([
             'opportunity_id' => $opportunity->id,
         ]);
+    }
+
+    public function test_agent_throws_when_client_is_missing(): void
+    {
+        $opportunity = Opportunity::factory()->create();
+
+        Client::addGlobalScope('qualification-missing-client', function ($query): void {
+            $query->whereRaw('0 = 1');
+        });
+
+        try {
+            $agent = app(QualificationAgent::class);
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Qualification client not found for opportunity: '.$opportunity->id);
+
+            $agent->handle([
+                'opportunity_id' => $opportunity->id,
+            ]);
+        } finally {
+            $modelReflection = new ReflectionClass(Client::class);
+            $scopesProperty = $modelReflection->getProperty('globalScopes');
+            $scopes = $scopesProperty->getValue();
+            unset($scopes[Client::class]['qualification-missing-client']);
+            $scopesProperty->setValue(null, $scopes);
+        }
+    }
+
+    public function test_agent_throws_when_analysis_response_is_not_structured(): void
+    {
+        $opportunity = Opportunity::factory()->create();
+        $unstructuredResponse = Mockery::mock(AgentResponse::class);
+        $analysisAgent = Mockery::mock(QualificationAnalysisAgent::class);
+        $analysisAgent->shouldReceive('prompt')
+            ->once()
+            ->andReturn($unstructuredResponse);
+
+        $this->app->bind(QualificationAnalysisAgent::class, function () use ($analysisAgent) {
+            return $analysisAgent;
+        });
+
+        $agent = app(QualificationAgent::class);
+
+        $this->expectException(QualificationFailedException::class);
+        $this->expectExceptionMessage('Qualification output was incomplete.');
+
+        $agent->handle([
+            'opportunity_id' => $opportunity->id,
+        ]);
+    }
+
+    public function test_persist_throws_when_insights_are_not_an_array(): void
+    {
+        $opportunity = Opportunity::factory()->create();
+        $agent = app(QualificationAgent::class);
+        $method = new ReflectionMethod(QualificationAgent::class, 'persistSuccessfulQualification');
+        $payload = [
+                'qualification_notes' => 'Notes without insights.',
+                'ai_insights' => null,
+            ];
+
+        $this->expectException(QualificationFailedException::class);
+        $this->expectExceptionMessage('Qualification output was incomplete.');
+
+        $method->invoke($agent, $opportunity, $payload);
+    }
+
+    public function test_agent_throws_when_opportunity_payload_cannot_be_encoded(): void
+    {
+        $client = Client::factory()->create();
+        $client->company_name = "\xB1\x31";
+        $client->save();
+
+        $opportunity = Opportunity::factory()->for($client)->create();
+        $agent = app(QualificationAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Qualification opportunity payload could not be encoded.');
+
+        $agent->handle([
+            'opportunity_id' => $opportunity->id,
+        ]);
+    }
+
+    public function test_non_markdown_catalog_files_are_skipped(): void
+    {
+        Queue::fake([
+            RunRecommendationAgentJob::class,
+        ]);
+
+        $skipPath = base_path('docs/services/_coverage_skip.txt');
+        file_put_contents($skipPath, 'not a service catalog file');
+
+        $client = Client::factory()->create();
+        $opportunity = Opportunity::factory()->for($client)->create();
+
+        QualificationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
+
+        try {
+            $agent = app(QualificationAgent::class);
+            $agent->handle([
+                'opportunity_id' => $opportunity->id,
+            ]);
+        } finally {
+            if (is_file($skipPath)) {
+                unlink($skipPath);
+            }
+        }
+
+        $opportunity->refresh();
+
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
     }
 
     public function test_agent_throws_when_prompt_file_is_missing(): void

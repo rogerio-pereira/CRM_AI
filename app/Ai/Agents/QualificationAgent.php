@@ -89,7 +89,10 @@ class QualificationAgent implements AiAgent
     {
         $instructions = $this->loadApprovedPrompt();
         $userPrompt = $this->buildUserPrompt($opportunity, $client);
-        $agent = new QualificationAnalysisAgent($instructions);
+        $agentParameters = [
+                'instructions' => $instructions,
+            ];
+        $agent = app(QualificationAnalysisAgent::class, $agentParameters);
         $response = $agent->prompt($userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {
