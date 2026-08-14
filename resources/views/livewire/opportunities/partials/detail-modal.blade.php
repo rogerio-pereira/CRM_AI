@@ -103,6 +103,11 @@
                 @include('livewire.opportunities.partials.ai-insights', ['insights' => $insights])
             @endif
 
+            <livewire:opportunities.ai-suggestion-panel
+                :opportunity-id="$opportunity->id"
+                :key="'opportunity-ai-suggestion-'.$opportunity->id"
+            />
+
             <div>
                 <a
                     href="{{ route('leads.index') }}"
