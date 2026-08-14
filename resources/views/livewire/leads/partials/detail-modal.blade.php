@@ -30,7 +30,20 @@
                 </div>
                 <div>
                     <flux:subheading>{{ __('Website') }}</flux:subheading>
-                    <flux:text class="text-text-secondary">{{ $client->website ?? '—' }}</flux:text>
+                    @php($websiteUrl = \App\Support\UrlNormalizer::normalize($client->website))
+                    @if ($websiteUrl !== null)
+                        <a
+                            href="{{ $websiteUrl }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-sm text-primary hover:text-primary-hover"
+                            data-test="leads-detail-website-link"
+                        >
+                            {{ $client->website }}
+                        </a>
+                    @else
+                        <flux:text class="text-text-secondary">{{ __('—') }}</flux:text>
+                    @endif
                 </div>
                 <div>
                     <flux:subheading>{{ __('Lead source') }}</flux:subheading>

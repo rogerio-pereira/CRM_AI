@@ -29,14 +29,45 @@
 
             <div class="rounded-lg border border-border-default bg-app p-4">
                 <flux:subheading>{{ __('Client summary') }}</flux:subheading>
-                <div class="mt-3 space-y-1 text-sm text-text-secondary">
-                    <div class="font-medium text-text-primary">{{ $opportunity->client->company_name }}</div>
-                    @if ($opportunity->client->contact_name)
-                        <div>{{ $opportunity->client->contact_name }}</div>
-                    @endif
-                    @if ($opportunity->client->contact_email)
-                        <div>{{ $opportunity->client->contact_email }}</div>
-                    @endif
+                <div class="mt-3 space-y-3 text-sm text-text-secondary">
+                    <div class="font-medium text-text-primary" data-test="opportunities-detail-company-name">
+                        {{ $opportunity->client->company_name }}
+                    </div>
+                    <div>
+                        <flux:subheading>{{ __('Contact') }}</flux:subheading>
+                        <div data-test="opportunities-detail-contact-name">
+                            {{ $opportunity->client->contact_name ?? __('—') }}
+                        </div>
+                    </div>
+                    <div>
+                        <flux:subheading>{{ __('Email') }}</flux:subheading>
+                        <div data-test="opportunities-detail-contact-email">
+                            {{ $opportunity->client->contact_email ?? __('—') }}
+                        </div>
+                    </div>
+                    <div>
+                        <flux:subheading>{{ __('Phone') }}</flux:subheading>
+                        <div data-test="opportunities-detail-contact-phone">
+                            {{ $opportunity->client->contact_phone ?? __('—') }}
+                        </div>
+                    </div>
+                    <div>
+                        <flux:subheading>{{ __('Website') }}</flux:subheading>
+                        @php($websiteUrl = \App\Support\UrlNormalizer::normalize($opportunity->client->website))
+                        @if ($websiteUrl !== null)
+                            <a
+                                href="{{ $websiteUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-sm text-primary hover:text-primary-hover"
+                                data-test="opportunities-detail-website-link"
+                            >
+                                {{ $opportunity->client->website }}
+                            </a>
+                        @else
+                            <div data-test="opportunities-detail-website">{{ __('—') }}</div>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="mt-4">
