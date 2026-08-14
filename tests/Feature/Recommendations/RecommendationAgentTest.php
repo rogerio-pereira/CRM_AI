@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Notification;
 use Laravel\Ai\Responses\AgentResponse;
 use Mockery;
 use ReflectionClass;
+use ReflectionMethod;
 use RuntimeException;
 use Tests\Support\RecommendationFake;
 use Tests\TestCase;
@@ -307,5 +308,42 @@ class RecommendationAgentTest extends TestCase
         $this->assertSame([], $recommendations['opportunities']);
         $this->assertSame([], $recommendations['next_steps']);
         $this->assertIsArray($recommendations['outreach_strategy']);
+    }
+
+    public function test_persist_throws_when_recommendations_are_not_an_array(): void
+    {
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create();
+        $agent = app(RecommendationAgent::class);
+        $method = new ReflectionMethod(RecommendationAgent::class, 'persistRecommendations');
+        $payload = [
+                'ai_recommendations' => null,
+            ];
+
+        $this->expectException(RecommendationFailedException::class);
+        $this->expectExceptionMessage('Recommendation output was incomplete.');
+
+        $method->invoke($agent, $opportunity, $payload);
+    }
+
+    public function test_agent_throws_when_opportunity_payload_cannot_be_encoded(): void
+    {
+        $client = Client::factory()->create();
+        $client->company_name = "\xB1\x31";
+        $client->save();
+
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create();
+        $agent = app(RecommendationAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Recommendation opportunity payload could not be encoded.');
+
+        $agent->handle([
+                'opportunity_id' => $opportunity->id,
+            ]);
     }
 }
