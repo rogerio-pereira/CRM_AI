@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Fortify\Features;
 use Tests\Support\QualificationFake;
+use Tests\Support\RecommendationFake;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -13,6 +14,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         QualificationFake::fakeSuccessful();
+        RecommendationFake::fakeSuccessful();
     }
 
     protected function skipUnlessFortifyHas(string $feature, ?string $message = null): void
