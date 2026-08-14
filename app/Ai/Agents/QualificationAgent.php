@@ -104,8 +104,9 @@ class QualificationAgent implements AiAgent
      */
     private function assertSuccessfulQualification(array $payload): void
     {
-        $rawStatus = $payload['qualification_status'] ?? '';
-        $status = strtolower(trim((string) $rawStatus));
+        $rawStatus = (string) ($payload['qualification_status'] ?? '');
+        $trimmedStatus = trim($rawStatus);
+        $status = strtolower($trimmedStatus);
 
         if ($status === 'failed') {
             $rawError = $payload['qualification_last_error'] ?? '';
@@ -139,15 +140,11 @@ class QualificationAgent implements AiAgent
             $body = trim((string) $rawBody);
         }
 
-        if ($status !== 'qualified') {
-            throw new QualificationFailedException('Qualification output was incomplete.');
-        }
-
-        if ($subject === '') {
-            throw new QualificationFailedException('Qualification output was incomplete.');
-        }
-
-        if ($body === '') {
+        if (
+            $status !== 'qualified' ||
+            $subject === '' ||
+            $body === ''
+        ) {
             throw new QualificationFailedException('Qualification output was incomplete.');
         }
     }
@@ -226,7 +223,9 @@ class QualificationAgent implements AiAgent
 
     private function isInitialProspectingQualification(Opportunity $opportunity, Client $client): bool
     {
-        $leadSource = strtolower(trim((string) $client->lead_source));
+        $rawLeadSource = (string) $client->lead_source;
+        $trimmedLeadSource = trim($rawLeadSource);
+        $leadSource = strtolower($trimmedLeadSource);
 
         if ($leadSource !== 'prospecting') {
             return false;
@@ -264,17 +263,16 @@ class QualificationAgent implements AiAgent
             $contents = File::get($pathname);
             $trimmed = trim((string) $contents);
 
-            $catalog[] = [
+            $catalog[$filename] = [
                     'file' => $filename,
                     'contents' => $trimmed,
                 ];
         }
 
-        usort($catalog, function (array $left, array $right): int {
-            return strcmp($left['file'], $right['file']);
-        });
+        ksort($catalog);
+        $sortedCatalog = array_values($catalog);
 
-        return $catalog;
+        return $sortedCatalog;
     }
 
     private function loadApprovedPrompt(): string

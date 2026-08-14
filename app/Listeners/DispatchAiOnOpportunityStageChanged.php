@@ -8,6 +8,9 @@ use App\Enums\QualificationStatus;
 use App\Events\OpportunityStageChanged;
 use App\Services\AiOrchestrationService;
 
+/*
+ * Called by app/Events/OpportunityStageChanged.php
+ */
 class DispatchAiOnOpportunityStageChanged
 {
     public function __construct(
@@ -39,11 +42,10 @@ class DispatchAiOnOpportunityStageChanged
         if ($stage === PipelineStage::Qualification) {
             $status = $event->opportunity->qualification_status;
 
-            if ($status === QualificationStatus::Processing) {
-                return null;
-            }
-
-            if ($status === QualificationStatus::Qualified) {
+            if (
+                $status === QualificationStatus::Processing ||
+                $status === QualificationStatus::Qualified
+            ) {
                 return null;
             }
 
