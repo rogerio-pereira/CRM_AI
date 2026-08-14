@@ -102,8 +102,42 @@ it('opens the opportunity detail modal with AI recommendations and a refresh act
         ->assertSee('Where do most new customers hear about you today?')
         ->assertPresent('[data-test="ai-suggestion-next-steps"]')
         ->assertSee('Review the example email before any outreach')
+        ->assertPresent('[data-test="ai-suggestion-create-task-0"]')
+        ->assertSee('Create Task')
         ->assertPresent('[data-test="ai-suggestion-refresh"]')
         ->assertSee('AI-generated. Not a confirmed human decision.');
+});
+
+it('creates a task from a next-step recommendation', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()
+        ->qualificationQualified()
+        ->withAiInsights()
+        ->withAiRecommendations()
+        ->create([
+            'title' => 'Next Step Task Deal',
+        ]);
+
+    $this->actingAs($user);
+
+    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="ai-suggestion-create-task-0"]')
+        ->click('@ai-suggestion-create-task-0')
+        ->assertSee('New task')
+        ->assertValue('@tasks-quick-form-title', 'Review the example email before any outreach')
+        ->fill('@tasks-quick-form-due-at', $dueAt)
+        ->click('@tasks-quick-form-submit')
+        ->waitForText('Task created.');
+
+    expect(
+        Task::query()
+            ->where('opportunity_id', $opportunity->id)
+            ->where('title', 'Review the example email before any outreach')
+            ->exists()
+    )->toBeTrue();
 });
 
 it('opens the opportunity detail modal with client summary', function () {

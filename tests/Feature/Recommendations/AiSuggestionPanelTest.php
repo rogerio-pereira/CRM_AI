@@ -44,6 +44,9 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSeeHtml('data-test="ai-suggestion-questions"')
             ->assertSee('Where do most new customers hear about you today?')
             ->assertSeeHtml('data-test="ai-suggestion-next-steps"')
+            ->assertSeeHtml('data-test="ai-suggestion-create-task-0"')
+            ->assertSeeHtml('open-task-for-opportunity')
+            ->assertSee('Create Task')
             ->assertSee('Review the example email before any outreach')
             ->assertSee('AI Insight')
             ->assertSee('AI-generated. Not a confirmed human decision.')
@@ -76,6 +79,8 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('Ready for a first conversation.')
             ->assertSee('Where do most new customers hear about you today?')
             ->assertSee('Review the example email before any outreach')
+            ->assertSeeHtml('data-test="ai-suggestion-create-task-0"')
+            ->assertSee('Create Task')
             ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 

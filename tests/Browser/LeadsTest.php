@@ -86,6 +86,8 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
         ->assertSee('Ready for a first conversation.')
         ->assertSee('Where do most new customers hear about you today?')
         ->assertSee('Review the example email before any outreach')
+        ->assertPresent('[data-test="ai-suggestion-create-task-0"]')
+        ->assertSee('Create Task')
         ->assertPresent('[data-test="ai-suggestion-refresh"]')
         ->assertSee('AI-generated. Not a confirmed human decision.');
 });
