@@ -15,8 +15,7 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
      */
     public function discover(array $options = []): array
     {
-        $defaultLimit = (int) config('prospecting.default_limit', 20);
-        $requestedLimit = $options['limit'] ?? $defaultLimit;
+        $requestedLimit = $options['limit'] ?? 1;
         $limit = (int) $requestedLimit;
 
         if ($limit < 1) {

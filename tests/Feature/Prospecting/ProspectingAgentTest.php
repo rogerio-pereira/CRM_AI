@@ -157,17 +157,27 @@ class ProspectingAgentTest extends TestCase
             ],
         ]);
 
+        config([
+            'prospecting.default_limit' => 1,
+        ]);
+
         $this->artisan('prospecting:run')
             ->assertSuccessful();
 
         /** @var RunProspectingAgentJob|null $dispatched */
         $dispatched = null;
 
+        Queue::assertPushed(RunProspectingAgentJob::class, 1);
         Queue::assertPushed(RunProspectingAgentJob::class, function (RunProspectingAgentJob $job) use (&$dispatched): bool {
             $triggeredBy = $job->payload['triggered_by'] ?? null;
+            $limit = $job->payload['limit'] ?? null;
             $dispatched = $job;
 
-            return $triggeredBy === 'prospecting:run';
+            if ($triggeredBy !== 'prospecting:run') {
+                return false;
+            }
+
+            return $limit === 1;
         });
 
         $this->assertNotNull($dispatched);
@@ -239,6 +249,69 @@ class ProspectingAgentTest extends TestCase
             ],
             $mixedSocial->social_links,
         );
+    }
+
+    public function test_agent_defaults_to_one_lead_per_job(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+                    ->once()
+                    ->with(Mockery::on(function (array $options): bool {
+                        $limit = $options['limit'] ?? null;
+                        $instructions = $options['instructions'] ?? null;
+
+                        if ($limit !== 1) {
+                            return false;
+                        }
+
+                        return is_string($instructions) && $instructions !== '';
+                    }))
+                    ->andReturn([
+                        'leads' => [],
+                        'skipped' => [],
+                    ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([]);
+
+        $this->assertSame(0, $result['created_count']);
+    }
+
+    public function test_agent_clamps_invalid_limit_to_one_lead(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+                    ->once()
+                    ->with(Mockery::on(function (array $options): bool {
+                        $limit = $options['limit'] ?? null;
+
+                        return $limit === 1;
+                    }))
+                    ->andReturn([
+                        'leads' => [],
+                        'skipped' => [],
+                    ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 0,
+        ]);
+
+        $this->assertSame(0, $result['created_count']);
     }
 
     public function test_agent_throws_when_prompt_file_is_missing(): void
