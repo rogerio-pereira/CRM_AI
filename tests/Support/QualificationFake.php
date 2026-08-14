@@ -100,18 +100,8 @@ class QualificationFake
         ?string $clientId = null,
         ?array $catalogOpportunities = null,
     ): void {
-        $payloadOpportunityId = $opportunityId;
-
-        if ($payloadOpportunityId === null) {
-            $payloadOpportunityId = '1';
-        }
-
-        $payloadClientId = $clientId;
-
-        if ($payloadClientId === null) {
-            $payloadClientId = '1';
-        }
-
+        $payloadOpportunityId = $opportunityId ?? '1';
+        $payloadClientId = $clientId ?? '1';
         $payload = self::successfulPayload($payloadOpportunityId, $payloadClientId);
 
         if ($catalogOpportunities !== null) {

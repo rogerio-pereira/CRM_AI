@@ -37,7 +37,17 @@ class DispatchAiOnOpportunityStageChanged
         $stage = $event->toStage;
 
         if ($stage === PipelineStage::Qualification) {
-            return $this->qualificationAgentType($event);
+            $status = $event->opportunity->qualification_status;
+
+            if ($status === QualificationStatus::Processing) {
+                return null;
+            }
+
+            if ($status === QualificationStatus::Qualified) {
+                return null;
+            }
+
+            return AgentType::Qualification;
         }
 
         if ($stage === PipelineStage::ProposalGeneration) {
@@ -49,20 +59,5 @@ class DispatchAiOnOpportunityStageChanged
         }
 
         return null;
-    }
-
-    private function qualificationAgentType(OpportunityStageChanged $event): ?AgentType
-    {
-        $status = $event->opportunity->qualification_status;
-
-        if ($status === QualificationStatus::Processing) {
-            return null;
-        }
-
-        if ($status === QualificationStatus::Qualified) {
-            return null;
-        }
-
-        return AgentType::Qualification;
     }
 }

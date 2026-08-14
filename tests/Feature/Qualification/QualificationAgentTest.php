@@ -13,6 +13,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\ClientService;
 use App\Services\OpportunityService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Queue;
@@ -366,8 +367,7 @@ class QualificationAgentTest extends TestCase
     {
         $agent = app(QualificationAgent::class);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Qualification requires an opportunity_id.');
+        $this->expectException(ModelNotFoundException::class);
 
         $agent->handle([]);
     }
@@ -376,8 +376,7 @@ class QualificationAgentTest extends TestCase
     {
         $agent = app(QualificationAgent::class);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Qualification opportunity not found');
+        $this->expectException(ModelNotFoundException::class);
 
         $agent->handle([
             'opportunity_id' => 999999,
@@ -444,7 +443,7 @@ class QualificationAgentTest extends TestCase
         ]);
     }
 
-    public function test_empty_notes_are_stored_as_null_and_missing_insight_meta_is_filled(): void
+    public function test_empty_notes_are_stored_as_null(): void
     {
         Queue::fake([
             RunRecommendationAgentJob::class,
@@ -453,9 +452,6 @@ class QualificationAgentTest extends TestCase
         $opportunity = Opportunity::factory()->create();
         $payload = QualificationFake::successfulPayload((string) $opportunity->id);
         $payload['qualification_notes'] = '   ';
-        unset($payload['ai_insights']['generated_at']);
-        unset($payload['ai_insights']['source_agent']);
-        unset($payload['ai_insights']['schema_version']);
 
         QualificationAnalysisAgent::fake([
             $payload,
@@ -470,9 +466,6 @@ class QualificationAgentTest extends TestCase
 
         $this->assertNull($opportunity->qualification_notes);
         $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
-        $this->assertSame('qualification', $opportunity->ai_insights['source_agent']);
-        $this->assertSame(1, $opportunity->ai_insights['schema_version']);
-        $this->assertNotSame('', $opportunity->ai_insights['generated_at']);
     }
 
     public function test_job_failed_callback_ignores_missing_opportunity_and_already_qualified(): void

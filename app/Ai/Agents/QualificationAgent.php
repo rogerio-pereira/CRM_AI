@@ -12,7 +12,6 @@ use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Illuminate\Support\Facades\File;
-use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 
@@ -33,8 +32,15 @@ class QualificationAgent implements AiAgent
      */
     public function handle(array $context): array
     {
-        $opportunity = $this->loadOpportunity($context);
-        $client = $this->loadClient($opportunity);
+        $rawOpportunityId = $context['opportunity_id'] ?? 0;
+        $opportunityId = (int) $rawOpportunityId;
+        $opportunity = Opportunity::with('client')
+                            ->findOrFail($opportunityId);
+        $client = $opportunity->client;
+
+        if ($client === null) {
+            throw new RuntimeException('Qualification client not found for opportunity: '.$opportunity->id);
+        }
 
         if ($opportunity->qualification_status === QualificationStatus::Qualified) {
             return [
@@ -45,20 +51,28 @@ class QualificationAgent implements AiAgent
                 ];
         }
 
-        $this->markProcessing($opportunity);
-        $this->advanceThisOpportunityFromLeadToQualification($opportunity);
+        $this->opportunities
+                ->update($opportunity, [
+                    'qualification_status' => QualificationStatus::Processing,
+                    'qualification_last_error' => null,
+                ]);
 
-        $freshOpportunity = $opportunity->fresh(['client']);
-
-        if ($freshOpportunity === null) {
-            throw new RuntimeException('Qualification opportunity not found: '.$opportunity->id);
+        if ($opportunity->stage === PipelineStage::Lead) {
+            $this->opportunities
+                    ->moveToStage($opportunity, PipelineStage::Qualification);
         }
 
-        $payload = $this->analyzeOpportunity($freshOpportunity, $client);
+        $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulQualification($payload);
-        $this->persistSuccessfulQualification($freshOpportunity, $payload);
-        $this->advanceThisOpportunityToContact($freshOpportunity);
-        $this->dispatchRecommendation($freshOpportunity, $client);
+        $this->persistSuccessfulQualification($opportunity, $payload);
+        $this->opportunities
+                ->moveToStage($opportunity, PipelineStage::Contact);
+        $this->orchestration
+                ->dispatch(AgentType::Recommendation, [
+                    'trigger' => 'qualification_completed',
+                    'opportunity_id' => $opportunity->id,
+                    'client_id' => $client->id,
+                ]);
 
         return [
                 'agent' => 'qualification',
@@ -69,82 +83,14 @@ class QualificationAgent implements AiAgent
     }
 
     /**
-     * @param  array<string, mixed>  $context
-     */
-    private function loadOpportunity(array $context): Opportunity
-    {
-        $rawOpportunityId = $context['opportunity_id'] ?? null;
-
-        if ($rawOpportunityId === null) {
-            throw new RuntimeException('Qualification requires an opportunity_id.');
-        }
-
-        $opportunityId = (int) $rawOpportunityId;
-        $opportunity = Opportunity::find($opportunityId);
-
-        if ($opportunity === null) {
-            throw new RuntimeException('Qualification opportunity not found: '.$opportunityId);
-        }
-
-        return $opportunity;
-    }
-
-    private function loadClient(Opportunity $opportunity): Client
-    {
-        $client = $opportunity->client;
-
-        if ($client === null) {
-            throw new RuntimeException('Qualification client not found for opportunity: '.$opportunity->id);
-        }
-
-        return $client;
-    }
-
-    private function markProcessing(Opportunity $opportunity): void
-    {
-        $this->opportunities
-                ->update($opportunity, [
-                    'qualification_status' => QualificationStatus::Processing,
-                    'qualification_last_error' => null,
-                ]);
-    }
-
-    private function advanceThisOpportunityFromLeadToQualification(Opportunity $opportunity): void
-    {
-        $freshOpportunity = $opportunity->fresh();
-
-        if ($freshOpportunity === null) {
-            return;
-        }
-
-        if ($freshOpportunity->stage !== PipelineStage::Lead) {
-            return;
-        }
-
-        $this->opportunities
-                ->moveToStage($freshOpportunity, PipelineStage::Qualification);
-    }
-
-    private function advanceThisOpportunityToContact(Opportunity $opportunity): void
-    {
-        $freshOpportunity = $opportunity->fresh();
-
-        if ($freshOpportunity === null) {
-            return;
-        }
-
-        $this->opportunities
-                ->moveToStage($freshOpportunity, PipelineStage::Contact);
-    }
-
-    /**
      * @return array<string, mixed>
      */
     private function analyzeOpportunity(Opportunity $opportunity, Client $client): array
     {
         $instructions = $this->loadApprovedPrompt();
         $userPrompt = $this->buildUserPrompt($opportunity, $client);
-        $response = $this->promptAnalysis($instructions, $userPrompt);
+        $agent = new QualificationAnalysisAgent($instructions);
+        $response = $agent->prompt($userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {
             throw new QualificationFailedException('Qualification output was incomplete.');
@@ -172,32 +118,30 @@ class QualificationAgent implements AiAgent
             throw new QualificationFailedException($error);
         }
 
+        $insights = $payload['ai_insights'] ?? null;
+        $outreachStrategy = null;
+        $contactExample = null;
+        $subject = '';
+        $body = '';
+
+        if (is_array($insights)) {
+            $outreachStrategy = $insights['outreach_strategy'] ?? null;
+        }
+
+        if (is_array($outreachStrategy)) {
+            $contactExample = $outreachStrategy['contact_example'] ?? null;
+        }
+
+        if (is_array($contactExample)) {
+            $rawSubject = $contactExample['subject'] ?? '';
+            $subject = trim((string) $rawSubject);
+            $rawBody = $contactExample['body'] ?? '';
+            $body = trim((string) $rawBody);
+        }
+
         if ($status !== 'qualified') {
             throw new QualificationFailedException('Qualification output was incomplete.');
         }
-
-        $insights = $payload['ai_insights'] ?? null;
-
-        if (! is_array($insights)) {
-            throw new QualificationFailedException('Qualification output was incomplete.');
-        }
-
-        $outreachStrategy = $insights['outreach_strategy'] ?? null;
-
-        if (! is_array($outreachStrategy)) {
-            throw new QualificationFailedException('Qualification output was incomplete.');
-        }
-
-        $contactExample = $outreachStrategy['contact_example'] ?? null;
-
-        if (! is_array($contactExample)) {
-            throw new QualificationFailedException('Qualification output was incomplete.');
-        }
-
-        $rawSubject = $contactExample['subject'] ?? '';
-        $subject = trim((string) $rawSubject);
-        $rawBody = $contactExample['body'] ?? '';
-        $body = trim((string) $rawBody);
 
         if ($subject === '') {
             throw new QualificationFailedException('Qualification output was incomplete.');
@@ -230,26 +174,6 @@ class QualificationAgent implements AiAgent
             throw new QualificationFailedException('Qualification output was incomplete.');
         }
 
-        $rawGeneratedAt = $insights['generated_at'] ?? null;
-        $hasGeneratedAt = is_string($rawGeneratedAt) && $rawGeneratedAt !== '';
-
-        if ($hasGeneratedAt === false) {
-            $insights['generated_at'] = now()->toIso8601String();
-        }
-
-        $rawSourceAgent = $insights['source_agent'] ?? null;
-        $hasSourceAgent = is_string($rawSourceAgent) && $rawSourceAgent !== '';
-
-        if ($hasSourceAgent === false) {
-            $insights['source_agent'] = 'qualification';
-        }
-
-        $schemaVersion = $insights['schema_version'] ?? null;
-
-        if ($schemaVersion === null) {
-            $insights['schema_version'] = 1;
-        }
-
         $this->opportunities
                 ->update($opportunity, [
                     'qualification_notes' => $notes,
@@ -257,16 +181,6 @@ class QualificationAgent implements AiAgent
                     'qualification_last_error' => null,
                     'qualified_at' => now(),
                     'ai_insights' => $insights,
-                ]);
-    }
-
-    private function dispatchRecommendation(Opportunity $opportunity, Client $client): void
-    {
-        $this->orchestration
-                ->dispatch(AgentType::Recommendation, [
-                    'trigger' => 'qualification_completed',
-                    'opportunity_id' => $opportunity->id,
-                    'client_id' => $client->id,
                 ]);
     }
 
@@ -361,13 +275,6 @@ class QualificationAgent implements AiAgent
         });
 
         return $catalog;
-    }
-
-    private function promptAnalysis(string $instructions, string $userPrompt): AgentResponse
-    {
-        $agent = new QualificationAnalysisAgent($instructions);
-
-        return $agent->prompt($userPrompt);
     }
 
     private function loadApprovedPrompt(): string
