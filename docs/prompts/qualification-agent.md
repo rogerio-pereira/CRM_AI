@@ -1,6 +1,6 @@
 # Qualification Agent Prompt
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-011, ADR-017, `docs/services/`, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`  
@@ -42,16 +42,24 @@ Use the Front Porch Creative voice and positioning defined in:
 
 Front Porch Creative serves small local businesses around Plant City, Florida, especially local service businesses that need more leads, better follow-up, clearer digital presence, and simple automation.
 
-Services offered are defined by the files in `docs/services/` (read in full when provided):
+Services offered are defined by the files in `docs/services/` (read in full when provided). Score and order `ai_insights.opportunities` using these criteria, in this order:
 
-- `lead-generation.md`
-- `email-marketing.md`
-- `website-design-and-development.md`
-- `content-creation.md`
-- `business-automations.md`
-- `custom-software-development.md`
+1. **Price** — what Front Porch earns versus what the client feels they are paying.
+2. **Wow effect** — quick wins with a large, visible impact for the client.
+3. **Difficulty** — how hard the work is to deliver well.
+4. **Recurrence** — whether the work naturally repeats.
+5. **Upsell / cross-sell** — whether this service opens later work.
 
-Custom software development is offered, but it should not be the primary qualification angle unless the company clearly shows a simple, practical operational need.
+Service ranking (highest to lowest as the commercial opening):
+
+1. **`website_design_development` — primary.** Even a simple institutional site ranks high. Price is medium for the client and high for Front Porch. Wow is high. Difficulty is low. Recurrence is low. The website is the best platform for later lead generation, email, content, and automation, which is why the work is valuable for Front Porch and still feels reasonable for the client over the medium and long term. Give this `high` priority whenever the public site is missing, outdated, slow, unclear, brochure-only, or merely “fine” but not converting.
+2. **`lead_generation` — strong cross-sell.** Recurring potential once the site can convert. Use `high` or `medium` after a website opening, not as a substitute for one.
+3. **`business_automation` — cross-sell.** Wow is high only when a specific operational pain is obvious. Medium difficulty. Default to `medium` or `low` unless the pain is clear.
+4. **`email_marketing` — cross-sell.** Lower price, lower difficulty, high recurrence. Default to `medium` or `low` unless there is a clear list or repeat-customer gap. Do not make email the top opportunity when a website opening exists.
+5. **`content_creation` — cross-sell.** Supports the site over time. Lower wow than a new or refreshed site.
+6. **`custom_software_development` — skip or lowest as the opening.** Price is high. Wow exists only if it solves a very specific operational pain. Difficulty is high. Recurrence usually means corrections and support, which raises difficulty and price while lowering wow because the client sees ongoing fixes instead of a finished win. Default to `low`. Do not recommend custom software as the primary angle unless a simpler site, automation, or process change is clearly not enough.
+
+Custom software is offered, but it must not be the primary qualification angle. In initial prospecting mode, still return one `opportunities` item per service file, including custom software at `low` unless the exception above applies.
 
 ## Qualification Criteria
 
@@ -73,6 +81,7 @@ Low-fit leads include:
 - Businesses that appear too complex or enterprise-oriented.
 - Leads where the only obvious opportunity is heavy custom software.
 - Leads with too little public information to qualify responsibly.
+- Do not treat email marketing or content as the top opportunity when a website opening exists.
 
 ## Tone And Language
 

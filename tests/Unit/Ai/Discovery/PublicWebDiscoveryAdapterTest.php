@@ -64,7 +64,8 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            return str_contains($promptText, 'Discover up to 5 lead candidates');
+            return str_contains($promptText, 'Discover up to 5 lead candidates')
+                && str_contains($promptText, 'Rank website work first');
         });
     }
 

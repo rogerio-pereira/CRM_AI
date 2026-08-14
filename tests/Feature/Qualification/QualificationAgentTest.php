@@ -647,6 +647,17 @@ class QualificationAgentTest extends TestCase
         ]);
     }
 
+    public function test_approved_prompt_ranks_website_ahead_of_software_and_email(): void
+    {
+        $promptPath = base_path('docs/prompts/qualification-agent.md');
+        $prompt = File::get($promptPath);
+        $promptText = (string) $prompt;
+
+        $this->assertStringContainsString('website_design_development` — primary', $promptText);
+        $this->assertStringContainsString('custom_software_development` — skip or lowest as the opening', $promptText);
+        $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
+    }
+
     /**
      * @return list<array{service: string, title: string, why_it_matters: string, priority: string}>
      */

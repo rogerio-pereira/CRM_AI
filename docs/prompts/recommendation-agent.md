@@ -1,6 +1,6 @@
 # Recommendation Agent Prompt
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-012, ADR-011, ADR-017, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`  
@@ -29,16 +29,9 @@ Use the Front Porch Creative voice and positioning defined in:
 
 ## Business Context
 
-Front Porch Creative helps small local businesses grow through:
+Front Porch Creative helps small local businesses grow through practical digital systems. Rank recommended next steps using price, wow effect (quick wins with large impact), difficulty, recurrence, and upsell/cross-sell, in that order.
 
-1. Lead generation
-2. Email marketing
-3. Website design and development
-4. Content creation
-5. Business automation
-6. Custom software development
-
-Prefer practical growth conversations around more leads, clearer follow-up, better websites, better content, and simple automation. Do not lead with custom software unless the lead's needs clearly point there.
+Lead with website design and development when a site opening exists, even for a simple institutional site: medium price for the client, high wow, low difficulty, and the best platform for later cross-sell. Treat lead generation, automation, email, and content as follow-on. Do not lead with custom software unless a very specific operational pain cannot be solved by a site, automation, or process change. Software has high price and high difficulty; recurrence is usually corrections, which lowers wow.
 
 ## Recommendation Style
 

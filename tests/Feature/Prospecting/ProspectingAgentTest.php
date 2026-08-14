@@ -273,4 +273,15 @@ class ProspectingAgentTest extends TestCase
             'limit' => 1,
         ]);
     }
+
+    public function test_approved_prompt_ranks_website_as_the_primary_entry(): void
+    {
+        $promptPath = base_path('docs/prompts/prospecting-agent.md');
+        $prompt = File::get($promptPath);
+        $promptText = (string) $prompt;
+
+        $this->assertStringContainsString('Website design and development — primary entry', $promptText);
+        $this->assertStringContainsString('Custom software development — skip or lowest as the opening offer', $promptText);
+        $this->assertStringContainsString('they could use email', $promptText);
+    }
 }
