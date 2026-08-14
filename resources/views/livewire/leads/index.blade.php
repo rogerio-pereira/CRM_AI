@@ -39,6 +39,7 @@
                     <th class="h-10 px-4">{{ __('Contact') }}</th>
                     <th class="h-10 px-4">{{ __('Source') }}</th>
                     <th class="h-10 px-4">{{ __('Status') }}</th>
+                    <th class="h-10 px-4">{{ __('Created') }}</th>
                     <th class="h-10 px-4 text-end">{{ __('Actions') }}</th>
                 </tr>
             </thead>
@@ -67,6 +68,9 @@
                             >
                                 {{ $client->status->label() }}
                             </span>
+                        </td>
+                        <td class="px-4" data-test="leads-created-at-{{ $client->id }}">
+                            {{ $client->created_at->format('M j, Y') }}
                         </td>
                         <td class="px-4 text-end">
                             <flux:dropdown position="bottom" align="end">

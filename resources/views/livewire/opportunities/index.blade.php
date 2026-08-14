@@ -133,6 +133,13 @@
                                         </span>
                                     </div>
 
+                                    <flux:text
+                                        class="text-xs text-text-muted"
+                                        data-test="kanban-card-updated-at-{{ $opportunity->id }}"
+                                    >
+                                        {{ __('Updated :date', ['date' => $opportunity->updated_at->format('M j, Y')]) }}
+                                    </flux:text>
+
                                     <div class="flex justify-end gap-1 border-t border-border-subtle pt-2">
                                         <flux:button
                                             size="xs"
