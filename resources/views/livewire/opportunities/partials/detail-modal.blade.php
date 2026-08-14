@@ -1,14 +1,12 @@
 <flux:modal wire:model.self="showDetailModal" class="max-w-2xl" data-test="opportunities-detail-modal">
     @if ($this->detailOpportunity)
         @php($opportunity = $this->detailOpportunity)
+        @php($insights = $opportunity->ai_insights)
+        @php($hasInsights = is_array($insights) && $insights !== [])
+        @php($websiteUrl = \App\Support\UrlNormalizer::normalize($opportunity->client->website))
 
         <div class="space-y-6">
-            <div class="flex items-start justify-between gap-4">
-                <flux:heading size="lg">{{ $opportunity->title }}</flux:heading>
-                <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ $opportunity->stage->badgeClasses() }}">
-                    {{ $opportunity->stage->label() }}
-                </span>
-            </div>
+            <flux:heading size="lg">{{ $opportunity->title }}</flux:heading>
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -22,55 +20,23 @@
                     </flux:text>
                 </div>
                 <div>
+                    <flux:subheading>{{ __('Stage') }}</flux:subheading>
+                    <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium {{ $opportunity->stage->badgeClasses() }}">
+                        {{ $opportunity->stage->label() }}
+                    </span>
+                </div>
+                <div>
                     <flux:subheading>{{ __('Status') }}</flux:subheading>
-                    <flux:badge>{{ $opportunity->status->label() }}</flux:badge>
+                    <flux:tooltip :content="$opportunity->status->description()" position="right">
+                        <span
+                            class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium bg-status-neutral/20 text-status-neutral border-status-neutral/50"
+                            data-test="opportunities-detail-status-badge"
+                        >
+                            {{ $opportunity->status->label() }}
+                        </span>
+                    </flux:tooltip>
                 </div>
-            </div>
-
-            <div class="rounded-lg border border-border-default bg-app p-4">
-                <flux:subheading>{{ __('Client summary') }}</flux:subheading>
-                <div class="mt-3 space-y-3 text-sm text-text-secondary">
-                    <div class="font-medium text-text-primary" data-test="opportunities-detail-company-name">
-                        {{ $opportunity->client->company_name }}
-                    </div>
-                    <div>
-                        <flux:subheading>{{ __('Contact') }}</flux:subheading>
-                        <div data-test="opportunities-detail-contact-name">
-                            {{ $opportunity->client->contact_name ?? __('—') }}
-                        </div>
-                    </div>
-                    <div>
-                        <flux:subheading>{{ __('Email') }}</flux:subheading>
-                        <div data-test="opportunities-detail-contact-email">
-                            {{ $opportunity->client->contact_email ?? __('—') }}
-                        </div>
-                    </div>
-                    <div>
-                        <flux:subheading>{{ __('Phone') }}</flux:subheading>
-                        <div data-test="opportunities-detail-contact-phone">
-                            {{ $opportunity->client->contact_phone ?? __('—') }}
-                        </div>
-                    </div>
-                    <div>
-                        <flux:subheading>{{ __('Website') }}</flux:subheading>
-                        @php($websiteUrl = \App\Support\UrlNormalizer::normalize($opportunity->client->website))
-                        @if ($websiteUrl !== null)
-                            <a
-                                href="{{ $websiteUrl }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-sm text-primary hover:text-primary-hover"
-                                data-test="opportunities-detail-website-link"
-                            >
-                                {{ $opportunity->client->website }}
-                            </a>
-                        @else
-                            <div data-test="opportunities-detail-website">{{ __('—') }}</div>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="mt-4">
+                <div>
                     <flux:subheading>{{ __('Qualification') }}</flux:subheading>
                     <x-status-badge
                         :label="$opportunity->qualification_status->label()"
@@ -83,40 +49,69 @@
                             {{ $opportunity->qualification_last_error }}
                         </flux:text>
                     @endif
-                    @if ($opportunity->qualification_notes)
-                        <flux:text class="mt-2 text-text-secondary" data-test="opportunities-detail-qualification-notes">
-                            {{ $opportunity->qualification_notes }}
+                </div>
+                <div>
+                    <flux:subheading>{{ __('Contact') }}</flux:subheading>
+                    <flux:text class="text-text-secondary" data-test="opportunities-detail-contact-name">
+                        {{ $opportunity->client->contact_name ?? __('—') }}
+                    </flux:text>
+                    @if ($opportunity->client->contact_email)
+                        <flux:text class="text-text-muted" data-test="opportunities-detail-contact-email">
+                            {{ $opportunity->client->contact_email }}
+                        </flux:text>
+                    @endif
+                    @if ($opportunity->client->contact_phone)
+                        <flux:text class="text-text-muted" data-test="opportunities-detail-contact-phone">
+                            {{ $opportunity->client->contact_phone }}
                         </flux:text>
                     @endif
                 </div>
-
-                @if (is_array($opportunity->ai_insights) && filled($opportunity->ai_insights['summary'] ?? null))
-                    <div class="mt-4 rounded-lg border border-ai/30 bg-surface p-4" data-test="opportunities-detail-ai-insights">
-                        <div class="flex items-center gap-2">
-                            <flux:subheading>{{ __('AI insights') }}</flux:subheading>
-                            <span class="inline-flex rounded-full border border-ai/30 bg-ai/15 px-2 py-0.5 text-xs font-medium text-ai">
-                                {{ __('AI Insight') }}
-                            </span>
-                        </div>
-                        <flux:text class="mt-2 text-text-secondary" data-test="opportunities-detail-ai-insights-summary">
-                            {{ $opportunity->ai_insights['summary'] }}
-                        </flux:text>
-                        <flux:text variant="subtle" class="mt-2">
-                            {{ __('AI-generated. Not a confirmed human decision.') }}
-                        </flux:text>
-                    </div>
-                @endif
-
-                <div class="mt-4">
-                    <a
-                        href="{{ route('leads.index') }}"
-                        wire:navigate
-                        class="text-sm text-primary hover:text-primary-hover"
-                        data-test="opportunities-detail-client-link"
-                    >
-                        {{ __('View client in Leads') }}
-                    </a>
+                <div>
+                    <flux:subheading>{{ __('Company') }}</flux:subheading>
+                    <flux:text class="text-text-secondary" data-test="opportunities-detail-company-name">
+                        {{ $opportunity->client->company_name }}
+                    </flux:text>
                 </div>
+                <div class="sm:col-span-2">
+                    <flux:subheading>{{ __('Website') }}</flux:subheading>
+                    @if ($websiteUrl !== null)
+                        <a
+                            href="{{ $websiteUrl }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-sm text-primary hover:text-primary-hover"
+                            data-test="opportunities-detail-website-link"
+                        >
+                            {{ $opportunity->client->website }}
+                        </a>
+                    @else
+                        <flux:text class="text-text-secondary" data-test="opportunities-detail-website">{{ __('—') }}</flux:text>
+                    @endif
+                </div>
+            </div>
+
+            @if ($opportunity->qualification_notes)
+                <div>
+                    <flux:subheading>{{ __('Notes') }}</flux:subheading>
+                    <flux:text class="text-text-secondary" data-test="opportunities-detail-qualification-notes">
+                        {{ $opportunity->qualification_notes }}
+                    </flux:text>
+                </div>
+            @endif
+
+            @if ($hasInsights)
+                @include('livewire.opportunities.partials.ai-insights', ['insights' => $insights])
+            @endif
+
+            <div>
+                <a
+                    href="{{ route('leads.index') }}"
+                    wire:navigate
+                    class="text-sm text-primary hover:text-primary-hover"
+                    data-test="opportunities-detail-client-link"
+                >
+                    {{ __('View client in Leads') }}
+                </a>
             </div>
 
             <div class="flex justify-end gap-2">
