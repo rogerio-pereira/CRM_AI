@@ -580,4 +580,25 @@ class ClientManagementTest extends TestCase
 
         $this->assertStringContainsString('limit', $lowercaseSql);
     }
+
+    public function test_clients_list_shows_created_at(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $createdAt = now()->subDays(3)->startOfDay();
+        $client = Client::factory()
+                        ->create([
+                            'company_name' => 'Created At Co',
+                            'created_at' => $createdAt,
+                            'updated_at' => $createdAt,
+                        ]);
+
+        $this->actingAs($user);
+
+        $expectedDate = $createdAt->format('M j, Y');
+
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-test="leads-created-at-'.$client->id.'"')
+            ->assertSee($expectedDate);
+    }
 }

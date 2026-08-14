@@ -384,4 +384,26 @@ class OpportunityManagementTest extends TestCase
             ->set('detailOpportunityId', 99999)
             ->assertSet('detailOpportunity', null);
     }
+
+    public function test_kanban_cards_show_updated_at(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $updatedAt = now()->subDays(2)->startOfDay();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Updated At Deal',
+                                'updated_at' => $updatedAt,
+                            ]);
+
+        $this->actingAs($user);
+
+        $expectedLabel = __('Updated :date', [
+            'date' => $updatedAt->format('M j, Y'),
+        ]);
+
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-test="kanban-card-updated-at-'.$opportunity->id.'"')
+            ->assertSee($expectedLabel);
+    }
 }
