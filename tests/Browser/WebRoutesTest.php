@@ -3,7 +3,8 @@
 use App\Models\User;
 
 it('visits primary CRM navigation routes without JavaScript errors', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -21,7 +22,8 @@ it('visits primary CRM navigation routes without JavaScript errors', function ()
 });
 
 it('highlights the active sidebar item for the current route', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -32,11 +34,14 @@ it('highlights the active sidebar item for the current route', function () {
 });
 
 it('can collapse the sidebar on desktop', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
-    $page = visit('/dashboard')->on()->desktop();
+    $page = visit('/dashboard')
+                ->on()
+                ->desktop();
 
     $page->assertNoSmoke()
         ->click('[data-flux-sidebar-collapse]')

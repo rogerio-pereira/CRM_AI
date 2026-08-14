@@ -37,22 +37,30 @@ function crmSidebarRoutes(): array
 }
 
 it('navigates primary CRM routes via the sidebar on desktop', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
-    $page = visit('/dashboard')->on()->desktop();
+    $page = visit('/dashboard')
+                ->on()
+                ->desktop();
 
     foreach (crmSidebarRoutes() as $route) {
-        $page->click('@'.$route['nav'])
+        $navigationSelector = '@'.$route['nav'];
+        $pageMarker = '[data-test="'.$route['marker'].'"]';
+        $currentNavigationMarker = '[data-test="'.$route['nav'].'"][data-current]';
+
+        $page->click($navigationSelector)
             ->assertPathIs($route['path'])
-            ->assertPresent('[data-test="'.$route['marker'].'"]')
-            ->assertPresent('[data-test="'.$route['nav'].'"][data-current]');
+            ->assertPresent($pageMarker)
+            ->assertPresent($currentNavigationMarker);
     }
 });
 
 it('does not expose settings in the primary sidebar navigation', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -62,7 +70,8 @@ it('does not expose settings in the primary sidebar navigation', function () {
 });
 
 it('opens profile settings from the sidebar user menu on desktop', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -76,7 +85,8 @@ it('opens profile settings from the sidebar user menu on desktop', function () {
 });
 
 it('navigates via the sidebar when collapsed on desktop', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -91,7 +101,8 @@ it('navigates via the sidebar when collapsed on desktop', function () {
 });
 
 it('returns to the dashboard when clicking the sidebar brand', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -104,7 +115,8 @@ it('returns to the dashboard when clicking the sidebar brand', function () {
 });
 
 it('shows the mobile menu toggle without a header user menu', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -116,7 +128,8 @@ it('shows the mobile menu toggle without a header user menu', function () {
 });
 
 it('opens the sidebar and navigates on mobile', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -131,7 +144,8 @@ it('opens the sidebar and navigates on mobile', function () {
 });
 
 it('navigates between profile and security settings', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 

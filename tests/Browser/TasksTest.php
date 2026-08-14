@@ -7,9 +7,13 @@ use App\Models\Task;
 use App\Models\User;
 
 it('displays the tasks page and creates a task', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Task Browser Co']);
-    $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Linked Deal']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Task Browser Co']);
+    $opportunity = Opportunity::factory()
+                        ->for($client)
+                        ->create(['title' => 'Linked Deal']);
 
     $this->actingAs($user);
 
@@ -25,19 +29,29 @@ it('displays the tasks page and creates a task', function () {
         ->assertSee('Browser task title')
         ->assertSee('Task Browser Co');
 
-    $task = Task::where('title', 'Browser task title')->first();
+    $task = Task::where('title', 'Browser task title')
+                ->first();
 
-    expect($task)->not->toBeNull();
-    expect($task->is_important)->toBeTrue();
+    expect($task)
+        ->not
+        ->toBeNull();
+    expect($task->is_important)
+        ->toBeTrue();
 });
 
 it('marks a task done from the actions menu', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Done Browser Co']);
-    $task = Task::factory()->for($client)->create([
-        'title' => 'Complete me',
-        'due_at' => now()->addDay(),
-    ]);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Done Browser Co']);
+    $dueAt = now()
+                    ->addDay();
+    $task = Task::factory()
+                ->for($client)
+                ->create([
+                    'title' => 'Complete me',
+                    'due_at' => $dueAt,
+                ]);
 
     $this->actingAs($user);
 
@@ -49,12 +63,17 @@ it('marks a task done from the actions menu', function () {
         ->assertPresent('[data-test="tasks-row-'.$task->id.'"][data-done-row="true"]')
         ->assertPresent('[data-test="tasks-status-badge-'.$task->id.'"][data-status="done"]');
 
-    expect($task->fresh()->status)->toBe(TaskStatus::Done);
+    $freshTask = $task->fresh();
+
+    expect($freshTask->status)
+        ->toBe(TaskStatus::Done);
 });
 
 it('deletes a task from the delete modal', function () {
-    $user = User::factory()->create();
-    $task = Task::factory()->create(['title' => 'Delete Browser Task']);
+    $user = User::factory()
+                ->create();
+    $task = Task::factory()
+                ->create(['title' => 'Delete Browser Task']);
 
     $this->actingAs($user);
 
@@ -65,5 +84,8 @@ it('deletes a task from the delete modal', function () {
         ->click('@tasks-delete-confirm')
         ->assertDontSee('Delete Browser Task');
 
-    expect(Task::find($task->id))->toBeNull();
+    $deletedTask = Task::find($task->id);
+
+    expect($deletedTask)
+        ->toBeNull();
 });

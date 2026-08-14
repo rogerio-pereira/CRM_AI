@@ -6,10 +6,16 @@ use App\Models\Task;
 use App\Models\User;
 
 it('displays operational dashboard sections for authenticated users', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Dashboard Browser Co']);
-    Task::factory()->for($client)->create(['title' => 'Dashboard browser task']);
-    FollowUp::factory()->for($client)->create();
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Dashboard Browser Co']);
+    Task::factory()
+            ->for($client)
+            ->create(['title' => 'Dashboard browser task']);
+    FollowUp::factory()
+            ->for($client)
+            ->create();
 
     $this->actingAs($user);
 
