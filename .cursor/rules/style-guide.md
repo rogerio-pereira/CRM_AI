@@ -73,6 +73,53 @@ Explicit sequential code is not a reason to add classes, helpers, config, or ind
 
 ---
 
+## Do not add redundant default guards
+
+Sequential style is **not** a reason to follow a default with an `if` that assigns the same default again.
+
+`??` already covers missing and `null`. An empty string is a real value. Do not rewrite it unless the requirement says empty must become the default.
+
+Do not add `is_array` / type-coercion `if`s for values a schema, validator, or typed source already guarantees.
+
+Keep `if` for real control flow: early return, throw, skip, or a business rule that `??` cannot express.
+
+### PHP
+
+#### Good
+
+```php
+$now = now()->toIso8601String();
+$generatedAt = $rawRecommendations['generated_at'] ?? $now;
+$language = $rawRecommendations['language'] ?? 'en';
+$painPoints = $rawRecommendations['pain_points'] ?? [];
+```
+
+#### Avoid
+
+```php
+$language = $rawRecommendations['language'] ?? 'en';
+
+if ($language === '') {
+    $language = 'en';
+}
+
+$painPoints = $rawRecommendations['pain_points'] ?? [];
+
+if (! is_array($painPoints)) {
+    $painPoints = [];
+}
+
+$generatedAt = $rawRecommendations['generated_at'] ?? '';
+
+if ($generatedAt === '') {
+    $generatedAt = now()->toIso8601String();
+}
+```
+
+The `if`s above do not add a business rule. They repeat the default or defend against a shape the structured output already defined.
+
+---
+
 ## Explicit Data Flow
 
 Data should move through the application in visible, named steps.

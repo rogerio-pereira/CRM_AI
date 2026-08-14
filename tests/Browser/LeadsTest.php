@@ -3,8 +3,10 @@
 use App\Enums\ClientStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
+use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Tests\Support\RecommendationFake;
 
 it('displays the leads page and creates a lead', function () {
     $user = User::factory()->create();
@@ -57,6 +59,38 @@ it('opens detail modal and archives a lead from the actions menu', function () {
 
     visit('/leads')
         ->assertPresent('[data-test="leads-status-badge-'.$client->id.'"][data-status="archived"]');
+});
+
+it('opens the lead detail modal with related opportunity AI recommendations', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create([
+        'company_name' => 'Lead Recommendations Co',
+    ]);
+    $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'Related AI Deal',
+                                'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                            ]);
+
+    $this->actingAs($user);
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-view-'.$client->id)
+        ->assertPresent('[data-test="leads-detail-modal"]')
+        ->assertPresent('[data-test="leads-detail-opportunity-'.$opportunity->id.'"]')
+        ->assertPresent('[data-test="ai-suggestion-panel"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-insights"]')
+        ->assertSee('Ready for a first conversation.')
+        ->assertSee('Where do most new customers hear about you today?')
+        ->assertSee('Review the example email before any outreach')
+        ->assertPresent('[data-test="ai-suggestion-create-task-0"]')
+        ->assertSee('Create Task')
+        ->assertPresent('[data-test="ai-suggestion-refresh"]')
+        ->assertSee('AI-generated. Not a confirmed human decision.');
 });
 
 it('creates a follow-up from the leads list actions menu', function () {
@@ -142,7 +176,11 @@ it('creates a task from the client detail modal', function () {
 it('filters leads by archived status', function () {
     $user = User::factory()->create();
     Client::factory()->create(['company_name' => 'Visible Active Co']);
-    Client::factory()->archived()->create(['company_name' => 'Hidden Archived Co']);
+    Client::factory()
+            ->archived()
+            ->create([
+                'company_name' => 'Hidden Archived Co',
+            ]);
 
     $this->actingAs($user);
 

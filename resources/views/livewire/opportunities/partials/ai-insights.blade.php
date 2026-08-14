@@ -47,6 +47,18 @@
     $copyText = 'Subject: '.$contactSubject."\n\n".$contactBody;
     $copyText = trim($copyText);
 
+    $questionsToAsk = $questionsToAsk ?? [];
+    $nextSteps = $nextSteps ?? [];
+    $showRefresh = $showRefresh ?? false;
+
+    if (! is_array($questionsToAsk)) {
+        $questionsToAsk = [];
+    }
+
+    if (! is_array($nextSteps)) {
+        $nextSteps = [];
+    }
+
     if ($fitLevel === 'high') {
         $fitClasses = 'bg-status-success/20 text-status-success border-status-success/50';
     } elseif ($fitLevel === 'medium') {
@@ -57,9 +69,25 @@
 @endphp
 
 <div class="rounded-lg border border-ai/30 p-4" data-test="opportunities-detail-ai-insights">
-    <span class="inline-flex rounded-full border border-ai/30 bg-ai/15 px-2 py-0.5 text-xs font-medium text-ai">
-        {{ __('AI Insight') }}
-    </span>
+    <div class="flex flex-wrap items-start justify-between gap-2">
+        <span class="inline-flex rounded-full border border-ai/30 bg-ai/15 px-2 py-0.5 text-xs font-medium text-ai">
+            {{ __('AI Insight') }}
+        </span>
+
+        @if ($showRefresh)
+            <flux:button
+                type="button"
+                size="sm"
+                variant="ghost"
+                icon="arrow-path"
+                wire:click="refreshInsights"
+                wire:loading.attr="disabled"
+                data-test="ai-suggestion-refresh"
+            >
+                {{ __('Refresh AI insights') }}
+            </flux:button>
+        @endif
+    </div>
 
     @if (filled($summary))
         <flux:text class="mt-3 text-text-secondary" data-test="opportunities-detail-ai-insights-summary">
@@ -144,7 +172,7 @@
         </div>
     @endif
 
-    @if (filled($positioning) || $talkingPoints !== [] || $avoidPoints !== [])
+    @if (filled($positioning) || $talkingPoints !== [] || $avoidPoints !== [] || $questionsToAsk !== [])
         <div class="mt-4" data-test="opportunities-detail-ai-outreach">
             <flux:subheading>{{ __('How to talk with the client') }}</flux:subheading>
             @if (filled($positioning))
@@ -157,6 +185,18 @@
                         @foreach ($talkingPoints as $talkingPoint)
                             @if (is_string($talkingPoint) && filled($talkingPoint))
                                 <li>{{ $talkingPoint }}</li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if ($questionsToAsk !== [])
+                <div class="mt-3" data-test="ai-suggestion-questions">
+                    <flux:subheading>{{ __('Questions to ask') }}</flux:subheading>
+                    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-text-secondary">
+                        @foreach ($questionsToAsk as $question)
+                            @if (is_string($question) && filled($question))
+                                <li>{{ $question }}</li>
                             @endif
                         @endforeach
                     </ul>
@@ -223,6 +263,46 @@
                     {{ $contactBody }}
                 </p>
             @endif
+        </div>
+    @endif
+
+    @if ($nextSteps !== [])
+        <div class="mt-4" data-test="ai-suggestion-next-steps">
+            <flux:subheading>{{ __('Next-step recommendations') }}</flux:subheading>
+            <ul class="mt-2 space-y-3">
+                @foreach ($nextSteps as $nextStep)
+                    @if (is_array($nextStep))
+                        @php
+                            $stepTitle = (string) ($nextStep['title'] ?? '');
+                            $stepReason = (string) ($nextStep['reason'] ?? '');
+                        @endphp
+                        <li class="rounded-md border border-border-default p-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    @if (filled($stepTitle))
+                                        <div class="font-medium text-text-primary">{{ $stepTitle }}</div>
+                                    @endif
+                                    @if (filled($stepReason))
+                                        <flux:text class="mt-1 text-text-secondary">{{ $stepReason }}</flux:text>
+                                    @endif
+                                </div>
+                                <flux:button
+                                    type="button"
+                                    size="xs"
+                                    variant="ghost"
+                                    icon="clipboard-document-list"
+                                    data-step-title="{{ $stepTitle }}"
+                                    data-step-reason="{{ $stepReason }}"
+                                    x-on:click="Livewire.dispatch('open-task-for-opportunity', { opportunityId: {{ (int) $opportunityId }}, title: $el.dataset.stepTitle, description: $el.dataset.stepReason })"
+                                    data-test="ai-suggestion-create-task-{{ $loop->index }}"
+                                >
+                                    {{ __('Create Task') }}
+                                </flux:button>
+                            </div>
+                        </li>
+                    @endif
+                @endforeach
+            </ul>
         </div>
     @endif
 

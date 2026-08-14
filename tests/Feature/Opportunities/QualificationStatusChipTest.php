@@ -18,22 +18,30 @@ class QualificationStatusChipTest extends TestCase
     public function test_kanban_renders_qualification_status_chips(): void
     {
         $user = User::factory()->create();
-        $pending = Opportunity::factory()->qualificationPending()->create([
-            'title' => 'Pending Chip Deal',
-            'stage' => PipelineStage::Lead,
-        ]);
-        $processing = Opportunity::factory()->qualificationProcessing()->create([
-            'title' => 'Processing Chip Deal',
-            'stage' => PipelineStage::Qualification,
-        ]);
-        $qualified = Opportunity::factory()->qualificationQualified()->create([
-            'title' => 'Qualified Chip Deal',
-            'stage' => PipelineStage::Contact,
-        ]);
-        $failed = Opportunity::factory()->qualificationFailed()->create([
-            'title' => 'Failed Chip Deal',
-            'stage' => PipelineStage::Qualification,
-        ]);
+        $pending = Opportunity::factory()
+                                ->qualificationPending()
+                                ->create([
+                                    'title' => 'Pending Chip Deal',
+                                    'stage' => PipelineStage::Lead,
+                                ]);
+        $processing = Opportunity::factory()
+                                ->qualificationProcessing()
+                                ->create([
+                                    'title' => 'Processing Chip Deal',
+                                    'stage' => PipelineStage::Qualification,
+                                ]);
+        $qualified = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create([
+                                    'title' => 'Qualified Chip Deal',
+                                    'stage' => PipelineStage::Contact,
+                                ]);
+        $failed = Opportunity::factory()
+                                ->qualificationFailed()
+                                ->create([
+                                    'title' => 'Failed Chip Deal',
+                                    'stage' => PipelineStage::Qualification,
+                                ]);
 
         $this->actingAs($user);
 
@@ -55,9 +63,11 @@ class QualificationStatusChipTest extends TestCase
     public function test_opportunity_detail_renders_failed_qualification_error(): void
     {
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationFailed()->create([
-            'title' => 'Failed Detail Deal',
-        ]);
+        $opportunity = Opportunity::factory()
+                                ->qualificationFailed()
+                                ->create([
+                                    'title' => 'Failed Detail Deal',
+                                ]);
 
         $this->actingAs($user);
 
@@ -72,9 +82,11 @@ class QualificationStatusChipTest extends TestCase
     public function test_opportunity_detail_renders_ai_insight_summary_when_qualified(): void
     {
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationQualified()->create([
-            'title' => 'Qualified Detail Deal',
-        ]);
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create([
+                                    'title' => 'Qualified Detail Deal',
+                                ]);
 
         $this->actingAs($user);
 
@@ -85,7 +97,7 @@ class QualificationStatusChipTest extends TestCase
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights-summary"')
             ->assertSee('Ready for a first conversation.')
             ->assertSee('AI Insight')
-            ->assertDontSee('AI insights')
+            ->assertSee('Refresh AI insights')
             ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 
@@ -93,11 +105,11 @@ class QualificationStatusChipTest extends TestCase
     {
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()
-            ->qualificationQualified()
-            ->withAiInsights()
-            ->create([
-                'title' => 'Structured Insights Deal',
-            ]);
+                                ->qualificationQualified()
+                                ->withAiInsights()
+                                ->create([
+                                    'title' => 'Structured Insights Deal',
+                                ]);
 
         $this->actingAs($user);
 

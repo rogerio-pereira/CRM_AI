@@ -18,6 +18,7 @@ After implementation, re-read **all** changed files and verify:
 - Arrays and multiline arguments indented per the guide
 - Sequential, readable flow; no clever shortcuts
 - KISS (`.cursor/rules/kiss.mdc`): simplest solution that meets the requirement; no overengineering
+- No redundant default guards: do not follow `?? 'en'` / `?? []` with an `if` that assigns the same default, and do not coerce types a schema already guarantees. See `.cursor/rules/no-redundant-default-guards.mdc`.
 
 If any file fails this review, keep working. Tests and Pint passing is not enough.
 

@@ -76,9 +76,21 @@
                         {{ __('No opportunities yet.') }}
                     </flux:text>
                 @else
-                    <ul class="mt-2 space-y-2 text-sm text-text-secondary">
+                    <ul class="mt-2 space-y-4 text-sm text-text-secondary">
                         @foreach ($client->opportunities as $opportunity)
-                            <li>{{ $opportunity->title }} — {{ $opportunity->stage->label() }}</li>
+                            @php($opportunityInsights = $opportunity->ai_insights)
+                            @php($hasOpportunityInsights = is_array($opportunityInsights) && $opportunityInsights !== [])
+                            @php($showSuggestionPanel = $opportunity->hasAiRecommendations() || $hasOpportunityInsights || $opportunity->qualification_status === \App\Enums\QualificationStatus::Qualified)
+                            <li class="space-y-3" data-test="leads-detail-opportunity-{{ $opportunity->id }}">
+                                <div>{{ $opportunity->title }} — {{ $opportunity->stage->label() }}</div>
+
+                                @if ($showSuggestionPanel)
+                                    <livewire:opportunities.ai-suggestion-panel
+                                        :opportunity-id="$opportunity->id"
+                                        :key="'lead-ai-suggestion-'.$opportunity->id"
+                                    />
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
                 @endif
