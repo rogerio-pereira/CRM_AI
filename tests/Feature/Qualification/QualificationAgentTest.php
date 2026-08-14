@@ -29,7 +29,7 @@ class QualificationAgentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_successful_qualification_updates_opportunity_advances_stage_and_dispatches_recommendation(): void
+    public function test_successful_qualification_updates_opportunity_stays_in_qualification_and_dispatches_recommendation(): void
     {
         Queue::fake([
             RunRecommendationAgentJob::class,
@@ -76,7 +76,7 @@ class QualificationAgentTest extends TestCase
             $insights['outreach_strategy']['contact_example']['subject'],
         );
 
-        $this->assertSame(PipelineStage::Contact, $opportunity->stage);
+        $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
         $this->assertSame(PipelineStage::Lead, $sibling->stage);
         $this->assertSame(QualificationStatus::Pending, $sibling->qualification_status);
 
@@ -160,7 +160,7 @@ class QualificationAgentTest extends TestCase
 
         $this->assertSame('qualified', $result['status']);
         $this->assertSame(QualificationStatus::Qualified, $newDeal->qualification_status);
-        $this->assertSame(PipelineStage::Contact, $newDeal->stage);
+        $this->assertSame(PipelineStage::Qualification, $newDeal->stage);
         $this->assertSame(QualificationStatus::Qualified, $existing->qualification_status);
         $this->assertSame(PipelineStage::Contact, $existing->stage);
         $this->assertSame('Website now', $existing->title);
