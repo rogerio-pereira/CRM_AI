@@ -60,8 +60,11 @@ class QuickCreateModal extends Component
     }
 
     #[On('open-task-for-opportunity')]
-    public function openForOpportunity(int $opportunityId): void
-    {
+    public function openForOpportunity(
+        int $opportunityId,
+        string $title = '',
+        string $description = '',
+    ): void {
         $opportunity = Opportunity::query()
             ->with('client')
             ->findOrFail($opportunityId);
@@ -69,6 +72,8 @@ class QuickCreateModal extends Component
         $this->resetForm();
         $this->client_id = $opportunity->client_id;
         $this->opportunity_id = $opportunity->id;
+        $this->title = $title;
+        $this->description = $description;
         $this->showFormModal = true;
         unset($this->opportunityOptions);
     }

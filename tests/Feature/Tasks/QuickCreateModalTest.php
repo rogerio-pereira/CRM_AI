@@ -24,7 +24,28 @@ class QuickCreateModalTest extends TestCase
             ->dispatch('open-task-for-opportunity', opportunityId: $opportunity->id)
             ->assertSet('showFormModal', true)
             ->assertSet('client_id', $client->id)
-            ->assertSet('opportunity_id', $opportunity->id);
+            ->assertSet('opportunity_id', $opportunity->id)
+            ->assertSet('title', '')
+            ->assertSet('description', '');
+    }
+
+    public function test_open_for_opportunity_prefills_title_and_description_when_provided(): void
+    {
+        $client = Client::factory()->create();
+        $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Kanban Opp']);
+
+        Livewire::test(QuickCreateModal::class)
+            ->dispatch(
+                'open-task-for-opportunity',
+                opportunityId: $opportunity->id,
+                title: 'Review the example email before any outreach',
+                description: 'A human should adapt the wording to this owner.',
+            )
+            ->assertSet('showFormModal', true)
+            ->assertSet('client_id', $client->id)
+            ->assertSet('opportunity_id', $opportunity->id)
+            ->assertSet('title', 'Review the example email before any outreach')
+            ->assertSet('description', 'A human should adapt the wording to this owner.');
     }
 
     public function test_open_for_client_prefills_client_only(): void
