@@ -31,7 +31,8 @@ All backend code must be in **English** and follow PSRs.
 
 - **Conditional style:**
   - Do not use ternary operators (`condition ? a : b`) in backend PHP code.
-  - Prefer explicit `if` / `else` blocks or early returns for clarity.
+  - Prefer explicit `if` / `else` blocks or early returns for **real control flow** (throw, skip, early return).
+  - Do **not** follow `?? 'en'` or `?? []` with an `if` that assigns the same default, and do not coerce types a schema already guarantees. See `.cursor/rules/no-redundant-default-guards.mdc`.
 
 - **Formatting convention:**
   - Use one statement per line (including fluent chains).

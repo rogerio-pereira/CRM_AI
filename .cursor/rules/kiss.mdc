@@ -54,6 +54,7 @@ Apply SOLID to the code you are writing now. Do not add types, interfaces, or ex
 - Add classes, interfaces, adapters, factories, pipelines, or config for a single hardcoded implementation
 - Wrap a trivial operation in a helper
 - Re-process data that the framework, validator, or schema already handled
+- Follow `?? ...` with an `if` that assigns the same default, or coerce types the schema already guarantees
 - Use a more powerful tool (regex, parser, event, job, cache, queue) when a direct call is enough
 - Design for reuse, extensibility, or “we might need it later” unless the requirement says so
 - Skip tests, security, architecture, Clean Code, or SOLID in the name of simplicity
@@ -134,4 +135,28 @@ $id = $context['opportunity_id'];
 $oportunity = Opportunity::with(client)
                     ->findOrFail($id);
 $client = $oportunity->client;
+```
+
+```php
+// BAD — if repeats the ?? default or coerces a typed payload
+$language = $raw['language'] ?? 'en';
+if ($language === '') {
+    $language = 'en';
+}
+
+$painPoints = $raw['pain_points'] ?? [];
+if (! is_array($painPoints)) {
+    $painPoints = [];
+}
+
+$generatedAt = $raw['generated_at'] ?? '';
+if ($generatedAt === '') {
+    $generatedAt = now()->toIso8601String();
+}
+
+// GOOD — ?? is the default; if is only for real control flow
+$now = now()->toIso8601String();
+$generatedAt = $raw['generated_at'] ?? $now;
+$language = $raw['language'] ?? 'en';
+$painPoints = $raw['pain_points'] ?? [];
 ```

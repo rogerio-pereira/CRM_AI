@@ -1,0 +1,38 @@
+---
+description: Do not add ifs that repeat a ?? default or coerce types a schema already guarantees.
+alwaysApply: true
+---
+
+# No redundant default guards
+
+`??` already covers missing and `null`. Do not add an `if` that assigns the same default again.
+
+An empty string is a real value. Do not rewrite `''` to the default unless the requirement says so.
+
+Do not add `is_array` / type-coercion `if`s for values a schema, validator, or typed source already guarantees.
+
+Keep `if` for real control flow: early return, throw, skip, or a business rule that `??` cannot express.
+
+```php
+// BAD
+$language = $raw['language'] ?? 'en';
+if ($language === '') {
+    $language = 'en';
+}
+
+$painPoints = $raw['pain_points'] ?? [];
+if (! is_array($painPoints)) {
+    $painPoints = [];
+}
+
+$generatedAt = $raw['generated_at'] ?? '';
+if ($generatedAt === '') {
+    $generatedAt = now()->toIso8601String();
+}
+
+// GOOD
+$now = now()->toIso8601String();
+$generatedAt = $raw['generated_at'] ?? $now;
+$language = $raw['language'] ?? 'en';
+$painPoints = $raw['pain_points'] ?? [];
+```

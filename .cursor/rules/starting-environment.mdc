@@ -10,7 +10,7 @@ alwaysApply: true
 - Ensure that the tests pass before finalizing the task.
 - All code must be in English.
 - Keep code clean and follow PSRs (one instruction per line).
-- Do **not** use ternary operators (`condition ? a : b`) in PHP; use explicit `if` / `else` or early returns.
+- Do **not** use ternary operators (`condition ? a : b`) in PHP; use explicit `if` / `else` or early returns for **real control flow**. Do not follow `?? 'en'` / `?? []` with an `if` that assigns the same default (see `.cursor/rules/no-redundant-default-guards.mdc`).
 - **ALWAYS** follow `.cursor/rules/style-guide.md`. A feature, fix, refactor, or any code change is **not done** until every changed file complies with that guide. Re-read all changed files after implementation; tests and Pint passing is not a substitute.
 - **ALWAYS** follow `.cursor/rules/kiss.mdc`. Prefer the simplest solution that meets the requirement; do not overengineer.
 - If `vendor` does not exist, install with the container `laravelsail/php85-composer:latest`
