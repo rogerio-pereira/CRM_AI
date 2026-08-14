@@ -1,14 +1,14 @@
 # Internal AI-Assisted CRM — Feature List
 
-**Version:** 1.0  
-**Date:** 2026-05-27  
+**Version:** 1.1
+**Date:** 2026-08-14
 **References:** [PRD](01%20PRD.md), [HLD](02%20HLD.md), [Branding Manual](03%20-%20Branding%20Manual.md), [Design System](04%20-%20Design%20System.md), [ADRs](ADRs/)
 
 **Convention:** Every cross-reference to a feature in this file uses `[NN Short title](#fNN-slug)`.
 
 **FDR locations:** Active specs live in `docs/FDRs/ToDo/`; completed features in `docs/FDRs/Done/`; archived or superseded specs in `docs/FDRs/Closed/`.
 
-**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Proposed** (awaiting stakeholder approval). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) is **Accepted** (2026-05-29). [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) is **Accepted** (amended 2026-08-13) for Wave 4 qualification flow: qualification belongs to the **opportunity**, not the client; statuses and AI insight schema version 1 still apply. Features [13](#f13-proposal-assistance) and [14](#f14-pipeline-stage-automation) (partial) depend on ADR-016 — see linked FDRs. Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) follows ADR-017 (see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md)).
+**ADR status:** [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) is **Superseded** by [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md), which defines the proposal domain, generation, templates, and PDFs. [ADR-011](ADRs/ADR-011-human-approval-commercial-actions.md) is **Superseded** by [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), which defines confirmed SMTP delivery without autonomous send. [ADR-020](ADRs/ADR-020-commercial-service-catalog-boundary.md) partially supersedes the service-source wording in [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md): `docs/services/` are qualification categories and priced sellable items live in the commercial catalog ([18](#f18-commercial-service-catalog)). [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) remains **Accepted** (2026-05-29). Feature [10](#f10-automated-prospecting) implements ADR-015; [11](#f11-automated-lead-qualification) follows ADR-017 (see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md)).
 
 ---
 
@@ -35,6 +35,9 @@
 | 15 | [15 Slack notifications](#f15-slack-notifications) | [FDR-015](FDRs/ToDo/FDR-015-slack-notifications.md) |
 | 16 | [16 Google Calendar integration](#f16-google-calendar) | [FDR-016](FDRs/ToDo/FDR-016-google-calendar.md) |
 | 17 | [17 Integration settings](#f17-integration-settings) **Closed** | [FDR-017](FDRs/Closed/FDR-017-integration-settings.md) |
+| 18 | [18 Commercial service catalog](#f18-commercial-service-catalog) | [FDR-018](FDRs/ToDo/FDR-018-commercial-service-catalog.md) |
+| 19 | [19 Opportunity notes](#f19-opportunity-notes) | [FDR-019](FDRs/ToDo/FDR-019-opportunity-notes.md) |
+| 20 | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [FDR-020](FDRs/ToDo/FDR-020-proposal-artifacts-and-delivery.md) |
 
 ---
 
@@ -287,7 +290,7 @@
 - Updated opportunity records with qualification notes and AI insights
 - Stage moves after qualification (per pipeline rules) for **that** opportunity
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, amended 2026-08-13 — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md))
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, amended 2026-08-13 and 2026-08-14 — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md))
 
 **Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created **opportunities** are qualified automatically. Prospecting creates **one** opportunity and that initial job scores every file in `docs/services/` (no extra opportunities per service). Successful qualification advances **that** opportunity to **Contact**. A later deal on the same client is qualified again as that opportunity only.
 
@@ -310,7 +313,7 @@
 
 - AI-generated summaries, pain points, strategies (human-reviewed)
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-011](ADRs/ADR-011-human-approval-commercial-actions.md), [ADR-013](ADRs/ADR-013-dark-mode-design-system.md)
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), [ADR-013](ADRs/ADR-013-dark-mode-design-system.md)
 
 ---
 
@@ -318,23 +321,23 @@
 
 ### 13 · Proposal assistance
 
-**Objective:** Assist users in proposal generation and analysis stages using prospecting and qualification data plus manual input (implementation format TBD per HLD).
+**Objective:** Persist one commercial proposal per opportunity, recommend catalog services and values via AI, let humans edit line items, and record explicit proposal approval before artifact generation.
 
-**Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [11 Automated lead qualification](#f11-automated-lead-qualification)
+**Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [11 Automated lead qualification](#f11-automated-lead-qualification), [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes)
 
 **Consumes:**
 
 - [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) — Proposal Generation / Analysis stages
 - [09 AI provider layer and orchestration](#f09-ai-orchestration) — proposal assistant agent
 - [11 Automated lead qualification](#f11-automated-lead-qualification) — analysis data
+- [18 Commercial service catalog](#f18-commercial-service-catalog) — sellable line items and default prices
+- [19 Opportunity notes](#f19-opportunity-notes) — timeline context for recommendations
 
 **Produces:**
 
-- Proposal assistance content and recommendations (human approval before send)
+- Approved proposal record with line items (input to artifact delivery)
 
-**ADRs:** [ADR-011](ADRs/ADR-011-human-approval-commercial-actions.md), [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) (**Proposed** — blocks output format/storage; see [FDR-013](FDRs/ToDo/FDR-013-proposal-assistance.md))
-
-**Implementation note:** Do not finalize proposal UI/persistence until ADR-016 is **Accepted**.
+**ADRs:** [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md)
 
 ---
 
@@ -342,23 +345,24 @@
 
 ### 14 · Pipeline stage-based automation
 
-**Objective:** On pipeline stage changes, trigger configured actions: AI jobs, follow-ups, tasks, and notification hooks (without assuming job chaining in MVP).
+**Objective:** On pipeline stage changes, trigger configured actions: AI jobs, follow-ups, tasks, and notification hooks (without assuming job chaining in MVP), including real Proposal Generation recommendation dispatch.
 
-**Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration)
+**Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [13 Proposal assistance](#f13-proposal-assistance), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery)
 
 **Consumes:**
 
 - [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) — stage change events
 - [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) — auto-create records
 - [09 AI provider layer and orchestration](#f09-ai-orchestration) — stage-triggered agents
+- [13 Proposal assistance](#f13-proposal-assistance) — ensure/recommend on Proposal Generation
+- [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) — respects human send as source of Proposal Sent
 
 **Produces:**
 
 - Automated follow-ups/tasks and dispatched AI jobs per stage rules
+- Optional hooks consumed by [15 Slack notifications](#f15-slack-notifications)
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-005](ADRs/ADR-005-fixed-sales-pipeline.md), [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) (**Proposed** — proposal stage action is stub-only until accepted)
-
-**Implementation note:** See [FDR-014](FDRs/ToDo/FDR-014-pipeline-stage-automation.md) for partial build scope.
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-005](ADRs/ADR-005-fixed-sales-pipeline.md), [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md)
 
 ---
 
@@ -366,7 +370,7 @@
 
 ### 15 · Slack notifications
 
-**Objective:** Send simple operational messages to a single Slack channel when user action is required (pending follow-ups, critical tasks, proposal reminders).
+**Objective:** Send simple operational messages to a single Slack channel when user action is required (pending follow-ups, critical tasks, unanswered proposals after Proposal Sent).
 
 **Dependencies:** [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard)
 
@@ -374,7 +378,8 @@
 
 - [06 Follow-up management](#f06-follow-up-management)
 - [07 Task management](#f07-task-management)
-- Optional: [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) — proposal reminders
+- Optional: [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) — Proposal Sent reminders
+- Optional: [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) — send/stage timing for unanswered proposals
 
 **Produces:**
 
@@ -423,6 +428,73 @@
 
 ---
 
+<a id="f18-commercial-service-catalog"></a>
+
+### 18 · Commercial service catalog
+
+**Objective:** Maintain a global catalog of sellable services (name, description, default price, category aligned with `docs/services/` briefs) for proposal line items.
+
+**Dependencies:** [03 Application shell and design system](#f03-application-shell-design-system)
+
+**Related to:** [13 Proposal assistance](#f13-proposal-assistance), [11 Automated lead qualification](#f11-automated-lead-qualification)
+
+**Consumes:**
+
+- Qualification category identifiers from `docs/services/` (documentation SoT for categories; not auto-synced)
+
+**Produces:**
+
+- Priced catalog rows consumed by [13 Proposal assistance](#f13-proposal-assistance)
+
+**ADRs:** [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md), [ADR-020](ADRs/ADR-020-commercial-service-catalog-boundary.md)
+
+---
+
+<a id="f19-opportunity-notes"></a>
+
+### 19 · Opportunity notes
+
+**Objective:** Provide an author/timestamp timeline of internal notes on each opportunity for human context and AI proposal recommendations.
+
+**Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline)
+
+**Related to:** [13 Proposal assistance](#f13-proposal-assistance)
+
+**Consumes:**
+
+- [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) — opportunity detail surface
+
+**Produces:**
+
+- Notes timeline consumed by [13 Proposal assistance](#f13-proposal-assistance)
+
+**ADRs:** [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md)
+
+---
+
+<a id="f20-proposal-artifacts-and-delivery"></a>
+
+### 20 · Proposal artifacts and delivery
+
+**Objective:** After proposal approval, generate commercial text, slide, and contract from repository templates; allow browser edits for text/contract; render PDFs on demand; support download and human-confirmed SMTP email send that advances the opportunity to Proposal Sent.
+
+**Dependencies:** [13 Proposal assistance](#f13-proposal-assistance)
+
+**Related to:** [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications)
+
+**Consumes:**
+
+- [13 Proposal assistance](#f13-proposal-assistance) — approved proposal and line items
+
+**Produces:**
+
+- Editable artifacts, on-demand PDFs, and confirmed delivery moving the opportunity to Proposal Sent
+- Timing signals optionally consumed by [15 Slack notifications](#f15-slack-notifications)
+
+**ADRs:** [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md)
+
+---
+
 ## Features relationship
 
 **Foundation (omitted from rows):** [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) — apply to the whole product; not repeated in matrix cells.
@@ -432,7 +504,7 @@ Cross-feature only; vendor/infra (PostgreSQL, Redis, OpenAI, etc.) stay in featu
 | Feature | Depends on | Consumes | Produces |
 | ------- | ---------- | -------- | -------- |
 | [04 Lead and client management](#f04-lead-client-management) | — | — | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification) |
-| [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [04 Lead and client management](#f04-lead-client-management) | [04 Lead and client management](#f04-lead-client-management) | [06 Follow-up management](#f06-follow-up-management), [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) |
+| [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [04 Lead and client management](#f04-lead-client-management) | [04 Lead and client management](#f04-lead-client-management) | [06 Follow-up management](#f06-follow-up-management), [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [19 Opportunity notes](#f19-opportunity-notes) |
 | [06 Follow-up management](#f06-follow-up-management) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [08 Operational dashboard](#f08-operational-dashboard), [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) |
 | [07 Task management](#f07-task-management) | [04 Lead and client management](#f04-lead-client-management) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [08 Operational dashboard](#f08-operational-dashboard), [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) |
 | [08 Operational dashboard](#f08-operational-dashboard) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | — |
@@ -440,9 +512,12 @@ Cross-feature only; vendor/infra (PostgreSQL, Redis, OpenAI, etc.) stay in featu
 | [10 Automated prospecting](#f10-automated-prospecting) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [11 Automated lead qualification](#f11-automated-lead-qualification) |
 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [12 AI recommendations and insights](#f12-ai-recommendations) |
 | [12 AI recommendations and insights](#f12-ai-recommendations) | [11 Automated lead qualification](#f11-automated-lead-qualification) | [11 Automated lead qualification](#f11-automated-lead-qualification), [04 Lead and client management](#f04-lead-client-management) | — |
-| [13 Proposal assistance](#f13-proposal-assistance) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [11 Automated lead qualification](#f11-automated-lead-qualification) | — |
-| [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [15 Slack notifications](#f15-slack-notifications) |
-| [15 Slack notifications](#f15-slack-notifications) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | — |
+| [18 Commercial service catalog](#f18-commercial-service-catalog) | — | — | [13 Proposal assistance](#f13-proposal-assistance) |
+| [19 Opportunity notes](#f19-opportunity-notes) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [13 Proposal assistance](#f13-proposal-assistance) |
+| [13 Proposal assistance](#f13-proposal-assistance) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [11 Automated lead qualification](#f11-automated-lead-qualification), [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes) | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) |
+| [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [13 Proposal assistance](#f13-proposal-assistance) | [13 Proposal assistance](#f13-proposal-assistance) | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
+| [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [13 Proposal assistance](#f13-proposal-assistance), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [13 Proposal assistance](#f13-proposal-assistance), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [15 Slack notifications](#f15-slack-notifications) |
+| [15 Slack notifications](#f15-slack-notifications) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | — |
 | [16 Google Calendar integration](#f16-google-calendar) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management) | — |
 
 ---
@@ -459,8 +534,10 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | **2** | Done | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
 | **3** | Done | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
 | **4** | Done | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
-| **5** | Pending | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
-| **6** | Pending | [16 Google Calendar integration](#f16-google-calendar) |
+| **5** | Pending | [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes) |
+| **6** | Pending | [13 Proposal assistance](#f13-proposal-assistance) |
+| **7** | Pending | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) |
+| **8** | Pending | [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) |
 
 ---
 
@@ -478,10 +555,13 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | [ADR-008](ADRs/ADR-008-authentication-internal-users.md) | Accepted | Authentication for internal users |
 | [ADR-009](ADRs/ADR-009-slack-integration.md) | Accepted | Slack integration |
 | [ADR-010](ADRs/ADR-010-google-calendar-integration.md) | Accepted | Google Calendar integration |
-| [ADR-011](ADRs/ADR-011-human-approval-commercial-actions.md) | Accepted | Human approval for commercial actions |
+| [ADR-011](ADRs/ADR-011-human-approval-commercial-actions.md) | Superseded by ADR-019 | Human approval for commercial actions |
 | [ADR-012](ADRs/ADR-012-integration-failure-isolation.md) | Accepted | Integration failure isolation |
 | [ADR-013](ADRs/ADR-013-dark-mode-design-system.md) | Accepted | Dark mode design system |
 | [ADR-014](ADRs/ADR-014-dashboard-observability-scope.md) | Accepted | Dashboard and observability scope |
 | [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | Accepted | AI-led prospecting on public/free sources (no paid data APIs) |
-| [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | Proposal generation undefined in MVP |
-| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted (amended 2026-08-13) | Wave 4 AI qualification flow and insight schema (opportunity-scoped) |
+| [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | Superseded by ADR-018 | Proposal generation format undefined in MVP |
+| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted (service wording partially superseded by ADR-020) | Wave 4 AI qualification flow and insight schema |
+| [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md) | Accepted (2026-08-14) | Proposal domain, generation, and artifacts |
+| [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md) | Accepted (2026-08-14) | Human-controlled proposal delivery |
+| [ADR-020](ADRs/ADR-020-commercial-service-catalog-boundary.md) | Accepted (2026-08-14) | Commercial service catalog boundary |
