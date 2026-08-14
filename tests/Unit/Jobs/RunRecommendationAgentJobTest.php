@@ -18,14 +18,14 @@ class RunRecommendationAgentJobTest extends TestCase
     {
         $agent = Mockery::mock(RecommendationAgent::class);
         $agent->shouldReceive('handle')
-            ->once()
-            ->andThrow(new RuntimeException('Simulated AI failure'));
+                ->once()
+                ->andThrow(new RuntimeException('Simulated AI failure'));
 
         $this->app->instance(RecommendationAgent::class, $agent);
 
         Log::shouldReceive('warning')
-            ->once()
-            ->with('ai.agent.failed', Mockery::type('array'));
+                ->once()
+                ->with('ai.agent.failed', Mockery::type('array'));
 
         $job = new RunRecommendationAgentJob(['opportunity_id' => 1]);
 
@@ -38,22 +38,22 @@ class RunRecommendationAgentJobTest extends TestCase
     {
         $agent = Mockery::mock(RecommendationAgent::class);
         $agent->shouldReceive('handle')
-            ->once()
-            ->andReturn([
-                'agent' => 'recommendation',
-                'status' => 'completed',
-            ]);
+                ->once()
+                ->andReturn([
+                    'agent' => 'recommendation',
+                    'status' => 'completed',
+                ]);
 
         $this->app->instance(RecommendationAgent::class, $agent);
 
         Log::shouldReceive('info')
-            ->once()
-            ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
-                return $context['agent'] === 'recommendation'
-                    && $context['provider'] === config('ai.default')
-                    && isset($context['duration_ms'])
-                    && isset($context['result_keys']);
-            }));
+                ->once()
+                ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
+                    return $context['agent'] === 'recommendation'
+                        && $context['provider'] === config('ai.default')
+                        && isset($context['duration_ms'])
+                        && isset($context['result_keys']);
+                }));
 
         $job = new RunRecommendationAgentJob(['opportunity_id' => 1]);
         $job->handle();

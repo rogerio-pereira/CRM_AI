@@ -23,12 +23,12 @@ class AiSuggestionPanelTest extends TestCase
     {
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()
-            ->qualificationQualified()
-            ->withAiInsights()
-            ->create([
-                'title' => 'Recommendation Detail Deal',
-                'ai_recommendations' => RecommendationFake::panelRecommendations(),
-            ]);
+                                ->qualificationQualified()
+                                ->withAiInsights()
+                                ->create([
+                                    'title' => 'Recommendation Detail Deal',
+                                    'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                                ]);
 
         $this->actingAs($user);
 
@@ -62,13 +62,13 @@ class AiSuggestionPanelTest extends TestCase
             'company_name' => 'Lead Insight Co',
         ]);
         $opportunity = Opportunity::factory()
-            ->for($client)
-            ->qualificationQualified()
-            ->withAiInsights()
-            ->create([
-                'title' => 'Related Recommendation Deal',
-                'ai_recommendations' => RecommendationFake::panelRecommendations(),
-            ]);
+                                ->for($client)
+                                ->qualificationQualified()
+                                ->withAiInsights()
+                                ->create([
+                                    'title' => 'Related Recommendation Deal',
+                                    'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                                ]);
 
         $this->actingAs($user);
 
@@ -93,9 +93,9 @@ class AiSuggestionPanelTest extends TestCase
 
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()
-            ->qualificationQualified()
-            ->withAiRecommendations()
-            ->create();
+                                ->qualificationQualified()
+                                ->withAiRecommendations()
+                                ->create();
 
         $this->actingAs($user);
 
@@ -127,7 +127,9 @@ class AiSuggestionPanelTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         $this->actingAs($user);
 
@@ -148,7 +150,9 @@ class AiSuggestionPanelTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationPending()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationPending()
+                                ->create();
 
         $this->actingAs($user);
 
@@ -165,11 +169,11 @@ class AiSuggestionPanelTest extends TestCase
     {
         $user = User::factory()->create();
         $opportunity = Opportunity::factory()
-            ->qualificationQualified()
-            ->withAiInsights()
-            ->create([
-                'ai_recommendations' => null,
-            ]);
+                                ->qualificationQualified()
+                                ->withAiInsights()
+                                ->create([
+                                    'ai_recommendations' => null,
+                                ]);
 
         $this->actingAs($user);
 
@@ -186,10 +190,12 @@ class AiSuggestionPanelTest extends TestCase
     public function test_qualified_opportunity_without_insights_or_recommendations_shows_empty_state(): void
     {
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationQualified()->create([
-            'ai_recommendations' => null,
-            'ai_insights' => null,
-        ]);
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create([
+                                    'ai_recommendations' => null,
+                                    'ai_insights' => null,
+                                ]);
 
         $this->actingAs($user);
 
@@ -204,7 +210,9 @@ class AiSuggestionPanelTest extends TestCase
     public function test_unqualified_opportunity_does_not_render_the_panel(): void
     {
         $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationPending()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationPending()
+                                ->create();
 
         $this->actingAs($user);
 

@@ -18,7 +18,11 @@ class QuickCreateModalTest extends TestCase
     public function test_open_for_opportunity_prefills_client_and_opportunity(): void
     {
         $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Kanban Opp']);
+        $opportunity = Opportunity::factory()
+                                ->for($client)
+                                ->create([
+                                    'title' => 'Kanban Opp',
+                                ]);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-task-for-opportunity', opportunityId: $opportunity->id)
@@ -32,7 +36,11 @@ class QuickCreateModalTest extends TestCase
     public function test_open_for_opportunity_prefills_title_and_description_when_provided(): void
     {
         $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Kanban Opp']);
+        $opportunity = Opportunity::factory()
+                                ->for($client)
+                                ->create([
+                                    'title' => 'Kanban Opp',
+                                ]);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch(
@@ -63,7 +71,9 @@ class QuickCreateModalTest extends TestCase
     {
         $user = User::factory()->create();
         $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $opportunity = Opportunity::factory()
+                                ->for($client)
+                                ->create();
 
         $this->actingAs($user);
 
@@ -108,8 +118,16 @@ class QuickCreateModalTest extends TestCase
     {
         $firstClient = Client::factory()->create();
         $secondClient = Client::factory()->create();
-        $firstOpportunity = Opportunity::factory()->for($firstClient)->create(['title' => 'First deal']);
-        Opportunity::factory()->for($secondClient)->create(['title' => 'Second deal']);
+        $firstOpportunity = Opportunity::factory()
+                                ->for($firstClient)
+                                ->create([
+                                    'title' => 'First deal',
+                                ]);
+        Opportunity::factory()
+                ->for($secondClient)
+                ->create([
+                    'title' => 'Second deal',
+                ]);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-task-for-opportunity', opportunityId: $firstOpportunity->id)

@@ -35,10 +35,12 @@ it('displays the kanban board and creates an opportunity', function () {
 
 it('moves an opportunity via the action menu', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
-        'title' => 'Move Menu Deal',
-        'stage' => PipelineStage::Lead,
-    ]);
+    $opportunity = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create([
+                                'title' => 'Move Menu Deal',
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
     $this->actingAs($user);
 
@@ -56,11 +58,11 @@ it('moves an opportunity via the action menu', function () {
 it('opens the opportunity detail modal with structured AI insights', function () {
     $user = User::factory()->create();
     $opportunity = Opportunity::factory()
-        ->qualificationQualified()
-        ->withAiInsights()
-        ->create([
-            'title' => 'AI Insights Deal',
-        ]);
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'AI Insights Deal',
+                            ]);
 
     $this->actingAs($user);
 
@@ -82,12 +84,12 @@ it('opens the opportunity detail modal with structured AI insights', function ()
 it('opens the opportunity detail modal with AI recommendations and a refresh action', function () {
     $user = User::factory()->create();
     $opportunity = Opportunity::factory()
-        ->qualificationQualified()
-        ->withAiInsights()
-        ->create([
-            'title' => 'AI Recommendations Deal',
-            'ai_recommendations' => RecommendationFake::panelRecommendations(),
-        ]);
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'AI Recommendations Deal',
+                                'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                            ]);
 
     $this->actingAs($user);
 
@@ -112,12 +114,12 @@ it('opens the opportunity detail modal with AI recommendations and a refresh act
 it('creates a task from a next-step recommendation', function () {
     $user = User::factory()->create();
     $opportunity = Opportunity::factory()
-        ->qualificationQualified()
-        ->withAiInsights()
-        ->create([
-            'title' => 'Next Step Task Deal',
-            'ai_recommendations' => RecommendationFake::panelRecommendations(),
-        ]);
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'Next Step Task Deal',
+                                'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                            ]);
 
     $this->actingAs($user);
 
@@ -135,9 +137,9 @@ it('creates a task from a next-step recommendation', function () {
 
     expect(
         Task::query()
-            ->where('opportunity_id', $opportunity->id)
-            ->where('title', 'Review the example email before any outreach')
-            ->exists()
+                ->where('opportunity_id', $opportunity->id)
+                ->where('title', 'Review the example email before any outreach')
+                ->exists()
     )->toBeTrue();
 });
 
@@ -150,9 +152,11 @@ it('opens the opportunity detail modal with client summary', function () {
         'contact_phone' => '813-555-0142',
         'website' => 'https://detail-summary.test',
     ]);
-    $opportunity = Opportunity::factory()->for($client)->create([
-        'title' => 'Detail Modal Deal',
-    ]);
+    $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'title' => 'Detail Modal Deal',
+                            ]);
 
     $this->actingAs($user);
 
@@ -171,22 +175,30 @@ it('opens the opportunity detail modal with client summary', function () {
 
 it('renders qualification status chips on the kanban and failed error on detail', function () {
     $user = User::factory()->create();
-    $pending = Opportunity::factory()->qualificationPending()->create([
-        'title' => 'Pending Chip Deal',
-        'stage' => PipelineStage::Lead,
-    ]);
-    $processing = Opportunity::factory()->qualificationProcessing()->create([
-        'title' => 'Processing Chip Deal',
-        'stage' => PipelineStage::Qualification,
-    ]);
-    $qualified = Opportunity::factory()->qualificationQualified()->create([
-        'title' => 'Qualified Chip Deal',
-        'stage' => PipelineStage::Contact,
-    ]);
-    $failed = Opportunity::factory()->qualificationFailed()->create([
-        'title' => 'Failed Chip Deal',
-        'stage' => PipelineStage::Qualification,
-    ]);
+    $pending = Opportunity::factory()
+                            ->qualificationPending()
+                            ->create([
+                                'title' => 'Pending Chip Deal',
+                                'stage' => PipelineStage::Lead,
+                            ]);
+    $processing = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create([
+                                'title' => 'Processing Chip Deal',
+                                'stage' => PipelineStage::Qualification,
+                            ]);
+    $qualified = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'title' => 'Qualified Chip Deal',
+                                'stage' => PipelineStage::Contact,
+                            ]);
+    $failed = Opportunity::factory()
+                            ->qualificationFailed()
+                            ->create([
+                                'title' => 'Failed Chip Deal',
+                                'stage' => PipelineStage::Qualification,
+                            ]);
 
     $this->actingAs($user);
 
@@ -215,10 +227,12 @@ it('shows horizontal scroll on narrow viewports', function () {
 it('creates a follow-up from the kanban card button', function () {
     $user = User::factory()->create();
     $client = Client::factory()->create(['company_name' => 'Kanban Follow Up Co']);
-    $opportunity = Opportunity::factory()->for($client)->create([
-        'title' => 'Follow Up From Kanban',
-        'stage' => PipelineStage::Contact,
-    ]);
+    $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'title' => 'Follow Up From Kanban',
+                                'stage' => PipelineStage::Contact,
+                            ]);
 
     $this->actingAs($user);
 
@@ -236,10 +250,12 @@ it('creates a follow-up from the kanban card button', function () {
 it('creates a task from the kanban card button', function () {
     $user = User::factory()->create();
     $client = Client::factory()->create(['company_name' => 'Kanban Task Co']);
-    $opportunity = Opportunity::factory()->for($client)->create([
-        'title' => 'Task From Kanban',
-        'stage' => PipelineStage::Contact,
-    ]);
+    $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'title' => 'Task From Kanban',
+                                'stage' => PipelineStage::Contact,
+                            ]);
 
     $this->actingAs($user);
 
@@ -259,10 +275,12 @@ it('creates a task from the kanban card button', function () {
 
 it('drags an opportunity card to another stage', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
-        'title' => 'Drag Deal',
-        'stage' => PipelineStage::Lead,
-    ]);
+    $opportunity = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create([
+                                'title' => 'Drag Deal',
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
     $this->actingAs($user);
 

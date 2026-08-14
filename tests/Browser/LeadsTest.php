@@ -67,13 +67,13 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
         'company_name' => 'Lead Recommendations Co',
     ]);
     $opportunity = Opportunity::factory()
-        ->for($client)
-        ->qualificationQualified()
-        ->withAiInsights()
-        ->create([
-            'title' => 'Related AI Deal',
-            'ai_recommendations' => RecommendationFake::panelRecommendations(),
-        ]);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'Related AI Deal',
+                                'ai_recommendations' => RecommendationFake::panelRecommendations(),
+                            ]);
 
     $this->actingAs($user);
 
@@ -176,7 +176,11 @@ it('creates a task from the client detail modal', function () {
 it('filters leads by archived status', function () {
     $user = User::factory()->create();
     Client::factory()->create(['company_name' => 'Visible Active Co']);
-    Client::factory()->archived()->create(['company_name' => 'Hidden Archived Co']);
+    Client::factory()
+            ->archived()
+            ->create([
+                'company_name' => 'Hidden Archived Co',
+            ]);
 
     $this->actingAs($user);
 

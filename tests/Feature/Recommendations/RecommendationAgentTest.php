@@ -30,9 +30,12 @@ class RecommendationAgentTest extends TestCase
         $client = Client::factory()->create([
             'company_name' => 'GreenSprout Lawn Care',
         ]);
-        $opportunity = Opportunity::factory()->for($client)->qualificationQualified()->create([
-            'qualification_notes' => 'Local service business with a weak website.',
-        ]);
+        $opportunity = Opportunity::factory()
+                                ->for($client)
+                                ->qualificationQualified()
+                                ->create([
+                                    'qualification_notes' => 'Local service business with a weak website.',
+                                ]);
 
         RecommendationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
 
@@ -74,7 +77,9 @@ class RecommendationAgentTest extends TestCase
 
     public function test_unqualified_opportunity_skips_ai_and_does_not_persist_recommendations(): void
     {
-        $opportunity = Opportunity::factory()->qualificationPending()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationPending()
+                                ->create();
 
         $agent = app(RecommendationAgent::class);
         $result = $agent->handle([
@@ -89,7 +94,9 @@ class RecommendationAgentTest extends TestCase
 
     public function test_incomplete_recommendation_output_throws(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         RecommendationFake::fakeIncomplete();
 
@@ -105,7 +112,9 @@ class RecommendationAgentTest extends TestCase
 
     public function test_missing_recommendations_payload_throws(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         RecommendationAnalysisAgent::fake([
             [
@@ -131,10 +140,10 @@ class RecommendationAgentTest extends TestCase
     {
         $client = Client::factory()->create();
         $opportunity = Opportunity::factory()
-            ->for($client)
-            ->qualificationQualified()
-            ->withAiRecommendations()
-            ->create();
+                                ->for($client)
+                                ->qualificationQualified()
+                                ->withAiRecommendations()
+                                ->create();
 
         $updatedPayload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
         $updatedPayload['ai_recommendations']['summary'] = 'Updated recommendation after refresh.';
@@ -159,11 +168,13 @@ class RecommendationAgentTest extends TestCase
 
     public function test_agent_throws_when_prompt_file_is_missing(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         File::partialMock()
-            ->shouldReceive('exists')
-            ->andReturn(false);
+                ->shouldReceive('exists')
+                ->andReturn(false);
 
         $agent = app(RecommendationAgent::class);
 
@@ -187,13 +198,15 @@ class RecommendationAgentTest extends TestCase
 
     public function test_agent_throws_when_prompt_file_is_empty(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         $file = File::partialMock();
         $file->shouldReceive('exists')
-            ->andReturn(true);
+                ->andReturn(true);
         $file->shouldReceive('get')
-            ->andReturn('   ');
+                ->andReturn('   ');
 
         $agent = app(RecommendationAgent::class);
 
@@ -207,7 +220,9 @@ class RecommendationAgentTest extends TestCase
 
     public function test_agent_throws_when_client_is_missing(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
 
         Client::addGlobalScope('recommendation-missing-client', function ($query): void {
             $query->whereRaw('0 = 1');
@@ -233,12 +248,14 @@ class RecommendationAgentTest extends TestCase
 
     public function test_agent_throws_when_analysis_response_is_not_structured(): void
     {
-        $opportunity = Opportunity::factory()->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->qualificationQualified()
+                                ->create();
         $unstructuredResponse = Mockery::mock(AgentResponse::class);
         $analysisAgent = Mockery::mock(RecommendationAnalysisAgent::class);
         $analysisAgent->shouldReceive('prompt')
-            ->once()
-            ->andReturn($unstructuredResponse);
+                ->once()
+                ->andReturn($unstructuredResponse);
 
         $this->app->bind(RecommendationAnalysisAgent::class, function () use ($analysisAgent) {
             return $analysisAgent;
@@ -257,7 +274,10 @@ class RecommendationAgentTest extends TestCase
     public function test_persists_defaults_when_optional_fields_are_missing(): void
     {
         $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->qualificationQualified()->create();
+        $opportunity = Opportunity::factory()
+                                ->for($client)
+                                ->qualificationQualified()
+                                ->create();
         $payload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
         unset(
             $payload['ai_recommendations']['generated_at'],
