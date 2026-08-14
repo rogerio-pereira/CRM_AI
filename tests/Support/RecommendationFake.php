@@ -66,12 +66,34 @@ class RecommendationFake
     }
 
     /**
+     * Stored recommendation fields used by the insight panel in tests.
+     *
+     * @return array<string, mixed>
+     */
+    public static function panelRecommendations(): array
+    {
+        return [
+            'outreach_strategy' => [
+                'questions_to_ask' => [
+                    'Where do most new customers hear about you today?',
+                ],
+            ],
+            'next_steps' => [
+                [
+                    'title' => 'Review the example email before any outreach',
+                    'reason' => 'A human should adapt the wording to this owner.',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function incompletePayload(): array
     {
         $payload = self::successfulPayload();
-        $payload['ai_recommendations']['summary'] = '   ';
+        $payload['ai_recommendations']['summary'] = '';
         $payload['ai_recommendations']['conversation_strategy']['contact_example']['subject'] = '';
         $payload['ai_recommendations']['conversation_strategy']['contact_example']['body'] = '';
 

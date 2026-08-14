@@ -27,8 +27,7 @@ class RecommendationAgent implements AiAgent
      */
     public function handle(array $context): array
     {
-        $rawOpportunityId = $context['opportunity_id'] ?? 0;
-        $opportunityId = (int) $rawOpportunityId;
+        $opportunityId = $context['opportunity_id'];
         $opportunity = Opportunity::with('client')
                             ->findOrFail($opportunityId);
         $client = $opportunity->client;
@@ -65,10 +64,9 @@ class RecommendationAgent implements AiAgent
     {
         $instructions = $this->loadApprovedPrompt();
         $userPrompt = $this->buildUserPrompt($opportunity, $client);
-        $agentParameters = [
+        $agent = app(RecommendationAnalysisAgent::class, [
                 'instructions' => $instructions,
-            ];
-        $agent = app(RecommendationAnalysisAgent::class, $agentParameters);
+            ]);
         $response = $agent->prompt($userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {
@@ -85,39 +83,33 @@ class RecommendationAgent implements AiAgent
      */
     private function assertSuccessfulRecommendation(array $payload): void
     {
-        $recommendations = $payload['ai_recommendations'] ?? null;
-        $conversationStrategy = null;
-        $contactExample = null;
-        $summary = '';
-        $subject = '';
-        $body = '';
+        $recommendations = $payload['ai_recommendations'] ?? [];
 
-        if (is_array($recommendations)) {
-            $rawSummary = $recommendations['summary'] ?? '';
-            $summary = trim((string) $rawSummary);
-            $conversationStrategy = $recommendations['conversation_strategy'] ?? null;
+        if (! is_array($recommendations)) {
+            $recommendations = [];
         }
 
-        if (is_array($conversationStrategy)) {
-            $contactExample = $conversationStrategy['contact_example'] ?? null;
+        $summary = $recommendations['summary'] ?? '';
+        $conversationStrategy = $recommendations['conversation_strategy'] ?? [];
+
+        if (! is_array($conversationStrategy)) {
+            $conversationStrategy = [];
         }
 
-        if (is_array($contactExample)) {
-            $rawSubject = $contactExample['subject'] ?? '';
-            $subject = trim((string) $rawSubject);
-            $rawBody = $contactExample['body'] ?? '';
-            $body = trim((string) $rawBody);
+        $contactExample = $conversationStrategy['contact_example'] ?? [];
+
+        if (! is_array($contactExample)) {
+            $contactExample = [];
         }
 
-        if (
-            $summary === '' ||
-            $subject === '' ||
-            $body === ''
-        ) {
+        $subject = $contactExample['subject'] ?? '';
+        $body = $contactExample['body'] ?? '';
+
+        if ($summary === '' || $subject === '' || $body === '') {
             $payloadKeys = array_keys($payload);
 
             Log::warning('ai.recommendation.incomplete', [
-                'has_recommendations' => is_array($recommendations),
+                'has_recommendations' => $recommendations !== [],
                 'summary_length' => strlen($summary),
                 'subject_length' => strlen($subject),
                 'body_length' => strlen($body),
@@ -139,32 +131,28 @@ class RecommendationAgent implements AiAgent
             throw new RecommendationFailedException('Recommendation output was incomplete.');
         }
 
-        $rawGeneratedAt = $rawRecommendations['generated_at'] ?? '';
-        $generatedAt = trim((string) $rawGeneratedAt);
+        $generatedAt = $rawRecommendations['generated_at'] ?? '';
 
         if ($generatedAt === '') {
             $generatedAt = now()->toIso8601String();
         }
 
-        $rawLanguage = $rawRecommendations['language'] ?? 'en';
-        $language = trim((string) $rawLanguage);
+        $language = $rawRecommendations['language'] ?? 'en';
 
         if ($language === '') {
             $language = 'en';
         }
 
-        $rawSummary = $rawRecommendations['summary'] ?? '';
-        $summary = trim((string) $rawSummary);
-        $painPoints = $rawRecommendations['pain_points'] ?? [];
-        $recommendedFocus = $rawRecommendations['recommended_focus'] ?? [];
-        $conversationStrategy = $rawRecommendations['conversation_strategy'] ?? [];
-        $nextSteps = $rawRecommendations['next_steps'] ?? [];
-        $rawConfidence = $rawRecommendations['confidence'] ?? 'medium';
-        $confidence = trim((string) $rawConfidence);
+        $confidence = $rawRecommendations['confidence'] ?? 'medium';
 
         if ($confidence === '') {
             $confidence = 'medium';
         }
+
+        $painPoints = $rawRecommendations['pain_points'] ?? [];
+        $recommendedFocus = $rawRecommendations['recommended_focus'] ?? [];
+        $conversationStrategy = $rawRecommendations['conversation_strategy'] ?? [];
+        $nextSteps = $rawRecommendations['next_steps'] ?? [];
 
         if (! is_array($painPoints)) {
             $painPoints = [];
@@ -187,7 +175,7 @@ class RecommendationAgent implements AiAgent
                 'generated_at' => $generatedAt,
                 'source_agent' => 'recommendation',
                 'language' => $language,
-                'summary' => $summary,
+                'summary' => $rawRecommendations['summary'] ?? '',
                 'pain_points' => $painPoints,
                 'opportunities' => $recommendedFocus,
                 'outreach_strategy' => $conversationStrategy,

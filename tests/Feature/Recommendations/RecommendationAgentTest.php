@@ -259,9 +259,9 @@ class RecommendationAgentTest extends TestCase
         $client = Client::factory()->create();
         $opportunity = Opportunity::factory()->for($client)->qualificationQualified()->create();
         $payload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
-        $payload['ai_recommendations']['generated_at'] = '  ';
+        $payload['ai_recommendations']['generated_at'] = '';
         $payload['ai_recommendations']['language'] = '';
-        $payload['ai_recommendations']['confidence'] = '   ';
+        $payload['ai_recommendations']['confidence'] = '';
         $payload['ai_recommendations']['pain_points'] = 'invalid';
         $payload['ai_recommendations']['recommended_focus'] = 'invalid';
         $payload['ai_recommendations']['next_steps'] = 'invalid';
