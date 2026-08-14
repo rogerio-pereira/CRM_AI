@@ -41,9 +41,11 @@ The primary goals of the system are:
 ## Out of Scope
 
 - Project management
-- Financial management
+- Financial management (accounts receivable, general ledger, tax)
 - Billing/invoicing
 - Customer support ticketing
+
+Commercial **proposal pricing** (catalog defaults and per-proposal line amounts) is in scope for sales assistance. It is **not** billing, invoicing, or financial management.
 
 ---
 
@@ -75,10 +77,51 @@ Represents a potential business deal.
 - Pipeline stage
 - Estimated value
 - Status
-- Proposal information
 - Related client
 - Follow-up tasks
 - AI recommendations
+- Opportunity notes timeline (author, timestamp, body)
+- Related proposal (at most one)
+
+---
+
+## Commercial service (catalog)
+
+Sellable line items used when building proposals.
+
+### Main Attributes
+- Name
+- Description
+- Default unit price
+- Category reference aligned with `docs/services/` general service briefs (qualification categories)
+
+Catalog prices support proposal drafting only; the product does not invoice or collect payment.
+
+---
+
+## Opportunity note
+
+Internal timeline notes attached to an opportunity.
+
+### Main Attributes
+- Body
+- Author (user)
+- Created at
+
+---
+
+## Proposal
+
+Commercial proposal for a single opportunity (one proposal per opportunity).
+
+### Main Attributes
+- Related opportunity (unique)
+- Line items (catalog service, quantity, unit price override, notes)
+- Approval state (approved by / at when human approves)
+- Commercial text (editable)
+- Contract text (editable)
+- Slide content used for PDF render
+- Send metadata as needed for delivery tracking
 
 ---
 
@@ -155,14 +198,17 @@ Users manually decide whether to:
 - Ignore the lead
 - Archive the lead
 - Schedule follow-up
+- Edit and approve a proposal
+- Download or send approved proposal artifacts by email from the CRM
 
-Conversations happen outside the system.
+Day-to-day conversations and negotiation still happen outside the system. The CRM may deliver **approved proposal PDFs** when a user explicitly confirms send (SMTP). AI never sends client-facing mail autonomously.
 
 AI agents may assist with:
 - Suggested responses
 - Next-step recommendations
 - Outreach strategies
 - Solution ideas
+- Recommended proposal line items and generated draft artifacts
 
 ---
 
@@ -171,8 +217,18 @@ AI agents may assist with:
 The system assists users in creating commercial proposals based on:
 - Prospecting data
 - Qualification analysis
-- Manual user input
+- Commercial service catalog (priced line items)
+- Opportunity notes timeline
+- Manual user edits
 
+Flow:
+
+1. AI recommends services and values into the proposal draft.
+2. Human edits and approves the proposal.
+3. AI generates commercial text, slide, and contract from fixed templates in the repository.
+4. Human reviews editable text/contract in the browser, downloads PDFs, and/or sends email via the CRM; on confirmed send the opportunity moves to Proposal Sent.
+
+There is one proposal record per opportunity. Regenerating overwrites the current draft content. Electronic signature is out of scope.
 ---
 
 ## 8. Follow-Up Automation
@@ -249,13 +305,14 @@ Human approval is required before execution of sales actions.
 - Google Calendar
 - Slack
 - AI Provider abstraction layer
+- Transactional email via Laravel Mail (SMTP) for **human-confirmed** proposal delivery (local Mailpit in Sail)
 
 The AI provider should remain configurable to support:
 - OpenAI
 - Gemini
 
 ## Possible Future Integrations
-- Gmail
+- Gmail (provider-specific API beyond SMTP)
 - Google Drive
 - SMS services
 
@@ -268,17 +325,21 @@ The AI provider should remain configurable to support:
 - View client history
 - Manage opportunities
 - Move opportunities between pipeline stages
+- Maintain commercial service catalog
+- Maintain opportunity notes timeline
+- Create, edit, approve, download, and send proposals
 
 ## AI Agents
 - Execute automated prospecting
 - Qualify leads automatically
 - Generate outreach suggestions
-- Assist proposal generation
+- Recommend proposal line items and generate proposal artifacts after approval
 
 ## Automation
 - Schedule follow-ups automatically
 - Schedule important tasks automatically
 - Trigger Slack notifications
+- Trigger proposal assistance on relevant pipeline stages (without autonomous send)
 
 ## Dashboard
 - Display operational metrics
@@ -316,7 +377,7 @@ The AI provider should remain configurable to support:
 
 Potential future expansions:
 - Project management
-    - Project management
-    - Billing
-    - Finances
-- Email automation
+- Billing
+- Finances
+- Broader email automation (threads, sequences) beyond human-confirmed proposal send
+- Electronic signature for contracts

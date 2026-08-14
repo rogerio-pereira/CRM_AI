@@ -320,6 +320,7 @@ Navigation items:
     - View in Kanban
 - Follow-ups
 - Tasks
+- Services (commercial catalog)
 - Settings
 
 Sidebar item states:
@@ -362,7 +363,10 @@ Use for:
 - Add Lead
 - Add Opportunity
 - Create Follow-Up
+- Add Service
 - Generate Proposal Draft
+- Approve Proposal
+- Send Proposal
 
 Style:
 
@@ -548,10 +552,13 @@ Style:
 Use modals for:
 
 - Lead/client details
-- Opportunity details
+- Opportunity details (including notes timeline and proposal summary)
 - Quick edit forms
 - Follow-up creation
 - Task creation
+- Service catalog create/edit
+- Proposal line-item edit
+- Proposal artifact preview / confirm send email
 
 ## Modal Style
 
@@ -593,6 +600,29 @@ Style:
 AI-generated content must always be labeled as AI-generated.
 
 Do not make AI-generated recommendations look like confirmed human decisions.
+
+---
+
+# 17A. Proposal and catalog UI patterns
+
+## Commercial services catalog
+
+- Table-first CRUD screen reachable from the sidebar **Services** item.
+- Columns: name, category, default price, active flag.
+- Create/edit via medium modal.
+
+## Opportunity notes timeline
+
+- Inside the opportunity detail modal (or dedicated tab).
+- Chronological list with author and timestamp.
+- Add-note form at the bottom; newest notes easy to scan.
+
+## Proposal editor
+
+- Entry from opportunity detail / Proposal Generation and Proposal Analysis stages.
+- Sections: recommended/selected line items, totals, approval action, commercial text editor, contract editor, slide PDF download, send/download actions.
+- Label AI-filled sections with the standard AI Insight badge.
+- Approve and Send are primary actions; Send opens a confirm modal (recipients, subject, body, attached PDFs).
 
 ---
 
@@ -682,11 +712,14 @@ Generate mobile-first screens for:
 2. Leads / Clients table
 3. Lead / Client detail modal
 4. Opportunities kanban board
-5. Opportunity detail modal
-6. Follow-ups table
-7. Tasks table
-8. AI recommendation panel
-9. Settings page
+5. Opportunity detail modal (notes timeline + proposal entry points)
+6. Commercial services catalog table
+7. Proposal editor (line items, approval, text/contract editors)
+8. Proposal send confirmation (recipients + PDF attachments)
+9. Follow-ups table
+10. Tasks table
+11. AI recommendation panel
+12. Settings page
 
 Use a left sidebar, top header, and main content area.
 

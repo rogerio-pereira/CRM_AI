@@ -6,7 +6,7 @@ Internal AI-Assisted CRM Platform
 
 ## Date
 
-2026-05-27
+2026-05-27 (amended 2026-08-14 for proposal domain, catalog, artifacts, and SMTP delivery)
 
 ---
 
@@ -19,6 +19,7 @@ This document describes the high-level architecture for an internal AI-assisted 
 - Sales pipeline tracking
 - Follow-up automation
 - AI-assisted prospecting and qualification
+- Commercial proposals (catalog, notes, artifacts, human-confirmed delivery)
 
 The platform prioritizes:
 
@@ -68,6 +69,8 @@ flowchart TD
 
     Backend --> CRM[CRM Management]
     Backend --> Opportunities[Opportunity Management]
+    Backend --> Proposals[Proposal Management]
+    Backend --> Catalog[Service Catalog]
     Backend --> FollowUps[Follow-Up Management]
     Backend --> Tasks[Task Management]
     Backend --> Dashboard[Dashboard]
@@ -128,9 +131,50 @@ Main attributes include:
 - Pipeline stage
 - Estimated value
 - Status
-- Proposal information
 - Related lead/client
 - AI recommendations
+- Opportunity notes timeline
+- Related proposal (one-to-one)
+
+---
+
+#### Commercial service (catalog)
+
+Sellable line items for proposals.
+
+Main attributes include:
+
+- Name
+- Description
+- Default unit price
+- Category slug aligned with `docs/services/` qualification briefs
+
+---
+
+#### Opportunity note
+
+Internal notes timeline on an opportunity.
+
+Main attributes include:
+
+- Body
+- Author
+- Created at
+
+---
+
+#### Proposal
+
+Persisted commercial proposal for one opportunity.
+
+Main attributes include:
+
+- Unique opportunity reference
+- Line items with optional price overrides
+- Human approval metadata
+- Editable commercial text and contract content
+- Slide content for PDF rendering
+- Delivery-related metadata as required
 
 ---
 
@@ -180,13 +224,17 @@ The initial pipeline is fixed and not dynamically configurable.
 - External AI chat agents may assist communication.
 
 ### Proposal Generation
-- Proposal assistant agent is triggered.
+- Ensure the opportunity has its single proposal record.
+- Proposal Assistant recommends catalog services and values into the draft.
+- After human approval, Proposal Assistant fills commercial text, slide, and contract from repository templates (async jobs).
 
 ### Proposal Analysis
-- Human review stage.
-- User analyzes proposal before sending to client.
+- Human review and edit stage for proposal content and artifacts.
+- User analyzes and adjusts before sending to the client.
+- No autonomous send from this stage.
 
 ### Proposal Sent
+- Entered after confirmed human send (CRM email) or an equivalent explicit stage move.
 - Awaiting commercial outcome.
 
 ### Won
@@ -290,18 +338,17 @@ Responsible for:
 
 Responsible for:
 
-- Proposal analysis assistance
-- Commercial recommendation support
+- Recommending commercial catalog services and values for the opportunity proposal
+- Filling commercial text, slide, and contract content from **fixed templates in the repository** after human approval
+- Supporting proposal analysis with labeled AI-generated drafts
 
-The proposal generation implementation remains undefined in the MVP.
+MVP assumptions (see ADR-018, which supersedes ADR-016, and ADR-019):
 
-No assumptions are made regarding:
-
-- Proposal format
-- PDF generation
-- Template engines
-- Electronic signature
-- Export workflows
+- One `proposals` row per opportunity; regenerate overwrites current content
+- Text and contract are editable in the browser; slide is PDF-only
+- PDFs are rendered on demand from current content (not a PDF history store)
+- Human confirms download and/or SMTP email send; AI never sends autonomously
+- Electronic signature is out of scope
 
 ---
 
@@ -462,6 +509,22 @@ Provider comparison and evaluation will occur during platform evolution.
 
 ---
 
+## Proposal email delivery (SMTP)
+
+Purpose:
+
+- Let an authenticated user send approved proposal PDFs from the CRM
+
+Architecture:
+
+- Laravel Mail with configurable SMTP
+- Local development uses Mailpit (Sail)
+- Explicit human compose/confirm step; failures isolated from core CRM saves
+
+This is delivery of approved artifacts only—not conversational Gmail integration.
+
+---
+
 # 10. Infrastructure Architecture
 
 ## Local Development
@@ -566,11 +629,12 @@ No enterprise observability tooling is included.
 
 Potential future expansions:
 
-- Gmail integration
+- Gmail API integration (beyond SMTP proposal delivery already in MVP)
 - Project management
 - Billing
 - Financial modules
-- Email automation
+- Broader email automation (sequences/threads)
+- Electronic signature
 - Google Drive integration (if project management is introduced)
 - SMS integration
 
