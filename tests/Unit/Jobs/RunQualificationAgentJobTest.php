@@ -17,9 +17,11 @@ class RunQualificationAgentJobTest extends TestCase
     public function test_job_retries_when_agent_throws(): void
     {
         $agent = Mockery::mock(QualificationAgent::class);
+        $exception = new RuntimeException('Simulated AI failure');
+
         $agent->shouldReceive('handle')
             ->once()
-            ->andThrow(new RuntimeException('Simulated AI failure'));
+            ->andThrow($exception);
 
         $this->app->instance(QualificationAgent::class, $agent);
 

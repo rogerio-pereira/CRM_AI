@@ -140,14 +140,14 @@ class PipelineStageTest extends TestCase
 
     public function test_badge_classes_from_color_token_is_used_when_stage_does_not_require_user_action(): void
     {
+        $leadBadgeClasses = PipelineStage::Lead->badgeClassesFromColorToken();
+        $contactBadgeClasses = PipelineStage::Contact->badgeClasses();
+
         $this->assertStringContainsString(
             'status-neutral',
-            PipelineStage::Lead->badgeClassesFromColorToken(),
+            $leadBadgeClasses,
         );
-        $this->assertNotSame(
-            PipelineStage::Lead->badgeClassesFromColorToken(),
-            PipelineStage::Contact->badgeClasses(),
-        );
+        $this->assertNotSame($leadBadgeClasses, $contactBadgeClasses);
     }
 
     #[DataProvider('automatedOrAwaitingStageProvider')]

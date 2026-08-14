@@ -33,7 +33,8 @@ class CreateNewUserTest extends TestCase
 
     public function test_it_rejects_duplicate_email_addresses(): void
     {
-        User::factory()->create(['email' => 'taken@example.com']);
+        User::factory()
+                ->create(['email' => 'taken@example.com']);
 
         $action = app(CreateNewUser::class);
 

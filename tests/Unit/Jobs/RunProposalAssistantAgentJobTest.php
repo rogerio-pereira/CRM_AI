@@ -17,9 +17,11 @@ class RunProposalAssistantAgentJobTest extends TestCase
     public function test_job_retries_when_agent_throws(): void
     {
         $agent = Mockery::mock(ProposalAssistantAgent::class);
+        $exception = new RuntimeException('Simulated AI failure');
+
         $agent->shouldReceive('handle')
             ->once()
-            ->andThrow(new RuntimeException('Simulated AI failure'));
+            ->andThrow($exception);
 
         $this->app->instance(ProposalAssistantAgent::class, $agent);
 
@@ -39,10 +41,21 @@ class RunProposalAssistantAgentJobTest extends TestCase
         Log::shouldReceive('info')
             ->once()
             ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
-                return $context['agent'] === 'proposal_assistant'
-                    && $context['provider'] === config('ai.default')
-                    && isset($context['duration_ms'])
-                    && isset($context['result_keys']);
+                $expectedProvider = config('ai.default');
+
+                if ($context['agent'] !== 'proposal_assistant') {
+                    return false;
+                }
+
+                if ($context['provider'] !== $expectedProvider) {
+                    return false;
+                }
+
+                if (! isset($context['duration_ms'])) {
+                    return false;
+                }
+
+                return isset($context['result_keys']);
             }));
 
         $job = new RunProposalAssistantAgentJob(['opportunity_id' => 1]);

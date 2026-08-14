@@ -15,29 +15,50 @@ class ClientTest extends TestCase
 
     public function test_opportunities_relationship_returns_related_opportunities(): void
     {
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
 
         $this->assertCount(1, $client->opportunities);
-        $this->assertTrue($client->opportunities->first()->is($opportunity));
+
+        $firstOpportunity = $client->opportunities
+                                   ->first();
+
+        $this->assertTrue($firstOpportunity->is($opportunity));
     }
 
     public function test_follow_ups_relationship_returns_related_follow_ups(): void
     {
-        $client = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->create();
+        $client = Client::factory()
+                        ->create();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create();
 
         $this->assertCount(1, $client->followUps);
-        $this->assertTrue($client->followUps->first()->is($followUp));
+
+        $firstFollowUp = $client->followUps
+                                ->first();
+
+        $this->assertTrue($firstFollowUp->is($followUp));
     }
 
     public function test_tasks_relationship_returns_related_tasks(): void
     {
-        $client = Client::factory()->create();
-        $task = Task::factory()->for($client)->create(['title' => 'Client task']);
+        $client = Client::factory()
+                        ->create();
+        $task = Task::factory()
+                    ->for($client)
+                    ->create(['title' => 'Client task']);
 
         $this->assertCount(1, $client->tasks);
-        $this->assertTrue($client->tasks->first()->is($task));
-        $this->assertSame('Client task', $client->tasks->first()->title);
+
+        $firstTask = $client->tasks
+                            ->first();
+
+        $this->assertTrue($firstTask->is($task));
+        $this->assertSame('Client task', $firstTask->title);
     }
 }

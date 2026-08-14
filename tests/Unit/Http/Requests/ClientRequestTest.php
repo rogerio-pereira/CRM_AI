@@ -18,7 +18,10 @@ class ClientRequestTest extends TestCase
     {
         $request = new ClientRequest;
 
-        $this->assertSame(ClientRequest::formRules(), $request->rules());
+        $formRules = ClientRequest::formRules();
+        $requestRules = $request->rules();
+
+        $this->assertSame($formRules, $requestRules);
     }
 
     public function test_form_rules_include_required_company_name(): void

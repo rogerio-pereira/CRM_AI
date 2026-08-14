@@ -64,8 +64,10 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            return str_contains($promptText, 'Discover up to 5 lead candidates')
-                && str_contains($promptText, 'Rank website work first');
+            $hasExpectedLimit = str_contains($promptText, 'Discover up to 5 lead candidates');
+            $hasExpectedRanking = str_contains($promptText, 'Rank website work first');
+
+            return $hasExpectedLimit && $hasExpectedRanking;
         });
     }
 
@@ -190,8 +192,8 @@ class PublicWebDiscoveryAdapterTest extends TestCase
                         ->shouldAllowMockingProtectedMethods();
 
         $adapter->shouldReceive('promptDiscovery')
-                    ->once()
-                    ->andReturn($unstructuredResponse);
+            ->once()
+            ->andReturn($unstructuredResponse);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Prospecting discovery did not return structured output.');

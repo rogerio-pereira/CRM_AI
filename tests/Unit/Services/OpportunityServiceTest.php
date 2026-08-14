@@ -32,7 +32,8 @@ class OpportunityServiceTest extends TestCase
     {
         Event::fake([OpportunityCreated::class]);
 
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
 
         $opportunity = $this->service->create([
             'client_id' => $client->id,
@@ -48,13 +49,14 @@ class OpportunityServiceTest extends TestCase
 
     public function test_update_persists_attributes_and_refreshes_client(): void
     {
-        $opportunity = Opportunity::factory()->create([
-            'title' => 'Original title',
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Original title',
+                            ]);
 
         $updated = $this->service->update($opportunity, [
-            'title' => 'Updated title',
-            'estimated_value' => '9900',
+                                'title' => 'Updated title',
+                                'estimated_value' => '9900',
         ]);
 
         $this->assertSame('Updated title', $updated->title);
@@ -66,14 +68,18 @@ class OpportunityServiceTest extends TestCase
     {
         Event::fake([OpportunityStageChanged::class]);
 
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
+
+        $user = User::factory()
+                    ->create();
 
         $result = $this->service->moveToStage(
             $opportunity,
             PipelineStage::Lead,
-            User::factory()->create()->id,
+            $user->id,
         );
 
         $this->assertTrue($result->is($opportunity));
@@ -84,8 +90,11 @@ class OpportunityServiceTest extends TestCase
     {
         Event::fake([OpportunityStageChanged::class]);
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->open()->create();
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
 
         $this->service->moveToStage(
             $opportunity,
@@ -94,9 +103,9 @@ class OpportunityServiceTest extends TestCase
         );
 
         $this->assertDatabaseHas('opportunities', [
-            'id' => $opportunity->id,
-            'stage' => PipelineStage::Lost->value,
-            'status' => OpportunityStatus::Lost->value,
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::Lost->value,
+                                'status' => OpportunityStatus::Lost->value,
         ]);
 
         Event::assertDispatched(OpportunityStageChanged::class);
@@ -106,8 +115,11 @@ class OpportunityServiceTest extends TestCase
     {
         Event::fake([OpportunityStageChanged::class]);
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->open()->create();
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
 
         $this->service->moveToStage(
             $opportunity,
@@ -116,9 +128,9 @@ class OpportunityServiceTest extends TestCase
         );
 
         $this->assertDatabaseHas('opportunities', [
-            'id' => $opportunity->id,
-            'stage' => PipelineStage::Won->value,
-            'status' => OpportunityStatus::Won->value,
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::Won->value,
+                                'status' => OpportunityStatus::Won->value,
         ]);
 
         Event::assertDispatched(OpportunityStageChanged::class);
@@ -126,20 +138,37 @@ class OpportunityServiceTest extends TestCase
 
     public function test_grouped_by_stage_returns_all_stages_with_matching_opportunities(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
 
-        $lead = Opportunity::factory()->for($client)->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $lead = Opportunity::factory()
+                    ->for($client)
+                    ->create([
+                        'stage' => PipelineStage::Lead,
+                    ]);
 
-        $won = Opportunity::factory()->for($client)->won()->create();
+        $won = Opportunity::factory()
+                    ->for($client)
+                    ->won()
+                    ->create();
 
         $grouped = $this->service->groupedByStage();
+        $leadOpportunities = $grouped[PipelineStage::Lead->value];
+        $wonOpportunities = $grouped[PipelineStage::Won->value];
+        $qualificationOpportunities = $grouped[PipelineStage::Qualification->value];
 
         $this->assertCount(8, $grouped);
-        $this->assertTrue($grouped[PipelineStage::Lead->value]->contains(fn (Opportunity $item): bool => $item->is($lead)));
-        $this->assertTrue($grouped[PipelineStage::Won->value]->contains(fn (Opportunity $item): bool => $item->is($won)));
-        $this->assertTrue($grouped[PipelineStage::Qualification->value]->isEmpty());
+        $this->assertTrue(
+            $leadOpportunities->contains(
+                fn (Opportunity $item): bool => $item->is($lead),
+            ),
+        );
+        $this->assertTrue(
+            $wonOpportunities->contains(
+                fn (Opportunity $item): bool => $item->is($won),
+            ),
+        );
+        $this->assertTrue($qualificationOpportunities->isEmpty());
     }
 
     public function test_create_throws_when_opportunity_cannot_be_reloaded(): void
@@ -150,15 +179,16 @@ class OpportunityServiceTest extends TestCase
             $opportunity->exists = false;
         });
 
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
 
         try {
             $this->expectException(RuntimeException::class);
             $this->expectExceptionMessage('Created opportunity could not be reloaded.');
 
             $this->service->create([
-                'client_id' => $client->id,
-                'title' => 'Vanishing deal',
+                                'client_id' => $client->id,
+                                'title' => 'Vanishing deal',
             ]);
         } finally {
             Opportunity::flushEventListeners();
@@ -169,12 +199,16 @@ class OpportunityServiceTest extends TestCase
     {
         Event::fake([OpportunityStageChanged::class]);
 
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         Opportunity::saved(function (Opportunity $model) use ($opportunity): void {
-            if ($model->getKey() !== $opportunity->getKey()) {
+            $modelKey = $model->getKey();
+            $opportunityKey = $opportunity->getKey();
+
+            if ($modelKey !== $opportunityKey) {
                 return;
             }
 

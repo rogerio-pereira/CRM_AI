@@ -29,10 +29,17 @@ class AiOrchestrationServiceTest extends TestCase
 
     public function test_job_class_for_each_agent_type(): void
     {
-        $this->assertSame(RunProspectingAgentJob::class, $this->service->jobClassFor(AgentType::Prospecting));
-        $this->assertSame(RunQualificationAgentJob::class, $this->service->jobClassFor(AgentType::Qualification));
-        $this->assertSame(RunRecommendationAgentJob::class, $this->service->jobClassFor(AgentType::Recommendation));
-        $this->assertSame(RunProposalAssistantAgentJob::class, $this->service->jobClassFor(AgentType::ProposalAssistant));
+        $service = $this->service;
+
+        $prospectingJobClass = $service->jobClassFor(AgentType::Prospecting);
+        $qualificationJobClass = $service->jobClassFor(AgentType::Qualification);
+        $recommendationJobClass = $service->jobClassFor(AgentType::Recommendation);
+        $proposalAssistantJobClass = $service->jobClassFor(AgentType::ProposalAssistant);
+
+        $this->assertSame(RunProspectingAgentJob::class, $prospectingJobClass);
+        $this->assertSame(RunQualificationAgentJob::class, $qualificationJobClass);
+        $this->assertSame(RunRecommendationAgentJob::class, $recommendationJobClass);
+        $this->assertSame(RunProposalAssistantAgentJob::class, $proposalAssistantJobClass);
     }
 
     public function test_dispatch_pushes_expected_job(): void
