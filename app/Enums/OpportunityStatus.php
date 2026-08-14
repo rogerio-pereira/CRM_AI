@@ -16,4 +16,13 @@ enum OpportunityStatus: string
             self::Lost => 'Lost',
         };
     }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Open => 'Opportunity in progress (not won or lost yet).',
+            self::Won => 'Closed as a win.',
+            self::Lost => 'Closed as a loss.',
+        };
+    }
 }
