@@ -32,6 +32,7 @@ it('opens detail modal and archives a lead from the actions menu', function () {
     $client = Client::factory()->create([
         'company_name' => 'Detail Modal Co',
         'qualification_notes' => 'Initial notes',
+        'website' => 'https://detail-modal.test',
     ]);
 
     $this->actingAs($user);
@@ -43,6 +44,8 @@ it('opens detail modal and archives a lead from the actions menu', function () {
         ->assertPresent('[data-test="leads-detail-status-badge"][data-status="active"]')
         ->assertSee('Detail Modal Co')
         ->assertSee('Initial notes')
+        ->assertPresent('[data-test="leads-detail-website-link"]')
+        ->assertSee('https://detail-modal.test')
         ->click('@leads-detail-close')
         ->click('@leads-actions-'.$client->id)
         ->click('@leads-archive-'.$client->id)

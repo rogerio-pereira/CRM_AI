@@ -237,6 +237,37 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
+    public function test_opportunity_detail_renders_client_contact_summary(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'company_name' => 'Summary Contact Co',
+            'contact_name' => 'Jordan Contact',
+            'contact_email' => 'jordan@summary.test',
+            'contact_phone' => '813-555-0199',
+            'website' => 'https://summary-contact.test',
+        ]);
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'title' => 'Summary contact deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-company-name"')
+            ->assertSee('Summary Contact Co')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-name"')
+            ->assertSee('Jordan Contact')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-email"')
+            ->assertSee('jordan@summary.test')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-phone"')
+            ->assertSee('813-555-0199')
+            ->assertSeeHtml('data-test="opportunities-detail-website-link"')
+            ->assertSeeHtml('href="https://summary-contact.test"')
+            ->assertSee('https://summary-contact.test');
+    }
+
     public function test_opportunity_detail_renders_client_qualification_chip(): void
     {
         $user = User::factory()->create();

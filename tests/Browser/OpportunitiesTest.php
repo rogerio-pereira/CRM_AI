@@ -56,7 +56,10 @@ it('opens the opportunity detail modal with client summary', function () {
     $user = User::factory()->create();
     $client = Client::factory()->create([
         'company_name' => 'Detail Summary Co',
+        'contact_name' => 'Alex Summary',
         'contact_email' => 'detail@summary.test',
+        'contact_phone' => '813-555-0142',
+        'website' => 'https://detail-summary.test',
     ]);
     $opportunity = Opportunity::factory()->for($client)->create([
         'title' => 'Detail Modal Deal',
@@ -69,7 +72,11 @@ it('opens the opportunity detail modal with client summary', function () {
         ->assertPresent('[data-test="opportunities-detail-modal"]')
         ->assertSee('Detail Modal Deal')
         ->assertSee('Detail Summary Co')
+        ->assertSee('Alex Summary')
         ->assertSee('detail@summary.test')
+        ->assertSee('813-555-0142')
+        ->assertPresent('[data-test="opportunities-detail-website-link"]')
+        ->assertSee('https://detail-summary.test')
         ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]');
 });
 

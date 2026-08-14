@@ -324,6 +324,23 @@ class ClientManagementTest extends TestCase
         $this->assertCount(1, $component->instance()->detailClient?->opportunities ?? []);
     }
 
+    public function test_detail_modal_renders_website_as_a_link(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'company_name' => 'Website Link Co',
+            'website' => 'https://website-link.test',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $client->id)
+            ->assertSeeHtml('data-test="leads-detail-website-link"')
+            ->assertSeeHtml('href="https://website-link.test"')
+            ->assertSee('https://website-link.test');
+    }
+
     public function test_open_edit_modal_with_null_social_links_initializes_empty_row(): void
     {
         $user = User::factory()->create();
