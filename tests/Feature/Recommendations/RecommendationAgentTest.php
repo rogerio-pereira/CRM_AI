@@ -254,17 +254,19 @@ class RecommendationAgentTest extends TestCase
         ]);
     }
 
-    public function test_persists_defaults_when_optional_fields_are_blank(): void
+    public function test_persists_defaults_when_optional_fields_are_missing(): void
     {
         $client = Client::factory()->create();
         $opportunity = Opportunity::factory()->for($client)->qualificationQualified()->create();
         $payload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
-        $payload['ai_recommendations']['generated_at'] = '';
-        $payload['ai_recommendations']['language'] = '';
-        $payload['ai_recommendations']['confidence'] = '';
-        $payload['ai_recommendations']['pain_points'] = 'invalid';
-        $payload['ai_recommendations']['recommended_focus'] = 'invalid';
-        $payload['ai_recommendations']['next_steps'] = 'invalid';
+        unset(
+            $payload['ai_recommendations']['generated_at'],
+            $payload['ai_recommendations']['language'],
+            $payload['ai_recommendations']['confidence'],
+            $payload['ai_recommendations']['pain_points'],
+            $payload['ai_recommendations']['recommended_focus'],
+            $payload['ai_recommendations']['next_steps'],
+        );
 
         RecommendationAnalysisAgent::fake([
             $payload,

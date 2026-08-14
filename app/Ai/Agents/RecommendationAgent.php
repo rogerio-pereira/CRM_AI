@@ -84,24 +84,9 @@ class RecommendationAgent implements AiAgent
     private function assertSuccessfulRecommendation(array $payload): void
     {
         $recommendations = $payload['ai_recommendations'] ?? [];
-
-        if (! is_array($recommendations)) {
-            $recommendations = [];
-        }
-
         $summary = $recommendations['summary'] ?? '';
         $conversationStrategy = $recommendations['conversation_strategy'] ?? [];
-
-        if (! is_array($conversationStrategy)) {
-            $conversationStrategy = [];
-        }
-
         $contactExample = $conversationStrategy['contact_example'] ?? [];
-
-        if (! is_array($contactExample)) {
-            $contactExample = [];
-        }
-
         $subject = $contactExample['subject'] ?? '';
         $body = $contactExample['body'] ?? '';
 
@@ -131,44 +116,14 @@ class RecommendationAgent implements AiAgent
             throw new RecommendationFailedException('Recommendation output was incomplete.');
         }
 
-        $generatedAt = $rawRecommendations['generated_at'] ?? '';
-
-        if ($generatedAt === '') {
-            $generatedAt = now()->toIso8601String();
-        }
-
+        $now = now()->toIso8601String();
+        $generatedAt = $rawRecommendations['generated_at'] ?? $now;
         $language = $rawRecommendations['language'] ?? 'en';
-
-        if ($language === '') {
-            $language = 'en';
-        }
-
         $confidence = $rawRecommendations['confidence'] ?? 'medium';
-
-        if ($confidence === '') {
-            $confidence = 'medium';
-        }
-
         $painPoints = $rawRecommendations['pain_points'] ?? [];
         $recommendedFocus = $rawRecommendations['recommended_focus'] ?? [];
         $conversationStrategy = $rawRecommendations['conversation_strategy'] ?? [];
         $nextSteps = $rawRecommendations['next_steps'] ?? [];
-
-        if (! is_array($painPoints)) {
-            $painPoints = [];
-        }
-
-        if (! is_array($recommendedFocus)) {
-            $recommendedFocus = [];
-        }
-
-        if (! is_array($conversationStrategy)) {
-            $conversationStrategy = [];
-        }
-
-        if (! is_array($nextSteps)) {
-            $nextSteps = [];
-        }
 
         $recommendations = [
                 'schema_version' => 1,
