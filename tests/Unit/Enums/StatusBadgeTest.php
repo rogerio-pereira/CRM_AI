@@ -10,17 +10,17 @@ class StatusBadgeTest extends TestCase
 {
     public function test_pending_status_badges_match_between_follow_up_and_task(): void
     {
-        $this->assertSame(
-            TaskStatus::Pending->badgeClasses(),
-            FollowUpReminderStatus::Pending->badgeClasses(),
-        );
+        $taskClasses = TaskStatus::Pending->badgeClasses();
+        $followUpClasses = FollowUpReminderStatus::Pending->badgeClasses();
+
+        $this->assertSame($taskClasses, $followUpClasses);
     }
 
     public function test_completed_and_done_status_badges_match(): void
     {
-        $this->assertSame(
-            TaskStatus::Done->badgeClasses(),
-            FollowUpReminderStatus::Completed->badgeClasses(),
-        );
+        $taskClasses = TaskStatus::Done->badgeClasses();
+        $followUpClasses = FollowUpReminderStatus::Completed->badgeClasses();
+
+        $this->assertSame($taskClasses, $followUpClasses);
     }
 }

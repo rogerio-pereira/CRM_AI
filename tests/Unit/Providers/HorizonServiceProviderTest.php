@@ -12,52 +12,68 @@ class HorizonServiceProviderTest extends TestCase
     {
         $this->app['env'] = 'local';
 
-        $user = User::factory()->make([
-            'email' => 'operator@example.com',
-        ]);
+        $user = User::factory()
+                    ->make([
+                        'email' => 'operator@example.com',
+                    ]);
 
-        $this->assertTrue(Gate::forUser($user)->allows('viewHorizon'));
+        $canViewHorizon = Gate::forUser($user)
+                              ->allows('viewHorizon');
+
+        $this->assertTrue($canViewHorizon);
     }
 
     public function test_horizon_gate_restricts_to_allowlisted_emails_outside_local(): void
     {
         config([
-            'horizon.allowed_emails' => 'allowed@example.com',
+                        'horizon.allowed_emails' => 'allowed@example.com',
         ]);
 
         $this->app['env'] = 'production';
 
-        $allowed = User::factory()->make([
-            'email' => 'allowed@example.com',
-        ]);
+        $allowed = User::factory()
+                        ->make([
+                            'email' => 'allowed@example.com',
+                        ]);
 
-        $denied = User::factory()->make([
-            'email' => 'other@example.com',
-        ]);
+        $denied = User::factory()
+                        ->make([
+                            'email' => 'other@example.com',
+                        ]);
 
-        $this->assertTrue(Gate::forUser($allowed)->allows('viewHorizon'));
-        $this->assertFalse(Gate::forUser($denied)->allows('viewHorizon'));
+        $allowedCanViewHorizon = Gate::forUser($allowed)
+                                     ->allows('viewHorizon');
+
+        $deniedCanViewHorizon = Gate::forUser($denied)
+                                    ->allows('viewHorizon');
+
+        $this->assertTrue($allowedCanViewHorizon);
+        $this->assertFalse($deniedCanViewHorizon);
     }
 
     public function test_horizon_gate_denies_when_allowlist_is_empty_outside_local(): void
     {
         config([
-            'horizon.allowed_emails' => '',
+                        'horizon.allowed_emails' => '',
         ]);
 
         $this->app['env'] = 'production';
 
-        $user = User::factory()->make([
-            'email' => 'any@example.com',
-        ]);
+        $user = User::factory()
+                    ->make([
+                        'email' => 'any@example.com',
+                    ]);
 
-        $this->assertFalse(Gate::forUser($user)->allows('viewHorizon'));
+        $canViewHorizon = Gate::forUser($user)
+                              ->allows('viewHorizon');
+
+        $this->assertFalse($canViewHorizon);
     }
 
     public function test_horizon_gate_denies_guest_outside_local(): void
     {
         config([
-            'horizon.allowed_emails' => 'allowed@example.com',
+                        'horizon.allowed_emails' => 'allowed@example.com',
         ]);
 
         $this->app['env'] = 'production';
@@ -68,15 +84,19 @@ class HorizonServiceProviderTest extends TestCase
     public function test_horizon_gate_denies_user_without_email_outside_local(): void
     {
         config([
-            'horizon.allowed_emails' => 'allowed@example.com',
+                        'horizon.allowed_emails' => 'allowed@example.com',
         ]);
 
         $this->app['env'] = 'production';
 
-        $user = User::factory()->make([
-            'email' => null,
-        ]);
+        $user = User::factory()
+                    ->make([
+                        'email' => null,
+                    ]);
 
-        $this->assertFalse(Gate::forUser($user)->allows('viewHorizon'));
+        $canViewHorizon = Gate::forUser($user)
+                              ->allows('viewHorizon');
+
+        $this->assertFalse($canViewHorizon);
     }
 }

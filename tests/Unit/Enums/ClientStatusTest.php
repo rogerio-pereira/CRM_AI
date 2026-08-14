@@ -30,12 +30,20 @@ class ClientStatusTest extends TestCase
     public function test_options_returns_value_label_map_for_all_cases(): void
     {
         $options = ClientStatus::options();
+        $statuses = ClientStatus::cases();
+        $statusCount = count($statuses);
 
-        $this->assertCount(count(ClientStatus::cases()), $options);
+        $this->assertCount($statusCount, $options);
 
-        foreach (ClientStatus::cases() as $status) {
-            $this->assertArrayHasKey($status->value, $options);
-            $this->assertSame($status->label(), $options[$status->value]);
+        foreach ($statuses as $status) {
+            $statusValue = $status->value;
+            $statusLabel = $status->label();
+
+            $this->assertArrayHasKey($statusValue, $options);
+
+            $optionLabel = $options[$statusValue];
+
+            $this->assertSame($statusLabel, $optionLabel);
         }
     }
 

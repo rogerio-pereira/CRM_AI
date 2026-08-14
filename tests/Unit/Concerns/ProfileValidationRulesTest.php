@@ -14,72 +14,106 @@ class ProfileValidationRulesTest extends TestCase
 
     public function test_profile_rules_require_name_and_email(): void
     {
-        $validator = Validator::make([], $this->rules());
+        $rules = $this->rules();
+
+        $validator = Validator::make([], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('email', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('name', $errors);
+        $this->assertArrayHasKey('email', $errors);
     }
 
     public function test_name_must_not_exceed_255_characters(): void
     {
+        $rules = $this->rules();
+
         $validator = Validator::make([
             'name' => str_repeat('a', 256),
             'email' => 'valid@example.com',
-        ], $this->rules());
+        ], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('name', $errors);
     }
 
     public function test_email_must_be_a_valid_address(): void
     {
+        $rules = $this->rules();
+
         $validator = Validator::make([
             'name' => 'Jane Doe',
             'email' => 'not-an-email',
-        ], $this->rules());
+        ], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('email', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('email', $errors);
     }
 
     public function test_email_must_be_unique_when_no_user_id_is_provided(): void
     {
-        User::factory()->create(['email' => 'taken@example.com']);
+        User::factory()
+                ->create(['email' => 'taken@example.com']);
+        $rules = $this->rules();
 
         $validator = Validator::make([
             'name' => 'Jane Doe',
             'email' => 'taken@example.com',
-        ], $this->rules());
+        ], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('email', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('email', $errors);
     }
 
     public function test_email_unique_rule_ignores_the_current_user_when_updating(): void
     {
-        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $user = User::factory()
+                    ->create(['email' => 'jane@example.com']);
+        $rules = $this->rules($user->id);
 
         $validator = Validator::make([
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
-        ], $this->rules($user->id));
+        ], $rules);
 
         $this->assertFalse($validator->fails());
     }
 
     public function test_email_must_remain_unique_to_other_users_when_updating(): void
     {
-        $existing = User::factory()->create(['email' => 'taken@example.com']);
-        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $existing = User::factory()
+                        ->create(['email' => 'taken@example.com']);
+
+        $user = User::factory()
+                    ->create(['email' => 'jane@example.com']);
+        $rules = $this->rules($user->id);
 
         $validator = Validator::make([
             'name' => 'Jane Doe',
             'email' => 'taken@example.com',
-        ], $this->rules($user->id));
+        ], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('email', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('email', $errors);
 
         $this->assertNotSame($existing->id, $user->id);
     }
@@ -89,7 +123,7 @@ class ProfileValidationRulesTest extends TestCase
      */
     private function rules(?int $userId = null): array
     {
-        return (new class
+        $rules = (new class
         {
             use ProfileValidationRules;
 
@@ -101,5 +135,7 @@ class ProfileValidationRulesTest extends TestCase
                 return $this->profileRules($userId);
             }
         })->forUser($userId);
+
+        return $rules;
     }
 }

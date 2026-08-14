@@ -10,18 +10,18 @@ class PriorityBadgeTest extends TestCase
 {
     public function test_follow_up_and_task_priorities_share_badge_classes(): void
     {
-        $this->assertSame(
-            FollowUpPriority::Low->badgeClasses(),
-            TaskPriority::Low->badgeClasses(),
-        );
-        $this->assertSame(
-            FollowUpPriority::Medium->badgeClasses(),
-            TaskPriority::Medium->badgeClasses(),
-        );
-        $this->assertSame(
-            FollowUpPriority::High->badgeClasses(),
-            TaskPriority::High->badgeClasses(),
-        );
+        $followUpLowClasses = FollowUpPriority::Low->badgeClasses();
+        $taskLowClasses = TaskPriority::Low->badgeClasses();
+
+        $followUpMediumClasses = FollowUpPriority::Medium->badgeClasses();
+        $taskMediumClasses = TaskPriority::Medium->badgeClasses();
+
+        $followUpHighClasses = FollowUpPriority::High->badgeClasses();
+        $taskHighClasses = TaskPriority::High->badgeClasses();
+
+        $this->assertSame($followUpLowClasses, $taskLowClasses);
+        $this->assertSame($followUpMediumClasses, $taskMediumClasses);
+        $this->assertSame($followUpHighClasses, $taskHighClasses);
     }
 
     public function test_high_priority_uses_danger_tokens(): void

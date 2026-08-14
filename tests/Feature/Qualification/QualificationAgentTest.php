@@ -35,23 +35,31 @@ class QualificationAgentTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $client = Client::factory()->create([
-            'company_name' => 'GreenSprout Lawn Care',
-            'website' => 'https://greensprout.example',
-        ]);
-        $opportunity = Opportunity::factory()->for($client)->create([
-            'stage' => PipelineStage::Lead,
-        ]);
-        $sibling = Opportunity::factory()->for($client)->create([
-            'title' => 'Sibling stays put',
-            'stage' => PipelineStage::Lead,
-        ]);
+        $client = Client::factory()
+                        ->create([
+                            'company_name' => 'GreenSprout Lawn Care',
+                            'website' => 'https://greensprout.example',
+                        ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
+        $sibling = Opportunity::factory()
+                        ->for($client)
+                        ->create([
+                            'title' => 'Sibling stays put',
+                            'stage' => PipelineStage::Lead,
+                        ]);
 
-        QualificationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        QualificationFake::fakeSuccessful($opportunityId, $clientId);
 
         $agent = app(QualificationAgent::class);
         $result = $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -85,9 +93,15 @@ class QualificationAgentTest extends TestCase
             $payloadClientId = $job->payload['client_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
 
-            return $payloadOpportunityId === $opportunity->id
-                && $payloadClientId === $client->id
-                && $trigger === 'qualification_completed';
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $client->id) {
+                return false;
+            }
+
+            return $trigger === 'qualification_completed';
         });
     }
 
@@ -97,12 +111,14 @@ class QualificationAgentTest extends TestCase
             RunQualificationAgentJob::class,
         ]);
 
-        $client = Client::factory()->create([
-            'company_name' => 'Manual Qualify Co',
-        ]);
-        $opportunity = app(OpportunityService::class)->create([
-            'client_id' => $client->id,
-            'title' => 'Manual deal',
+        $client = Client::factory()
+                        ->create([
+                            'company_name' => 'Manual Qualify Co',
+                        ]);
+        $opportunityService = app(OpportunityService::class);
+        $opportunity = $opportunityService->create([
+                            'client_id' => $client->id,
+                            'title' => 'Manual deal',
         ]);
 
         $this->assertSame(QualificationStatus::Pending, $opportunity->qualification_status);
@@ -112,8 +128,11 @@ class QualificationAgentTest extends TestCase
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
 
-            return $payloadOpportunityId === $opportunity->id
-                && $trigger === 'opportunity_created';
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            return $trigger === 'opportunity_created';
         });
     }
 
@@ -123,8 +142,10 @@ class QualificationAgentTest extends TestCase
             RunQualificationAgentJob::class,
         ]);
 
-        app(ClientService::class)->create([
-            'company_name' => 'No Opportunity Co',
+        $clientService = app(ClientService::class);
+
+        $clientService->create([
+                            'company_name' => 'No Opportunity Co',
         ]);
 
         Queue::assertNothingPushed();
@@ -136,23 +157,32 @@ class QualificationAgentTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $client = Client::factory()->create([
-            'lead_source' => 'prospecting',
-        ]);
-        $existing = Opportunity::factory()->for($client)->qualificationQualified()->create([
-            'title' => 'Website now',
-            'stage' => PipelineStage::Contact,
-        ]);
-        $newDeal = Opportunity::factory()->for($client)->create([
-            'title' => 'Content later',
-            'stage' => PipelineStage::Lead,
-        ]);
+        $client = Client::factory()
+                        ->create([
+                            'lead_source' => 'prospecting',
+                        ]);
+        $existing = Opportunity::factory()
+                        ->for($client)
+                        ->qualificationQualified()
+                        ->create([
+                            'title' => 'Website now',
+                            'stage' => PipelineStage::Contact,
+                        ]);
+        $newDeal = Opportunity::factory()
+                        ->for($client)
+                        ->create([
+                            'title' => 'Content later',
+                            'stage' => PipelineStage::Lead,
+                        ]);
 
-        QualificationFake::fakeSuccessful((string) $newDeal->id, (string) $client->id);
+        $opportunityId = (string) $newDeal->id;
+        $clientId = (string) $client->id;
+
+        QualificationFake::fakeSuccessful($opportunityId, $clientId);
 
         $agent = app(QualificationAgent::class);
         $result = $agent->handle([
-            'opportunity_id' => $newDeal->id,
+                            'opportunity_id' => $newDeal->id,
         ]);
 
         $existing->refresh();
@@ -172,13 +202,15 @@ class QualificationAgentTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $opportunity = Opportunity::factory()->qualificationQualified()->create([
-            'stage' => PipelineStage::Contact,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                            ]);
 
         $agent = app(QualificationAgent::class);
         $result = $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -194,26 +226,28 @@ class QualificationAgentTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $client = Client::factory()->create([
-            'lead_source' => 'prospecting',
-        ]);
-        $opportunity = Opportunity::factory()->for($client)->create([
-            'title' => $client->company_name,
-            'stage' => PipelineStage::Lead,
-        ]);
+        $client = Client::factory()
+                        ->create([
+                            'lead_source' => 'prospecting',
+                        ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'title' => $client->company_name,
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         $catalogOpportunities = $this->catalogOpportunityEntries();
         $expectedCount = count($catalogOpportunities);
 
-        QualificationFake::fakeSuccessful(
-            (string) $opportunity->id,
-            (string) $client->id,
-            $catalogOpportunities,
-        );
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        QualificationFake::fakeSuccessful($opportunityId, $clientId, $catalogOpportunities);
 
         $agent = app(QualificationAgent::class);
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -224,14 +258,19 @@ class QualificationAgentTest extends TestCase
         $this->assertIsArray($storedOpportunities);
         $this->assertCount($expectedCount, $storedOpportunities);
         $this->assertGreaterThan(0, $expectedCount);
-        $this->assertSame(1, Opportunity::where('client_id', $client->id)->count());
+        $opportunityQuery = Opportunity::query();
+        $opportunityQuery->where('client_id', $client->id);
+        $clientOpportunities = $opportunityQuery->count('*');
+
+        $this->assertSame(1, $clientOpportunities);
     }
 
     public function test_failed_ai_status_throws_user_safe_exception(): void
     {
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         QualificationFake::fakeFailed('Not enough public information to qualify this lead.');
 
@@ -241,18 +280,20 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Not enough public information to qualify this lead.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_job_failed_callback_stores_user_safe_error_on_the_opportunity(): void
     {
-        $opportunity = Opportunity::factory()->qualificationProcessing()->create([
-            'stage' => PipelineStage::Qualification,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                            ]);
 
         $job = new RunQualificationAgentJob([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
         $exception = new QualificationFailedException('Not enough public information to qualify this lead.');
 
@@ -270,13 +311,17 @@ class QualificationAgentTest extends TestCase
 
     public function test_job_failed_callback_uses_generic_error_for_provider_exceptions(): void
     {
-        $opportunity = Opportunity::factory()->qualificationProcessing()->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create();
 
         $job = new RunQualificationAgentJob([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
-        $job->failed(new RuntimeException('OpenAI 500 internal provider dump'));
+        $exception = new RuntimeException('OpenAI 500 internal provider dump');
+
+        $job->failed($exception);
 
         $opportunity->refresh();
 
@@ -290,8 +335,10 @@ class QualificationAgentTest extends TestCase
 
     public function test_missing_contact_example_is_treated_as_incomplete_output(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['ai_insights']['outreach_strategy']['contact_example']['body'] = '';
 
         QualificationAnalysisAgent::fake([
@@ -304,14 +351,16 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_missing_outreach_strategy_is_incomplete(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['ai_insights']['outreach_strategy'] = null;
 
         QualificationAnalysisAgent::fake([
@@ -324,14 +373,16 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_missing_contact_example_object_is_incomplete(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['ai_insights']['outreach_strategy']['contact_example'] = null;
 
         QualificationAnalysisAgent::fake([
@@ -344,14 +395,16 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_empty_contact_subject_is_incomplete(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['ai_insights']['outreach_strategy']['contact_example']['subject'] = '  ';
 
         QualificationAnalysisAgent::fake([
@@ -364,7 +417,7 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
@@ -384,13 +437,14 @@ class QualificationAgentTest extends TestCase
         $this->expectException(ModelNotFoundException::class);
 
         $agent->handle([
-            'opportunity_id' => 999999,
+                            'opportunity_id' => 999999,
         ]);
     }
 
     public function test_failed_status_without_error_uses_default_message(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
         $payload = QualificationFake::failedPayload('');
         $payload['qualification_last_error'] = '   ';
 
@@ -404,14 +458,16 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('The opportunity could not be qualified from the available information.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_unknown_qualification_status_is_incomplete(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['qualification_status'] = 'maybe';
 
         QualificationAnalysisAgent::fake([
@@ -424,14 +480,16 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_missing_insights_is_incomplete(): void
     {
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['ai_insights'] = null;
 
         QualificationAnalysisAgent::fake([
@@ -444,7 +502,7 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
@@ -454,8 +512,10 @@ class QualificationAgentTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $opportunity = Opportunity::factory()->create();
-        $payload = QualificationFake::successfulPayload((string) $opportunity->id);
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $payload = QualificationFake::successfulPayload($opportunityId);
         $payload['qualification_notes'] = '   ';
 
         QualificationAnalysisAgent::fake([
@@ -464,7 +524,7 @@ class QualificationAgentTest extends TestCase
 
         $agent = app(QualificationAgent::class);
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -475,20 +535,25 @@ class QualificationAgentTest extends TestCase
 
     public function test_job_failed_callback_ignores_missing_opportunity_and_already_qualified(): void
     {
-        $qualified = Opportunity::factory()->qualificationQualified()->create();
+        $qualified = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create();
 
         $missingOpportunityJob = new RunQualificationAgentJob([]);
-        $missingOpportunityJob->failed(new RuntimeException('ignored'));
+        $missingOpportunityException = new RuntimeException('ignored');
+        $missingOpportunityJob->failed($missingOpportunityException);
 
         $unknownOpportunityJob = new RunQualificationAgentJob([
-            'opportunity_id' => 999999,
+                            'opportunity_id' => 999999,
         ]);
-        $unknownOpportunityJob->failed(new RuntimeException('ignored'));
+        $unknownOpportunityException = new RuntimeException('ignored');
+        $unknownOpportunityJob->failed($unknownOpportunityException);
 
         $qualifiedJob = new RunQualificationAgentJob([
-            'opportunity_id' => $qualified->id,
+                            'opportunity_id' => $qualified->id,
         ]);
-        $qualifiedJob->failed(new RuntimeException('should not overwrite'));
+        $qualifiedException = new RuntimeException('should not overwrite');
+        $qualifiedJob->failed($qualifiedException);
 
         $qualified->refresh();
 
@@ -498,7 +563,8 @@ class QualificationAgentTest extends TestCase
 
     public function test_agent_throws_when_prompt_file_is_empty(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
 
         $file = File::partialMock();
         $file->shouldReceive('exists')
@@ -514,13 +580,14 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification prompt file is empty');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_agent_throws_when_client_is_missing(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
 
         Client::addGlobalScope('qualification-missing-client', function ($query): void {
             $query->whereRaw('0 = 1');
@@ -528,12 +595,13 @@ class QualificationAgentTest extends TestCase
 
         try {
             $agent = app(QualificationAgent::class);
+            $expectedMessage = 'Qualification client not found for opportunity: '.$opportunity->id;
 
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Qualification client not found for opportunity: '.$opportunity->id);
+            $this->expectExceptionMessage($expectedMessage);
 
             $agent->handle([
-                'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
             ]);
         } finally {
             $modelReflection = new ReflectionClass(Client::class);
@@ -546,7 +614,8 @@ class QualificationAgentTest extends TestCase
 
     public function test_agent_throws_when_analysis_response_is_not_structured(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
         $unstructuredResponse = Mockery::mock(AgentResponse::class);
         $analysisAgent = Mockery::mock(QualificationAnalysisAgent::class);
         $analysisAgent->shouldReceive('prompt')
@@ -563,19 +632,20 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_persist_throws_when_insights_are_not_an_array(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
         $agent = app(QualificationAgent::class);
         $method = new ReflectionMethod(QualificationAgent::class, 'persistSuccessfulQualification');
         $payload = [
-                'qualification_notes' => 'Notes without insights.',
-                'ai_insights' => null,
-            ];
+                            'qualification_notes' => 'Notes without insights.',
+                            'ai_insights' => null,
+        ];
 
         $this->expectException(QualificationFailedException::class);
         $this->expectExceptionMessage('Qualification output was incomplete.');
@@ -585,18 +655,21 @@ class QualificationAgentTest extends TestCase
 
     public function test_agent_throws_when_opportunity_payload_cannot_be_encoded(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $client->company_name = "\xB1\x31";
         $client->save();
 
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
         $agent = app(QualificationAgent::class);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Qualification opportunity payload could not be encoded.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
@@ -609,15 +682,21 @@ class QualificationAgentTest extends TestCase
         $skipPath = base_path('docs/services/_coverage_skip.txt');
         file_put_contents($skipPath, 'not a service catalog file');
 
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
 
-        QualificationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        QualificationFake::fakeSuccessful($opportunityId, $clientId);
 
         try {
             $agent = app(QualificationAgent::class);
             $agent->handle([
-                'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
             ]);
         } finally {
             if (is_file($skipPath)) {
@@ -632,7 +711,8 @@ class QualificationAgentTest extends TestCase
 
     public function test_agent_throws_when_prompt_file_is_missing(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
 
         File::partialMock()
             ->shouldReceive('exists')
@@ -644,7 +724,7 @@ class QualificationAgentTest extends TestCase
         $this->expectExceptionMessage('Qualification prompt file not found');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
     }
 
@@ -664,7 +744,8 @@ class QualificationAgentTest extends TestCase
      */
     private function catalogOpportunityEntries(): array
     {
-        $files = File::files(base_path('docs/services'));
+        $servicesPath = base_path('docs/services');
+        $files = File::files($servicesPath);
         $entries = [];
 
         foreach ($files as $file) {
@@ -675,12 +756,13 @@ class QualificationAgentTest extends TestCase
                 continue;
             }
 
+            $service = str_replace('.md', '', $filename);
             $entries[] = [
-                    'service' => str_replace('.md', '', $filename),
-                    'title' => 'Catalog service '.$filename,
-                    'why_it_matters' => 'Covered in the initial scan.',
-                    'priority' => 'medium',
-                ];
+                            'service' => $service,
+                            'title' => 'Catalog service '.$filename,
+                            'why_it_matters' => 'Covered in the initial scan.',
+                            'priority' => 'medium',
+            ];
         }
 
         return $entries;

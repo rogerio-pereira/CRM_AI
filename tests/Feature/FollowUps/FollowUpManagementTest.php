@@ -23,7 +23,8 @@ class FollowUpManagementTest extends TestCase
 
     public function test_follow_ups_index_page_is_displayed_for_authenticated_users(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user)
             ->get(route('follow-ups.index'))
@@ -34,15 +35,20 @@ class FollowUpManagementTest extends TestCase
     {
         Event::fake([FollowUpCreated::class]);
 
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('client_id', $client->id)
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->set('priority', FollowUpPriority::High->value)
             ->set('notes', 'Call back tomorrow')
             ->call('saveFollowUp')
@@ -60,8 +66,10 @@ class FollowUpManagementTest extends TestCase
 
     public function test_due_date_is_required(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -75,10 +83,18 @@ class FollowUpManagementTest extends TestCase
 
     public function test_opportunity_must_belong_to_selected_client(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $otherClient = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($otherClient)->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $otherClient = Client::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($otherClient)
+                            ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
@@ -86,7 +102,7 @@ class FollowUpManagementTest extends TestCase
             ->call('openCreateModal')
             ->set('client_id', $client->id)
             ->set('opportunity_id', $opportunity->id)
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->call('saveFollowUp')
             ->assertHasErrors(['opportunity_id']);
     }
@@ -95,8 +111,10 @@ class FollowUpManagementTest extends TestCase
     {
         Event::fake([FollowUpUpdated::class]);
 
-        $user = User::factory()->create();
-        $followUp = FollowUp::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $followUp = FollowUp::factory()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -114,32 +132,46 @@ class FollowUpManagementTest extends TestCase
 
     public function test_overdue_filter_returns_only_overdue_pending_follow_ups(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay();
 
-        FollowUp::factory()->for($client)->create([
-            'due_at' => now()->addDay(),
-        ]);
+        FollowUp::factory()
+                ->for($client)
+                ->create(['due_at' => $dueAt]);
 
-        $overdue = FollowUp::factory()->for($client)->overdue()->create();
+        $overdue = FollowUp::factory()
+                        ->for($client)
+                        ->overdue()
+                        ->create();
+        $overdueClient = $overdue->client;
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
             ->set('overdueOnly', true)
-            ->assertSee($overdue->client->company_name);
+            ->assertSee($overdueClient->company_name);
     }
 
     public function test_user_can_update_a_follow_up(): void
     {
         Event::fake([FollowUpUpdated::class]);
 
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->create([
-            'notes' => 'Original note',
-            'due_at' => now()->addDay(),
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create([
+                            'notes' => 'Original note',
+                            'due_at' => $dueAt,
+                        ]);
 
         $this->actingAs($user);
 
@@ -153,8 +185,8 @@ class FollowUpManagementTest extends TestCase
             ->assertSet('showFormModal', false);
 
         $this->assertDatabaseHas('follow_ups', [
-            'id' => $followUp->id,
-            'notes' => 'Updated note',
+                            'id' => $followUp->id,
+                            'notes' => 'Updated note',
         ]);
 
         Event::assertDispatched(FollowUpUpdated::class);
@@ -162,17 +194,25 @@ class FollowUpManagementTest extends TestCase
 
     public function test_open_edit_modal_loads_follow_up_fields(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
-        $dueAt = now()->addDays(3)->startOfMinute();
-
-        $followUp = FollowUp::factory()->for($client)->create([
-            'opportunity_id' => $opportunity->id,
-            'due_at' => $dueAt,
-            'priority' => FollowUpPriority::Low,
-            'notes' => 'Edit me',
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
+        $dueAt = now()
+                        ->addDays(3)
+                        ->startOfMinute();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create([
+                            'opportunity_id' => $opportunity->id,
+                            'due_at' => $dueAt,
+                            'priority' => FollowUpPriority::Low,
+                            'notes' => 'Edit me',
+                        ]);
+        $expectedDueAt = $dueAt->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
@@ -180,7 +220,7 @@ class FollowUpManagementTest extends TestCase
             ->call('openEditModal', $followUp->id)
             ->assertSet('client_id', $client->id)
             ->assertSet('opportunity_id', $opportunity->id)
-            ->assertSet('due_at', $dueAt->format('Y-m-d\TH:i'))
+            ->assertSet('due_at', $expectedDueAt)
             ->assertSet('priority', FollowUpPriority::Low->value)
             ->assertSet('notes', 'Edit me')
             ->assertCount('opportunityOptions', 1);
@@ -188,18 +228,29 @@ class FollowUpManagementTest extends TestCase
 
     public function test_changing_client_clears_opportunity_and_reload_options(): void
     {
-        $user = User::factory()->create();
-        $firstClient = Client::factory()->create();
-        $secondClient = Client::factory()->create();
-        Opportunity::factory()->for($firstClient)->create(['title' => 'First deal']);
-        Opportunity::factory()->for($secondClient)->create(['title' => 'Second deal']);
+        $user = User::factory()
+                    ->create();
+        $firstClient = Client::factory()
+                    ->create();
+        $secondClient = Client::factory()
+                    ->create();
+
+        Opportunity::factory()
+            ->for($firstClient)
+            ->create(['title' => 'First deal']);
+        Opportunity::factory()
+            ->for($secondClient)
+            ->create(['title' => 'Second deal']);
+
+        $firstOpportunityId = Opportunity::where('client_id', $firstClient->id)
+                                    ->value('id');
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
             ->call('openCreateModal')
             ->set('client_id', $firstClient->id)
-            ->set('opportunity_id', Opportunity::where('client_id', $firstClient->id)->value('id'))
+            ->set('opportunity_id', $firstOpportunityId)
             ->set('client_id', $secondClient->id)
             ->assertSet('opportunity_id', null)
             ->assertCount('opportunityOptions', 1)
@@ -208,11 +259,18 @@ class FollowUpManagementTest extends TestCase
 
     public function test_hide_completed_is_enabled_by_default(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Visible Pending Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Visible Pending Co']);
 
-        FollowUp::factory()->for($client)->create();
-        FollowUp::factory()->for($client)->completed()->create(['notes' => 'Done follow-up']);
+        FollowUp::factory()
+                ->for($client)
+                ->create();
+        FollowUp::factory()
+                ->for($client)
+                ->completed()
+                ->create(['notes' => 'Done follow-up']);
 
         $this->actingAs($user);
 
@@ -224,12 +282,15 @@ class FollowUpManagementTest extends TestCase
 
     public function test_unchecking_hide_completed_shows_completed_follow_ups(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Completed Visible Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Completed Visible Co']);
 
-        FollowUp::factory()->for($client)->completed()->create([
-            'notes' => 'Finished task',
-        ]);
+        FollowUp::factory()
+                ->for($client)
+                ->completed()
+                ->create(['notes' => 'Finished task']);
 
         $this->actingAs($user);
 
@@ -241,47 +302,65 @@ class FollowUpManagementTest extends TestCase
 
     public function test_priority_filter_limits_listed_follow_ups(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Priority Filter Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Priority Filter Co']);
 
-        FollowUp::factory()->for($client)->create([
-            'priority' => FollowUpPriority::Low,
-        ]);
+        FollowUp::factory()
+                ->for($client)
+                ->create(['priority' => FollowUpPriority::Low]);
 
-        $highPriority = FollowUp::factory()->for($client)->create([
-            'priority' => FollowUpPriority::High,
-        ]);
+        $highPriority = FollowUp::factory()
+                            ->for($client)
+                            ->create(['priority' => FollowUpPriority::High]);
+        $highPriorityClient = $highPriority->client;
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
             ->set('priorityFilter', FollowUpPriority::High->value)
-            ->assertSee($highPriority->client->company_name)
+            ->assertSee($highPriorityClient->company_name)
             ->assertSee('High');
     }
 
     public function test_follow_ups_list_is_paginated_with_twenty_per_page(): void
     {
-        $user = User::factory()->create();
-        FollowUp::factory()->count(21)->create();
+        $user = User::factory()
+                    ->create();
+
+        FollowUp::factory()
+                ->count(21)
+                ->create();
 
         $this->actingAs($user);
 
         $component = Livewire::test(Index::class);
+        $followUpsIndex = $component->instance();
+        $firstPageFollowUps = $followUpsIndex->followUps;
 
-        $this->assertCount(20, $component->instance()->followUps->items());
-        $this->assertSame(21, $component->instance()->followUps->total());
+        $this->assertCount(20, $firstPageFollowUps->items());
+        $this->assertSame(21, $firstPageFollowUps->total());
 
         $component->call('gotoPage', 2);
 
-        $this->assertCount(1, $component->instance()->followUps->items());
+        $secondPageIndex = $component->instance();
+        $secondPageFollowUps = $secondPageIndex->followUps;
+
+        $this->assertCount(1, $secondPageFollowUps->items());
     }
 
     public function test_search_filter_resets_pagination_to_first_page(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Searchable Follow Co']);
-        FollowUp::factory()->count(21)->for($client)->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Searchable Follow Co']);
+
+        FollowUp::factory()
+                ->count(21)
+                ->for($client)
+                ->create();
 
         $this->actingAs($user);
 
@@ -289,13 +368,22 @@ class FollowUpManagementTest extends TestCase
             ->call('gotoPage', 2)
             ->set('search', 'Searchable');
 
-        $this->assertSame(1, $component->instance()->followUps->currentPage());
+        $followUpsIndex = $component->instance();
+        $followUps = $followUpsIndex->followUps;
+
+        $this->assertSame(1, $followUps->currentPage());
     }
 
     public function test_overdue_filter_resets_pagination_to_first_page(): void
     {
-        $user = User::factory()->create();
-        FollowUp::factory()->count(21)->create(['due_at' => now()->subDay()]);
+        $user = User::factory()
+                    ->create();
+        $dueAt = now()
+                        ->subDay();
+
+        FollowUp::factory()
+                ->count(21)
+                ->create(['due_at' => $dueAt]);
 
         $this->actingAs($user);
 
@@ -303,13 +391,20 @@ class FollowUpManagementTest extends TestCase
             ->call('gotoPage', 2)
             ->set('overdueOnly', true);
 
-        $this->assertSame(1, $component->instance()->followUps->currentPage());
+        $followUpsIndex = $component->instance();
+        $followUps = $followUpsIndex->followUps;
+
+        $this->assertSame(1, $followUps->currentPage());
     }
 
     public function test_follow_ups_list_queries_database_with_limit(): void
     {
-        $user = User::factory()->create();
-        FollowUp::factory()->count(25)->create();
+        $user = User::factory()
+                    ->create();
+
+        FollowUp::factory()
+                ->count(25)
+                ->create();
 
         $this->actingAs($user);
 
@@ -317,10 +412,12 @@ class FollowUpManagementTest extends TestCase
 
         Livewire::test(Index::class);
 
-        $sql = collect(DB::getQueryLog())
-            ->pluck('query')
-            ->implode(' ');
+        $queryLog = DB::getQueryLog();
+        $sql = collect($queryLog)
+                    ->pluck('query')
+                    ->implode(' ');
+        $lowercaseSql = strtolower($sql);
 
-        $this->assertStringContainsString('limit', strtolower($sql));
+        $this->assertStringContainsString('limit', $lowercaseSql);
     }
 }

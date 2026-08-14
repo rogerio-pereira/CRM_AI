@@ -26,10 +26,12 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         $this->actingAs($user);
 
@@ -39,8 +41,14 @@ class AiOrchestrationTest extends TestCase
 
         Queue::assertPushed(RunQualificationAgentJob::class, 1);
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
-            return $job->payload['opportunity_id'] === $opportunity->id
-                && $job->payload['to_stage'] === PipelineStage::Qualification->value;
+            $payloadOpportunityId = $job->payload['opportunity_id'];
+            $targetStage = $job->payload['to_stage'];
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            return $targetStage === PipelineStage::Qualification->value;
         });
     }
 
@@ -48,10 +56,13 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationProcessing()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationProcessing()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         $this->actingAs($user);
 
@@ -66,10 +77,13 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->qualificationQualified()->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Lead,
+                            ]);
 
         $this->actingAs($user);
 
@@ -84,14 +98,21 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        Opportunity::factory()->for($client)->qualificationQualified()->create([
-            'stage' => PipelineStage::Contact,
-        ]);
-        $newDeal = Opportunity::factory()->for($client)->create([
-            'stage' => PipelineStage::Lead,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        Opportunity::factory()
+            ->for($client)
+            ->qualificationQualified()
+            ->create([
+                'stage' => PipelineStage::Contact,
+            ]);
+        $newDeal = Opportunity::factory()
+                        ->for($client)
+                        ->create([
+                            'stage' => PipelineStage::Lead,
+                        ]);
 
         $this->actingAs($user);
 
@@ -111,10 +132,12 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::Contact,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                            ]);
 
         $this->actingAs($user);
 
@@ -128,10 +151,12 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $user = User::factory()->create();
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::ProposalGeneration,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::ProposalGeneration,
+                            ]);
 
         $this->actingAs($user);
 
@@ -140,8 +165,14 @@ class AiOrchestrationTest extends TestCase
             ->assertHasNoErrors();
 
         Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity): bool {
-            return $job->payload['opportunity_id'] === $opportunity->id
-                && $job->payload['to_stage'] === PipelineStage::ProposalAnalysis->value;
+            $payloadOpportunityId = $job->payload['opportunity_id'];
+            $targetStage = $job->payload['to_stage'];
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            return $targetStage === PipelineStage::ProposalAnalysis->value;
         });
     }
 
@@ -149,10 +180,12 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $client = Client::factory()->create();
-        $opportunity = app(OpportunityService::class)->create([
-            'client_id' => $client->id,
-            'title' => 'AI Orchestration Deal',
+        $client = Client::factory()
+                        ->create();
+        $opportunityService = app(OpportunityService::class);
+        $opportunity = $opportunityService->create([
+                                'client_id' => $client->id,
+                                'title' => 'AI Orchestration Deal',
         ]);
 
         Queue::assertPushed(RunQualificationAgentJob::class, 1);
@@ -160,8 +193,11 @@ class AiOrchestrationTest extends TestCase
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
 
-            return $payloadOpportunityId === $opportunity->id
-                && $trigger === 'opportunity_created';
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            return $trigger === 'opportunity_created';
         });
     }
 
@@ -169,11 +205,14 @@ class AiOrchestrationTest extends TestCase
     {
         Queue::fake();
 
-        $opportunity = Opportunity::factory()->create([
-            'stage' => PipelineStage::ProposalSent,
-        ]);
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::ProposalSent,
+                            ]);
 
-        app(OpportunityService::class)->moveToStage(
+        $opportunityService = app(OpportunityService::class);
+
+        $opportunityService->moveToStage(
             $opportunity,
             PipelineStage::Won,
         );
@@ -185,11 +224,13 @@ class AiOrchestrationTest extends TestCase
     {
         Event::fake([OpportunityCreated::class]);
 
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunityService = app(OpportunityService::class);
 
-        app(OpportunityService::class)->create([
-            'client_id' => $client->id,
-            'title' => 'Event Fake Deal',
+        $opportunityService->create([
+                                'client_id' => $client->id,
+                                'title' => 'Event Fake Deal',
         ]);
 
         Event::assertDispatched(OpportunityCreated::class);

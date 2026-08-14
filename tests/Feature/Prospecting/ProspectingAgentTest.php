@@ -92,28 +92,30 @@ class ProspectingAgentTest extends TestCase
             RunQualificationAgentJob::class,
         ]);
 
-        Client::factory()->create([
-            'company_name' => 'Existing By Name',
-            'website' => 'https://unique-name.example',
-            'contact_email' => 'name@example.com',
-            'contact_phone' => '8135550001',
-        ]);
+        Client::factory()
+                ->create([
+                    'company_name' => 'Existing By Name',
+                    'website' => 'https://unique-name.example',
+                    'contact_email' => 'name@example.com',
+                    'contact_phone' => '8135550001',
+                ]);
 
-        Client::factory()->create([
-            'company_name' => 'Domain Holder',
-            'website' => 'https://www.domain-match.example',
-            'contact_email' => 'domain@example.com',
-            'contact_phone' => '8135550002',
-        ]);
+        Client::factory()
+                ->create([
+                    'company_name' => 'Domain Holder',
+                    'website' => 'https://www.domain-match.example',
+                    'contact_email' => 'domain@example.com',
+                    'contact_phone' => '8135550002',
+                ]);
 
         ProspectingDiscoveryAgent::fake([
             [
-                'leads' => [
+                    'leads' => [
                     [
-                        'company_name' => 'Existing By Name',
-                        'email' => 'new1@example.com',
-                        'website' => 'https://brand-new-1.example',
-                    ],
+                    'company_name' => 'Existing By Name',
+                    'email' => 'new1@example.com',
+                    'website' => 'https://brand-new-1.example',
+                ],
                     [
                         'company_name' => 'Other Domain Biz',
                         'email' => 'new2@example.com',
@@ -124,14 +126,16 @@ class ProspectingAgentTest extends TestCase
             ],
         ]);
 
-        $beforeClients = Client::query()->count();
+        $clientQuery = Client::query();
+        $beforeClients = $clientQuery->count('*');
         $agent = app(ProspectingAgent::class);
 
         $result = $agent->handle([
             'limit' => 10,
         ]);
 
-        $afterClients = Client::query()->count();
+        $clientQuery = Client::query();
+        $afterClients = $clientQuery->count('*');
 
         $this->assertSame(0, $result['created_count']);
         $this->assertSame(2, $result['duplicate_count']);
@@ -197,29 +201,29 @@ class ProspectingAgentTest extends TestCase
         ]);
 
         $discoveredPayload = [
-                'leads' => [
-                    [
-                        'company_name' => 'No Social Co',
-                        'email' => 'hello@nosocial.example',
-                        'social_links' => 'not-an-array',
-                    ],
-                    [
-                        'company_name' => 'Mixed Social Co',
-                        'email' => 'hello@mixedsocial.example',
-                        'social_links' => [
-                            123,
-                            '   ',
-                            'https://instagram.com/mixedsocial',
-                        ],
+            'leads' => [
+                [
+                    'company_name' => 'No Social Co',
+                    'email' => 'hello@nosocial.example',
+                    'social_links' => 'not-an-array',
+                ],
+                [
+                    'company_name' => 'Mixed Social Co',
+                    'email' => 'hello@mixedsocial.example',
+                    'social_links' => [
+                        123,
+                        '   ',
+                        'https://instagram.com/mixedsocial',
                     ],
                 ],
-                'skipped' => [],
-            ];
+            ],
+            'skipped' => [],
+        ];
 
         $discovery = Mockery::mock(DiscoveryAdapter::class);
         $discovery->shouldReceive('discover')
-                    ->once()
-                    ->andReturn($discoveredPayload);
+            ->once()
+            ->andReturn($discoveredPayload);
 
         $this->app->instance(DiscoveryAdapter::class, $discovery);
 
@@ -259,21 +263,25 @@ class ProspectingAgentTest extends TestCase
 
         $discovery = Mockery::mock(DiscoveryAdapter::class);
         $discovery->shouldReceive('discover')
-                    ->once()
-                    ->with(Mockery::on(function (array $options): bool {
-                        $limit = $options['limit'] ?? null;
-                        $instructions = $options['instructions'] ?? null;
+            ->once()
+            ->with(Mockery::on(function (array $options): bool {
+                $limit = $options['limit'] ?? null;
+                $instructions = $options['instructions'] ?? null;
 
-                        if ($limit !== 1) {
-                            return false;
-                        }
+                if ($limit !== 1) {
+                    return false;
+                }
 
-                        return is_string($instructions) && $instructions !== '';
-                    }))
-                    ->andReturn([
-                        'leads' => [],
-                        'skipped' => [],
-                    ]);
+                if (! is_string($instructions)) {
+                    return false;
+                }
+
+                return $instructions !== '';
+            }))
+            ->andReturn([
+                'leads' => [],
+                'skipped' => [],
+            ]);
 
         $this->app->instance(DiscoveryAdapter::class, $discovery);
 
@@ -292,16 +300,16 @@ class ProspectingAgentTest extends TestCase
 
         $discovery = Mockery::mock(DiscoveryAdapter::class);
         $discovery->shouldReceive('discover')
-                    ->once()
-                    ->with(Mockery::on(function (array $options): bool {
-                        $limit = $options['limit'] ?? null;
+            ->once()
+            ->with(Mockery::on(function (array $options): bool {
+                $limit = $options['limit'] ?? null;
 
-                        return $limit === 1;
-                    }))
-                    ->andReturn([
-                        'leads' => [],
-                        'skipped' => [],
-                    ]);
+                return $limit === 1;
+            }))
+            ->andReturn([
+                'leads' => [],
+                'skipped' => [],
+            ]);
 
         $this->app->instance(DiscoveryAdapter::class, $discovery);
 

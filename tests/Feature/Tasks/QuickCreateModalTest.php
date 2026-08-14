@@ -17,12 +17,11 @@ class QuickCreateModalTest extends TestCase
 
     public function test_open_for_opportunity_prefills_client_and_opportunity(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->create([
-                                    'title' => 'Kanban Opp',
-                                ]);
+                            ->for($client)
+                            ->create(['title' => 'Kanban Opp']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-task-for-opportunity', opportunityId: $opportunity->id)
@@ -35,12 +34,11 @@ class QuickCreateModalTest extends TestCase
 
     public function test_open_for_opportunity_prefills_title_and_description_when_provided(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->create([
-                                    'title' => 'Kanban Opp',
-                                ]);
+                            ->for($client)
+                            ->create(['title' => 'Kanban Opp']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch(
@@ -58,7 +56,8 @@ class QuickCreateModalTest extends TestCase
 
     public function test_open_for_client_prefills_client_only(): void
     {
-        $client = Client::factory()->create(['company_name' => 'Detail Client Co']);
+        $client = Client::factory()
+                        ->create(['company_name' => 'Detail Client Co']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-task-for-client', clientId: $client->id)
@@ -69,11 +68,13 @@ class QuickCreateModalTest extends TestCase
 
     public function test_save_creates_task_and_dispatches_event(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->create();
+                            ->for($client)
+                            ->create();
 
         $this->actingAs($user);
 
@@ -94,8 +95,10 @@ class QuickCreateModalTest extends TestCase
 
     public function test_save_from_client_prefills_creates_task_without_opportunity(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -116,18 +119,17 @@ class QuickCreateModalTest extends TestCase
 
     public function test_changing_client_clears_opportunity(): void
     {
-        $firstClient = Client::factory()->create();
-        $secondClient = Client::factory()->create();
+        $firstClient = Client::factory()
+                    ->create();
+        $secondClient = Client::factory()
+                    ->create();
         $firstOpportunity = Opportunity::factory()
-                                ->for($firstClient)
-                                ->create([
-                                    'title' => 'First deal',
-                                ]);
+                    ->for($firstClient)
+                    ->create(['title' => 'First deal']);
+
         Opportunity::factory()
-                ->for($secondClient)
-                ->create([
-                    'title' => 'Second deal',
-                ]);
+            ->for($secondClient)
+            ->create(['title' => 'Second deal']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-task-for-opportunity', opportunityId: $firstOpportunity->id)

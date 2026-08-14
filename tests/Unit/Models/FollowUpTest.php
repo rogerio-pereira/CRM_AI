@@ -13,17 +13,23 @@ class FollowUpTest extends TestCase
 
     public function test_status_badge_classes_use_danger_when_overdue(): void
     {
-        $followUp = FollowUp::factory()->overdue()->create();
+        $followUp = FollowUp::factory()
+                        ->overdue()
+                        ->create();
 
         $this->assertStringContainsString('status-danger', $followUp->statusBadgeClasses());
     }
 
     public function test_status_badge_classes_use_reminder_status_when_not_overdue(): void
     {
-        $followUp = FollowUp::factory()->create([
-            'due_at' => now()->addDay(),
-            'reminder_status' => FollowUpReminderStatus::Pending,
-        ]);
+        $dueAt = now()
+                        ->addDay();
+
+        $followUp = FollowUp::factory()
+                        ->create([
+                            'due_at' => $dueAt,
+                            'reminder_status' => FollowUpReminderStatus::Pending,
+                        ]);
 
         $this->assertSame(
             FollowUpReminderStatus::Pending->badgeClasses(),

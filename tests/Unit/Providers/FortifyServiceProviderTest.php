@@ -30,7 +30,10 @@ class FortifyServiceProviderTest extends TestCase
         $request = Request::create('/passkeys', 'POST', [
             'credential' => ['id' => 'credential-uuid'],
         ]);
-        $request->server->set('REMOTE_ADDR', '10.0.0.1');
+
+        $server = $request->server;
+
+        $server->set('REMOTE_ADDR', '10.0.0.1');
 
         $limiter = RateLimiter::limiter('passkeys');
 
@@ -45,7 +48,10 @@ class FortifyServiceProviderTest extends TestCase
     {
         $request = Request::create('/passkeys', 'POST');
         $request->setLaravelSession($this->app['session.store']);
-        $request->server->set('REMOTE_ADDR', '10.0.0.1');
+
+        $server = $request->server;
+
+        $server->set('REMOTE_ADDR', '10.0.0.1');
 
         $limiter = RateLimiter::limiter('passkeys');
 

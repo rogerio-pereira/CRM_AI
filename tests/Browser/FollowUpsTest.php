@@ -7,9 +7,13 @@ use App\Models\Opportunity;
 use App\Models\User;
 
 it('displays the follow-ups page and creates a follow-up', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Follow Up Browser Co']);
-    $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Linked Opp']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Follow Up Browser Co']);
+    $opportunity = Opportunity::factory()
+                        ->for($client)
+                        ->create(['title' => 'Linked Opp']);
 
     $this->actingAs($user);
 
@@ -24,15 +28,25 @@ it('displays the follow-ups page and creates a follow-up', function () {
         ->assertSee('Follow Up Browser Co')
         ->assertSee('Linked Opp');
 
-    expect(FollowUp::where('notes', 'Browser follow-up note')->exists())->toBeTrue();
+    $followUpExists = FollowUp::where('notes', 'Browser follow-up note')
+                          ->exists();
+
+    expect($followUpExists)
+        ->toBeTrue();
 });
 
 it('completes a follow-up from the actions menu', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Complete Browser Co']);
-    $followUp = FollowUp::factory()->for($client)->create([
-        'due_at' => now()->addDay(),
-    ]);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Complete Browser Co']);
+    $dueAt = now()
+                    ->addDay();
+    $followUp = FollowUp::factory()
+                    ->for($client)
+                    ->create([
+                        'due_at' => $dueAt,
+                    ]);
 
     $this->actingAs($user);
 
@@ -44,13 +58,21 @@ it('completes a follow-up from the actions menu', function () {
         ->assertPresent('[data-test="follow-ups-row-'.$followUp->id.'"][data-completed-row="true"]')
         ->assertPresent('[data-test="follow-ups-status-badge-'.$followUp->id.'"][data-status="completed"]');
 
-    expect($followUp->fresh()->reminder_status)->toBe(FollowUpReminderStatus::Completed);
+    $freshFollowUp = $followUp->fresh();
+
+    expect($freshFollowUp->reminder_status)
+        ->toBe(FollowUpReminderStatus::Completed);
 });
 
 it('highlights overdue follow-ups in the table', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Overdue Browser Co']);
-    $followUp = FollowUp::factory()->for($client)->overdue()->create();
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Overdue Browser Co']);
+    $followUp = FollowUp::factory()
+                    ->for($client)
+                    ->overdue()
+                    ->create();
 
     $this->actingAs($user);
 

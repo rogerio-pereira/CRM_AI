@@ -24,6 +24,7 @@ class SecurityTest extends TestCase
             'confirm' => true,
             'confirmPassword' => true,
         ]);
+
         Features::passkeys([
             'confirmPassword' => true,
         ]);
@@ -31,11 +32,12 @@ class SecurityTest extends TestCase
 
     public function test_security_settings_page_can_be_rendered(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $response = $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('security.edit'));
+                        ->withSession(['auth.password_confirmed_at' => time()])
+                        ->get(route('security.edit'));
 
         $response->assertOk();
 
@@ -47,10 +49,11 @@ class SecurityTest extends TestCase
 
     public function test_security_settings_page_requires_password_confirmation_when_enabled(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $response = $this->actingAs($user)
-            ->get(route('security.edit'));
+                        ->get(route('security.edit'));
 
         $response->assertRedirect(route('password.confirm'));
     }
@@ -59,12 +62,14 @@ class SecurityTest extends TestCase
     {
         config(['fortify.features' => []]);
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => time()])
-            ->get(route('security.edit'))
-            ->assertOk()
+        $response = $this->actingAs($user)
+                        ->withSession(['auth.password_confirmed_at' => time()])
+                        ->get(route('security.edit'));
+
+        $response->assertOk()
             ->assertSee('Update password')
             ->assertDontSee('Manage your passkeys for passwordless sign-in')
             ->assertDontSee('Add a passkey to sign in without a password')
@@ -73,13 +78,21 @@ class SecurityTest extends TestCase
 
     public function test_two_factor_authentication_disabled_when_confirmation_abandoned_between_requests(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $user->forceFill([
-            'two_factor_secret' => encrypt('test-secret'),
-            'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-            'two_factor_confirmed_at' => null,
-        ])->save();
+        $recoveryCodes = ['code1', 'code2'];
+        $encodedRecoveryCodes = json_encode($recoveryCodes);
+        $encryptedSecret = encrypt('test-secret');
+        $encryptedRecoveryCodes = encrypt($encodedRecoveryCodes);
+        $unconfirmedTwoFactorAttributes = [
+                'two_factor_secret' => $encryptedSecret,
+                'two_factor_recovery_codes' => $encryptedRecoveryCodes,
+                'two_factor_confirmed_at' => null,
+            ];
+
+        $user->forceFill($unconfirmedTwoFactorAttributes)
+            ->save();
 
         $this->actingAs($user);
 
@@ -96,50 +109,62 @@ class SecurityTest extends TestCase
 
     public function test_password_can_be_updated(): void
     {
-        $user = User::factory()->create([
-            'password' => Hash::make('password'),
-        ]);
+        $hashedPassword = Hash::make('password');
+
+        $user = User::factory()
+                    ->create([
+                        'password' => $hashedPassword,
+                    ]);
 
         $this->actingAs($user);
 
         $response = Livewire::test(Security::class)
-            ->set('current_password', 'password')
-            ->set('password', 'new-password')
-            ->set('password_confirmation', 'new-password')
-            ->call('updatePassword');
+                        ->set('current_password', 'password')
+                        ->set('password', 'new-password')
+                        ->set('password_confirmation', 'new-password')
+                        ->call('updatePassword');
 
         $response->assertHasNoErrors();
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $user->refresh();
+
+        $passwordWasUpdated = Hash::check('new-password', $user->password);
+
+        $this->assertTrue($passwordWasUpdated);
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
     {
-        $user = User::factory()->create([
-            'password' => Hash::make('password'),
-        ]);
+        $hashedPassword = Hash::make('password');
+
+        $user = User::factory()
+                    ->create([
+                        'password' => $hashedPassword,
+                    ]);
 
         $this->actingAs($user);
 
         $response = Livewire::test(Security::class)
-            ->set('current_password', 'wrong-password')
-            ->set('password', 'new-password')
-            ->set('password_confirmation', 'new-password')
-            ->call('updatePassword');
+                        ->set('current_password', 'wrong-password')
+                        ->set('password', 'new-password')
+                        ->set('password_confirmation', 'new-password')
+                        ->call('updatePassword');
 
         $response->assertHasErrors(['current_password']);
     }
 
     public function test_passkey_can_be_deleted(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $passkey = $user->passkeys()->create([
-            'name' => 'Test Device',
-            'credential_id' => 'test-credential-id-1',
-            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
-            'last_used_at' => now(),
-        ]);
+        $passkey = $user->passkeys()
+                        ->create([
+                            'name' => 'Test Device',
+                            'credential_id' => 'test-credential-id-1',
+                            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+                            'last_used_at' => now(),
+                        ]);
 
         $this->actingAs($user);
 
@@ -155,13 +180,15 @@ class SecurityTest extends TestCase
 
     public function test_close_delete_modal_resets_state(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $passkey = $user->passkeys()->create([
-            'name' => 'Test Device',
-            'credential_id' => 'test-credential-id-2',
-            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
-        ]);
+        $passkey = $user->passkeys()
+                        ->create([
+                            'name' => 'Test Device',
+                            'credential_id' => 'test-credential-id-2',
+                            'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+                        ]);
 
         $this->actingAs($user);
 
@@ -174,7 +201,8 @@ class SecurityTest extends TestCase
 
     public function test_delete_passkey_without_selection_does_nothing(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -185,7 +213,9 @@ class SecurityTest extends TestCase
 
     public function test_two_factor_can_be_disabled(): void
     {
-        $user = User::factory()->withTwoFactor()->create();
+        $user = User::factory()
+                    ->withTwoFactor()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -197,7 +227,8 @@ class SecurityTest extends TestCase
 
     public function test_two_factor_enabled_event_updates_state(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 

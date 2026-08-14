@@ -16,24 +16,35 @@ class FollowUpValidationRulesTest extends TestCase
 
     public function test_form_rules_require_client_and_due_at(): void
     {
-        $validator = Validator::make([], FollowUpValidationRules::formRules());
+        $rules = FollowUpValidationRules::formRules();
+
+        $validator = Validator::make([], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('client_id', $validator->errors()->toArray());
-        $this->assertArrayHasKey('due_at', $validator->errors()->toArray());
-        $this->assertArrayHasKey('priority', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                        ->toArray();
+
+        $this->assertArrayHasKey('client_id', $errors);
+        $this->assertArrayHasKey('due_at', $errors);
+        $this->assertArrayHasKey('priority', $errors);
     }
 
     public function test_form_rules_accept_valid_payload(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->toDateTimeString();
+        $rules = FollowUpValidationRules::formRules();
 
         $validator = Validator::make([
             'client_id' => $client->id,
-            'due_at' => now()->addDay()->toDateTimeString(),
+            'due_at' => $dueAt,
             'priority' => FollowUpPriority::High->value,
             'notes' => 'Follow up notes',
-        ], FollowUpValidationRules::formRules());
+        ], $rules);
 
         $this->assertFalse($validator->fails());
     }

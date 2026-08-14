@@ -22,7 +22,9 @@ class RecoveryCodesTest extends TestCase
 
     public function test_recovery_codes_are_loaded_when_two_factor_is_enabled(): void
     {
-        $user = User::factory()->withTwoFactor()->create();
+        $user = User::factory()
+                    ->withTwoFactor()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -32,7 +34,9 @@ class RecoveryCodesTest extends TestCase
 
     public function test_recovery_codes_can_be_regenerated(): void
     {
-        $user = User::factory()->withTwoFactor()->create();
+        $user = User::factory()
+                    ->withTwoFactor()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -44,11 +48,16 @@ class RecoveryCodesTest extends TestCase
 
     public function test_recovery_codes_report_error_when_data_cannot_be_decrypted(): void
     {
-        $user = User::factory()->withTwoFactor()->create();
+        $user = User::factory()
+                    ->withTwoFactor()
+                    ->create();
 
-        $user->forceFill([
-            'two_factor_recovery_codes' => 'invalid-encrypted-data',
-        ])->save();
+        $corruptedAttributes = [
+                'two_factor_recovery_codes' => 'invalid-encrypted-data',
+            ];
+
+        $user->forceFill($corruptedAttributes)
+            ->save();
 
         $this->actingAs($user);
 

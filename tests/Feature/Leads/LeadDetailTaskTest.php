@@ -18,12 +18,17 @@ class LeadDetailTaskTest extends TestCase
 
     public function test_detail_modal_lists_tasks_and_add_task_button_opens_quick_create(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Task History Co']);
-        Task::factory()->for($client)->create([
-            'title' => 'Existing client task',
-            'status' => TaskStatus::Pending,
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Task History Co']);
+
+        Task::factory()
+                ->for($client)
+                ->create([
+                    'title' => 'Existing client task',
+                    'status' => TaskStatus::Pending,
+                ]);
 
         $this->actingAs($user);
 
@@ -39,15 +44,17 @@ class LeadDetailTaskTest extends TestCase
             ->assertDispatched('task-created');
 
         $this->assertDatabaseHas('tasks', [
-            'client_id' => $client->id,
-            'title' => 'Added from detail',
+                    'client_id' => $client->id,
+                    'title' => 'Added from detail',
         ]);
     }
 
     public function test_leads_list_actions_menu_can_open_task_quick_create(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'List Task Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'List Task Co']);
 
         $this->actingAs($user);
 
@@ -62,34 +69,50 @@ class LeadDetailTaskTest extends TestCase
             ->assertDispatched('task-created');
 
         $this->assertDatabaseHas('tasks', [
-            'client_id' => $client->id,
-            'title' => 'Added from list menu',
+                    'client_id' => $client->id,
+                    'title' => 'Added from list menu',
         ]);
     }
 
     public function test_detail_modal_shows_colored_task_status_badge(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $task = Task::factory()->for($client)->create([
-            'status' => TaskStatus::Pending,
-            'due_at' => now()->addDay(),
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay();
+        $task = Task::factory()
+                    ->for($client)
+                    ->create([
+                        'status' => TaskStatus::Pending,
+                        'due_at' => $dueAt,
+                    ]);
 
         $this->actingAs($user);
 
+        $pendingBadgeClasses = TaskStatus::Pending->badgeClasses();
+        $pendingStatusValue = TaskStatus::Pending->value;
+        $statusSelector = 'data-test="leads-detail-task-status-'.$task->id.'"';
+        $statusAttribute = 'data-status="'.$pendingStatusValue.'"';
+
         Livewire::test(Index::class)
             ->call('openDetailModal', $client->id)
-            ->assertSeeHtml('data-test="leads-detail-task-status-'.$task->id.'"')
-            ->assertSeeHtml('data-status="'.TaskStatus::Pending->value.'"')
-            ->assertSeeHtml(TaskStatus::Pending->badgeClasses());
+            ->assertSeeHtml($statusSelector)
+            ->assertSeeHtml($statusAttribute)
+            ->assertSeeHtml($pendingBadgeClasses);
     }
 
     public function test_detail_modal_shows_overdue_task_status_in_danger(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $task = Task::factory()->for($client)->overdue()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $task = Task::factory()
+                    ->for($client)
+                    ->overdue()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -103,9 +126,14 @@ class LeadDetailTaskTest extends TestCase
 
     public function test_detail_modal_strikes_through_completed_task_row(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $task = Task::factory()->for($client)->done()->create(['title' => 'Finished task']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $task = Task::factory()
+                    ->for($client)
+                    ->done()
+                    ->create(['title' => 'Finished task']);
 
         $this->actingAs($user);
 
@@ -117,11 +145,15 @@ class LeadDetailTaskTest extends TestCase
 
     public function test_detail_modal_shows_important_star_before_task_title(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        Task::factory()->for($client)->important()->create([
-            'title' => 'Starred task first',
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+
+        Task::factory()
+                ->for($client)
+                ->important()
+                ->create(['title' => 'Starred task first']);
 
         $this->actingAs($user);
 

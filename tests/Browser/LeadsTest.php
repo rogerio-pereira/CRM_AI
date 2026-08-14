@@ -9,7 +9,8 @@ use App\Models\User;
 use Tests\Support\RecommendationFake;
 
 it('displays the leads page and creates a lead', function () {
-    $user = User::factory()->create();
+    $user = User::factory()
+                ->create();
 
     $this->actingAs($user);
 
@@ -24,18 +25,23 @@ it('displays the leads page and creates a lead', function () {
         ->click('@leads-form-submit')
         ->assertSee('Browser Test Co');
 
-    $client = Client::where('company_name', 'Browser Test Co')->first();
+    $client = Client::where('company_name', 'Browser Test Co')
+                  ->first();
 
-    expect($client)->not->toBeNull();
+    expect($client)
+        ->not
+        ->toBeNull();
 });
 
 it('opens detail modal and archives a lead from the actions menu', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create([
-        'company_name' => 'Detail Modal Co',
-        'qualification_notes' => 'Initial notes',
-        'website' => 'https://detail-modal.test',
-    ]);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create([
+                        'company_name' => 'Detail Modal Co',
+                        'qualification_notes' => 'Initial notes',
+                        'website' => 'https://detail-modal.test',
+                    ]);
 
     $this->actingAs($user);
 
@@ -55,25 +61,29 @@ it('opens detail modal and archives a lead from the actions menu', function () {
 
     $client->refresh();
 
-    expect($client->status)->toBe(ClientStatus::Archived);
+    expect($client->status)
+        ->toBe(ClientStatus::Archived);
 
     visit('/leads')
         ->assertPresent('[data-test="leads-status-badge-'.$client->id.'"][data-status="archived"]');
 });
 
 it('opens the lead detail modal with related opportunity AI recommendations', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create([
-        'company_name' => 'Lead Recommendations Co',
-    ]);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create([
+                        'company_name' => 'Lead Recommendations Co',
+                    ]);
+    $recommendations = RecommendationFake::panelRecommendations();
     $opportunity = Opportunity::factory()
-                            ->for($client)
-                            ->qualificationQualified()
-                            ->withAiInsights()
-                            ->create([
-                                'title' => 'Related AI Deal',
-                                'ai_recommendations' => RecommendationFake::panelRecommendations(),
-                            ]);
+                        ->for($client)
+                        ->qualificationQualified()
+                        ->withAiInsights()
+                        ->create([
+                            'title' => 'Related AI Deal',
+                            'ai_recommendations' => $recommendations,
+                        ]);
 
     $this->actingAs($user);
 
@@ -94,8 +104,10 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
 });
 
 it('creates a follow-up from the leads list actions menu', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'List Menu Follow-up Co']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'List Menu Follow-up Co']);
 
     $this->actingAs($user);
 
@@ -107,12 +119,18 @@ it('creates a follow-up from the leads list actions menu', function () {
         ->click('@follow-ups-form-submit')
         ->assertSee('List Menu Follow-up Co');
 
-    expect(FollowUp::where('notes', 'Follow-up from list menu')->exists())->toBeTrue();
+    $followUpExists = FollowUp::where('notes', 'Follow-up from list menu')
+                          ->exists();
+
+    expect($followUpExists)
+        ->toBeTrue();
 });
 
 it('creates a follow-up from the client detail modal', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Detail Follow-up Co']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Detail Follow-up Co']);
 
     $this->actingAs($user);
 
@@ -127,16 +145,24 @@ it('creates a follow-up from the client detail modal', function () {
         ->click('@leads-detail-close')
         ->assertSee('Detail Follow-up Co');
 
-    expect(FollowUp::where('notes', 'Follow-up from client detail')->exists())->toBeTrue();
+    $followUpExists = FollowUp::where('notes', 'Follow-up from client detail')
+                          ->exists();
+
+    expect($followUpExists)
+        ->toBeTrue();
 });
 
 it('creates a task from the leads list actions menu', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'List Menu Task Co']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'List Menu Task Co']);
 
     $this->actingAs($user);
 
-    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+    $dueAt = now()
+                    ->addDay()
+                    ->format('Y-m-d\TH:i');
 
     visit('/leads')
         ->click('@leads-actions-'.$client->id)
@@ -147,16 +173,24 @@ it('creates a task from the leads list actions menu', function () {
         ->click('@tasks-quick-form-submit')
         ->assertSee('List Menu Task Co');
 
-    expect(Task::where('title', 'Task from list menu')->exists())->toBeTrue();
+    $taskExists = Task::where('title', 'Task from list menu')
+                      ->exists();
+
+    expect($taskExists)
+        ->toBeTrue();
 });
 
 it('creates a task from the client detail modal', function () {
-    $user = User::factory()->create();
-    $client = Client::factory()->create(['company_name' => 'Detail Task Co']);
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create(['company_name' => 'Detail Task Co']);
 
     $this->actingAs($user);
 
-    $dueAt = now()->addDay()->format('Y-m-d\TH:i');
+    $dueAt = now()
+                    ->addDay()
+                    ->format('Y-m-d\TH:i');
 
     visit('/leads')
         ->click('@leads-actions-'.$client->id)
@@ -170,12 +204,18 @@ it('creates a task from the client detail modal', function () {
         ->click('@leads-detail-close')
         ->assertSee('Detail Task Co');
 
-    expect(Task::where('title', 'Task from client detail')->exists())->toBeTrue();
+    $taskExists = Task::where('title', 'Task from client detail')
+                      ->exists();
+
+    expect($taskExists)
+        ->toBeTrue();
 });
 
 it('filters leads by archived status', function () {
-    $user = User::factory()->create();
-    Client::factory()->create(['company_name' => 'Visible Active Co']);
+    $user = User::factory()
+                ->create();
+    Client::factory()
+            ->create(['company_name' => 'Visible Active Co']);
     Client::factory()
             ->archived()
             ->create([

@@ -32,13 +32,18 @@ class FollowUpServiceTest extends TestCase
     {
         Event::fake([FollowUpCreated::class]);
 
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
+        $dueAt = now()
+                        ->addDay();
 
         $followUp = $this->service->create([
             'client_id' => $client->id,
             'opportunity_id' => $opportunity->id,
-            'due_at' => now()->addDay(),
+            'due_at' => $dueAt,
             'priority' => FollowUpPriority::High->value,
             'notes' => 'Call client',
         ]);
@@ -51,16 +56,23 @@ class FollowUpServiceTest extends TestCase
 
     public function test_create_rejects_opportunity_from_another_client(): void
     {
-        $client = Client::factory()->create();
-        $otherClient = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($otherClient)->create();
+        $client = Client::factory()
+                        ->create();
+
+        $otherClient = Client::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($otherClient)
+                            ->create();
+        $dueAt = now()
+                        ->addDay();
 
         $this->expectException(ValidationException::class);
 
         $this->service->create([
             'client_id' => $client->id,
             'opportunity_id' => $opportunity->id,
-            'due_at' => now()->addDay(),
+            'due_at' => $dueAt,
             'priority' => FollowUpPriority::Medium->value,
         ]);
     }
@@ -69,15 +81,20 @@ class FollowUpServiceTest extends TestCase
     {
         Event::fake([FollowUpUpdated::class]);
 
-        $client = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->create([
-            'notes' => 'Original notes',
-        ]);
+        $client = Client::factory()
+                        ->create();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create([
+                            'notes' => 'Original notes',
+                        ]);
+        $dueAt = now()
+                        ->addDays(2);
 
         $updated = $this->service->update($followUp, [
-            'due_at' => now()->addDays(2),
-            'priority' => FollowUpPriority::Low->value,
-            'notes' => 'Updated notes',
+                            'due_at' => $dueAt,
+                            'priority' => FollowUpPriority::Low->value,
+                            'notes' => 'Updated notes',
         ]);
 
         $this->assertSame('Updated notes', $updated->notes);
@@ -88,15 +105,23 @@ class FollowUpServiceTest extends TestCase
 
     public function test_update_rejects_opportunity_from_another_client(): void
     {
-        $client = Client::factory()->create();
-        $otherClient = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->create();
-        $foreignOpportunity = Opportunity::factory()->for($otherClient)->create();
+        $client = Client::factory()
+                        ->create();
+
+        $otherClient = Client::factory()
+                    ->create();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create();
+
+        $foreignOpportunity = Opportunity::factory()
+                    ->for($otherClient)
+                    ->create();
 
         $this->expectException(ValidationException::class);
 
         $this->service->update($followUp, [
-            'opportunity_id' => $foreignOpportunity->id,
+                            'opportunity_id' => $foreignOpportunity->id,
         ]);
     }
 
@@ -104,19 +129,24 @@ class FollowUpServiceTest extends TestCase
     {
         Event::fake([FollowUpCreated::class]);
 
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $withoutKeyDueAt = now()
+                                ->addDay();
+        $withNullDueAt = now()
+                                ->addDays(2);
 
         $withoutKey = $this->service->create([
-            'client_id' => $client->id,
-            'due_at' => now()->addDay(),
-            'priority' => FollowUpPriority::Medium->value,
+                            'client_id' => $client->id,
+                            'due_at' => $withoutKeyDueAt,
+                            'priority' => FollowUpPriority::Medium->value,
         ]);
 
         $withNull = $this->service->create([
-            'client_id' => $client->id,
-            'opportunity_id' => null,
-            'due_at' => now()->addDays(2),
-            'priority' => FollowUpPriority::Medium->value,
+                            'client_id' => $client->id,
+                            'opportunity_id' => null,
+                            'due_at' => $withNullDueAt,
+                            'priority' => FollowUpPriority::Medium->value,
         ]);
 
         $this->assertNull($withoutKey->opportunity_id);
@@ -129,8 +159,8 @@ class FollowUpServiceTest extends TestCase
         $method->setAccessible(true);
 
         $method->invoke($this->service, [
-            'client_id' => 1,
-            'opportunity_id' => 99999,
+                            'client_id' => 1,
+                            'opportunity_id' => 99999,
         ]);
 
         $this->assertTrue(true);
@@ -140,10 +170,12 @@ class FollowUpServiceTest extends TestCase
     {
         $method = new \ReflectionMethod($this->service, 'assertOpportunityBelongsToClient');
         $method->setAccessible(true);
+        $dueAt = now()
+                        ->addDay();
 
         $method->invoke($this->service, [
-            'client_id' => 1,
-            'due_at' => now()->addDay(),
+                            'client_id' => 1,
+                            'due_at' => $dueAt,
         ]);
 
         $this->assertTrue(true);
@@ -153,7 +185,8 @@ class FollowUpServiceTest extends TestCase
     {
         Event::fake([FollowUpUpdated::class]);
 
-        $followUp = FollowUp::factory()->create();
+        $followUp = FollowUp::factory()
+                        ->create();
 
         $result = $this->service->markComplete($followUp);
 
@@ -165,53 +198,81 @@ class FollowUpServiceTest extends TestCase
 
     public function test_list_for_index_filters_by_search_priority_and_overdue(): void
     {
-        $matchingClient = Client::factory()->create(['company_name' => 'Acme Searchable Co']);
-        $otherClient = Client::factory()->create(['company_name' => 'Other Corp']);
+        $matchingClient = Client::factory()
+                        ->create(['company_name' => 'Acme Searchable Co']);
 
-        $matching = FollowUp::factory()->for($matchingClient)->create([
-            'priority' => FollowUpPriority::High,
-            'due_at' => now()->subDay(),
-        ]);
+        $otherClient = Client::factory()
+                    ->create(['company_name' => 'Other Corp']);
+        $overdueAt = now()
+                            ->subDay();
+        $futureDueAt = now()
+                            ->addDay();
 
-        FollowUp::factory()->for($otherClient)->create([
-            'priority' => FollowUpPriority::Low,
-            'due_at' => now()->addDay(),
-        ]);
+        $matching = FollowUp::factory()
+                        ->for($matchingClient)
+                        ->create([
+                            'priority' => FollowUpPriority::High,
+                            'due_at' => $overdueAt,
+                        ]);
+
+        FollowUp::factory()
+                ->for($otherClient)
+                ->create([
+                    'priority' => FollowUpPriority::Low,
+                    'due_at' => $futureDueAt,
+                ]);
 
         $searchResults = $this->service->paginateForIndex('acme', null, false, false);
 
         $this->assertCount(1, $searchResults);
-        $this->assertTrue($searchResults->first()->is($matching));
+        $firstSearchResult = $searchResults->first();
+
+        $this->assertTrue($firstSearchResult->is($matching));
 
         $priorityResults = $this->service->paginateForIndex(null, FollowUpPriority::High->value, false, false);
 
         $this->assertCount(1, $priorityResults);
-        $this->assertTrue($priorityResults->first()->is($matching));
+        $firstPriorityResult = $priorityResults->first();
+
+        $this->assertTrue($firstPriorityResult->is($matching));
 
         $overdueResults = $this->service->paginateForIndex(null, null, true, false);
 
         $this->assertCount(1, $overdueResults);
-        $this->assertTrue($overdueResults->first()->is($matching));
+        $firstOverdueResult = $overdueResults->first();
+
+        $this->assertTrue($firstOverdueResult->is($matching));
     }
 
     public function test_paginate_for_index_hides_completed_by_default(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
 
-        $pending = FollowUp::factory()->for($client)->create();
-        FollowUp::factory()->for($client)->completed()->create();
+        $pending = FollowUp::factory()
+                        ->for($client)
+                        ->create();
+
+        FollowUp::factory()
+                ->for($client)
+                ->completed()
+                ->create();
 
         $hidden = $this->service->paginateForIndex(null, null, false, true);
         $visible = $this->service->paginateForIndex(null, null, false, false);
 
         $this->assertCount(1, $hidden);
-        $this->assertTrue($hidden->first()->is($pending));
+        $firstHiddenResult = $hidden->first();
+
+        $this->assertTrue($firstHiddenResult->is($pending));
         $this->assertCount(2, $visible);
     }
 
     public function test_list_for_index_returns_all_when_filters_are_empty(): void
     {
-        FollowUp::factory()->count(3)->create();
+        FollowUp::factory()
+                ->count(3)
+                ->create();
 
         $results = $this->service->paginateForIndex(null, 'all', false, false);
 
@@ -220,7 +281,9 @@ class FollowUpServiceTest extends TestCase
 
     public function test_paginate_for_index_returns_twenty_items_per_page(): void
     {
-        FollowUp::factory()->count(21)->create();
+        FollowUp::factory()
+                ->count(21)
+                ->create();
 
         $pageOne = $this->service->paginateForIndex(null, null, false, false);
         $pageTwo = $this->service->paginateForIndex(null, null, false, false, page: 2);

@@ -32,10 +32,12 @@ class OperationalDashboardTest extends TestCase
 
     public function test_dashboard_excludes_out_of_scope_widgets(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $dashboardUrl = route('dashboard');
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
+            ->get($dashboardUrl)
             ->assertOk()
             ->assertDontSee('Horizon', false)
             ->assertDontSee('Queue health', false)
@@ -47,14 +49,29 @@ class OperationalDashboardTest extends TestCase
     {
         Carbon::setTestNow('2026-05-28 12:00:00');
 
-        Client::factory()->create(['created_at' => now()]);
-        Client::factory()->create(['created_at' => now()->subDay()]);
+        $now = now();
+        $yesterday = now()
+                            ->subDay();
+        $twoDaysAgo = now()
+                            ->subDays(2);
 
-        $client = Client::factory()->create(['created_at' => now()->subDay()]);
-        Opportunity::factory()->for($client)->create(['created_at' => now()]);
-        Opportunity::factory()->for($client)->create(['created_at' => now()->subDays(2)]);
+        Client::factory()
+                ->create(['created_at' => $now]);
+        Client::factory()
+                ->create(['created_at' => $yesterday]);
 
-        $user = User::factory()->create();
+        $client = Client::factory()
+                        ->create(['created_at' => $yesterday]);
+
+        Opportunity::factory()
+            ->for($client)
+            ->create(['created_at' => $now]);
+        Opportunity::factory()
+            ->for($client)
+            ->create(['created_at' => $twoDaysAgo]);
+
+        $user = User::factory()
+                    ->create();
         $this->actingAs($user);
 
         Livewire::test(Index::class)
@@ -68,37 +85,48 @@ class OperationalDashboardTest extends TestCase
     {
         Carbon::setTestNow('2026-05-28 12:00:00');
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $this->actingAs($user);
 
         $component = Livewire::test(Index::class);
+        $dashboard = $component->instance();
 
-        $this->assertCount(30, $component->instance()->leadsSeries);
-        $this->assertCount(30, $component->instance()->opportunitiesSeries);
-        $this->assertCount(30, $component->instance()->salesSeries);
+        $this->assertCount(30, $dashboard->leadsSeries);
+        $this->assertCount(30, $dashboard->opportunitiesSeries);
+        $this->assertCount(30, $dashboard->salesSeries);
     }
 
     public function test_sales_series_only_includes_won_opportunities(): void
     {
         Carbon::setTestNow('2026-05-28 12:00:00');
 
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $now = now();
 
-        Opportunity::factory()->for($client)->create([
-            'stage' => PipelineStage::Won,
-            'estimated_value' => 5000,
-            'updated_at' => now(),
-        ]);
+        Opportunity::factory()
+            ->for($client)
+            ->create([
+                'stage' => PipelineStage::Won,
+                'estimated_value' => 5000,
+                'updated_at' => $now,
+            ]);
 
-        Opportunity::factory()->for($client)->create([
-            'stage' => PipelineStage::Lead,
-            'estimated_value' => 9000,
-            'updated_at' => now(),
-        ]);
+        Opportunity::factory()
+            ->for($client)
+            ->create([
+                'stage' => PipelineStage::Lead,
+                'estimated_value' => 9000,
+                'updated_at' => $now,
+            ]);
 
         $service = app(DashboardMetricsService::class);
         $series = $service->salesPerDayLast30Days();
-        $today = collect($series)->firstWhere('date', now()->toDateString());
+        $todayDate = now()
+                            ->toDateString();
+        $seriesCollection = collect($series);
+        $today = $seriesCollection->firstWhere('date', $todayDate);
 
         $this->assertNotNull($today);
         $this->assertSame(5000.0, $today['value']);
@@ -106,11 +134,18 @@ class OperationalDashboardTest extends TestCase
 
     public function test_done_tasks_are_excluded_from_dashboard_table(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
-        Task::factory()->for($client)->create(['title' => 'Still open']);
-        Task::factory()->for($client)->done()->create(['title' => 'Already done']);
+        Task::factory()
+                ->for($client)
+                ->create(['title' => 'Still open']);
+        Task::factory()
+                ->for($client)
+                ->done()
+                ->create(['title' => 'Already done']);
 
         $this->actingAs($user);
 
@@ -121,16 +156,23 @@ class OperationalDashboardTest extends TestCase
 
     public function test_follow_ups_table_lists_pending_items_only(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Pending Follow Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Pending Follow Co']);
 
-        FollowUp::factory()->for($client)->create([
-            'reminder_status' => FollowUpReminderStatus::Pending,
-        ]);
+        FollowUp::factory()
+                ->for($client)
+                ->create([
+                    'reminder_status' => FollowUpReminderStatus::Pending,
+                ]);
 
-        FollowUp::factory()->for($client)->completed()->create([
-            'notes' => 'Done follow-up hidden',
-        ]);
+        FollowUp::factory()
+                ->for($client)
+                ->completed()
+                ->create([
+                    'notes' => 'Done follow-up hidden',
+                ]);
 
         $this->actingAs($user);
 
@@ -141,86 +183,125 @@ class OperationalDashboardTest extends TestCase
 
     public function test_guests_are_redirected_from_dashboard(): void
     {
-        $this->get(route('dashboard'))->assertRedirect(route('login'));
+        $dashboardUrl = route('dashboard');
+        $loginUrl = route('login');
+
+        $response = $this->get($dashboardUrl);
+
+        $response->assertRedirect($loginUrl);
     }
 
     public function test_dashboard_tasks_table_is_limited_to_ten_rows(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         Task::factory()
-            ->count(12)
-            ->for($client)
-            ->sequence(fn ($sequence) => [
-                'due_at' => now()->addHours($sequence->index + 1),
-            ])
-            ->create();
+                ->count(12)
+                ->for($client)
+                ->sequence(function ($sequence): array {
+                    $dueAt = now();
+                    $dueAt->addHours($sequence->index + 1);
+
+                    return [
+                    'due_at' => $dueAt,
+                    ];
+                })
+                ->create();
 
         $this->actingAs($user);
 
         $component = Livewire::test(Index::class);
+        $dashboard = $component->instance();
 
-        $this->assertCount(DashboardTablesService::TABLE_LIMIT, $component->instance()->pendingTasks);
-        $this->assertSame(2, $component->instance()->pendingTasksOverflow);
+        $this->assertCount(DashboardTablesService::TABLE_LIMIT, $dashboard->pendingTasks);
+        $this->assertSame(2, $dashboard->pendingTasksOverflow);
     }
 
     public function test_dashboard_shows_overflow_row_when_more_than_ten_tasks(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         Task::factory()
-            ->count(11)
-            ->for($client)
-            ->sequence(fn ($sequence) => [
-                'due_at' => now()->addHours($sequence->index + 1),
-            ])
-            ->create();
+                ->count(11)
+                ->for($client)
+                ->sequence(function ($sequence): array {
+                    $dueAt = now();
+                    $dueAt->addHours($sequence->index + 1);
+
+                    return [
+                    'due_at' => $dueAt,
+                    ];
+                })
+                ->create();
 
         $this->actingAs($user);
 
+        $overflowText = __('+:count items', ['count' => 1]);
+
         Livewire::test(Index::class)
             ->assertSeeHtml('data-test="dashboard-tasks-overflow"')
-            ->assertSee(__('+:count items', ['count' => 1]), false);
+            ->assertSee($overflowText, false);
     }
 
     public function test_dashboard_shows_overflow_row_when_more_than_ten_follow_ups(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         FollowUp::factory()
-            ->count(15)
-            ->for($client)
-            ->sequence(fn ($sequence) => [
-                'due_at' => now()->addHours($sequence->index + 1),
-            ])
-            ->create([
-                'reminder_status' => FollowUpReminderStatus::Pending,
-            ]);
+                ->count(15)
+                ->for($client)
+                ->sequence(function ($sequence): array {
+                    $dueAt = now();
+                    $dueAt->addHours($sequence->index + 1);
+
+                    return [
+                    'due_at' => $dueAt,
+                    ];
+                })
+                ->create([
+                        'reminder_status' => FollowUpReminderStatus::Pending,
+                    ]);
 
         $this->actingAs($user);
 
         $component = Livewire::test(Index::class);
+        $dashboard = $component->instance();
+        $overflowText = __('+:count items', ['count' => 5]);
 
-        $this->assertCount(DashboardTablesService::TABLE_LIMIT, $component->instance()->actionableFollowUps);
+        $this->assertCount(DashboardTablesService::TABLE_LIMIT, $dashboard->actionableFollowUps);
 
         $component
             ->assertSet('actionableFollowUpsOverflow', 5)
             ->assertSeeHtml('data-test="dashboard-follow-ups-overflow"')
-            ->assertSee(__('+:count items', ['count' => 5]), false);
+            ->assertSee($overflowText, false);
     }
 
     public function test_dashboard_hides_overflow_row_when_ten_or_fewer_items(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
-        Task::factory()->count(10)->for($client)->create();
-        FollowUp::factory()->count(10)->for($client)->create([
-            'reminder_status' => FollowUpReminderStatus::Pending,
-        ]);
+        Task::factory()
+                ->count(10)
+                ->for($client)
+                ->create();
+        FollowUp::factory()
+                ->count(10)
+                ->for($client)
+                ->create([
+                    'reminder_status' => FollowUpReminderStatus::Pending,
+                ]);
 
         $this->actingAs($user);
 
@@ -233,10 +314,14 @@ class OperationalDashboardTest extends TestCase
 
     public function test_dashboard_can_mark_task_done_from_table(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
-        $task = Task::factory()->for($client)->create(['title' => 'Complete from dashboard']);
+        $task = Task::factory()
+                    ->for($client)
+                    ->create(['title' => 'Complete from dashboard']);
 
         $this->actingAs($user);
 
@@ -244,17 +329,23 @@ class OperationalDashboardTest extends TestCase
             ->call('markDone', $task->id)
             ->assertDontSee('Complete from dashboard');
 
-        $this->assertSame(TaskStatus::Done, $task->fresh()->status);
+        $freshTask = $task->fresh();
+
+        $this->assertSame(TaskStatus::Done, $freshTask->status);
     }
 
     public function test_dashboard_can_mark_follow_up_complete_from_table(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Complete Follow Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Complete Follow Co']);
 
-        $followUp = FollowUp::factory()->for($client)->create([
-            'reminder_status' => FollowUpReminderStatus::Pending,
-        ]);
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create([
+                            'reminder_status' => FollowUpReminderStatus::Pending,
+                        ]);
 
         $this->actingAs($user);
 
@@ -262,19 +353,23 @@ class OperationalDashboardTest extends TestCase
             ->call('markComplete', $followUp->id)
             ->assertDontSee('Complete Follow Co');
 
-        $this->assertSame(FollowUpReminderStatus::Completed, $followUp->fresh()->reminder_status);
+        $freshFollowUp = $followUp->fresh();
+
+        $this->assertSame(FollowUpReminderStatus::Completed, $freshFollowUp->reminder_status);
     }
 
     public function test_pending_for_dashboard_uses_table_limit_constant(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
 
         Task::factory()
-            ->count(TaskService::DASHBOARD_PENDING_LIMIT + 3)
-            ->for($client)
-            ->create();
+                ->count(TaskService::DASHBOARD_PENDING_LIMIT + 3)
+                ->for($client)
+                ->create();
 
-        $tasks = app(TaskService::class)->pendingForDashboard();
+        $taskService = app(TaskService::class);
+        $tasks = $taskService->pendingForDashboard();
 
         $this->assertCount(TaskService::DASHBOARD_PENDING_LIMIT, $tasks);
     }

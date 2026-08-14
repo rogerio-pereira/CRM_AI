@@ -21,14 +21,16 @@ class AiSuggestionPanelTest extends TestCase
 
     public function test_opportunity_detail_renders_structured_recommendation_sections(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $recommendations = RecommendationFake::panelRecommendations();
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->withAiInsights()
-                                ->create([
-                                    'title' => 'Recommendation Detail Deal',
-                                    'ai_recommendations' => RecommendationFake::panelRecommendations(),
-                                ]);
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'Recommendation Detail Deal',
+                                'ai_recommendations' => $recommendations,
+                            ]);
 
         $this->actingAs($user);
 
@@ -57,24 +59,29 @@ class AiSuggestionPanelTest extends TestCase
 
     public function test_lead_detail_renders_related_opportunity_recommendations(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create([
-            'company_name' => 'Lead Insight Co',
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create([
+                            'company_name' => 'Lead Insight Co',
+                        ]);
+        $recommendations = RecommendationFake::panelRecommendations();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->qualificationQualified()
-                                ->withAiInsights()
-                                ->create([
-                                    'title' => 'Related Recommendation Deal',
-                                    'ai_recommendations' => RecommendationFake::panelRecommendations(),
-                                ]);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'title' => 'Related Recommendation Deal',
+                                'ai_recommendations' => $recommendations,
+                            ]);
 
         $this->actingAs($user);
 
+        $opportunitySelector = 'data-test="leads-detail-opportunity-'.$opportunity->id.'"';
+
         Livewire::test(LeadsIndex::class)
             ->call('openDetailModal', $client->id)
-            ->assertSeeHtml('data-test="leads-detail-opportunity-'.$opportunity->id.'"')
+            ->assertSeeHtml($opportunitySelector)
             ->assertSeeHtml('data-test="ai-suggestion-panel"')
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
             ->assertSee('Ready for a first conversation.')
@@ -91,17 +98,18 @@ class AiSuggestionPanelTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->withAiRecommendations()
-                                ->create();
+                            ->qualificationQualified()
+                            ->withAiRecommendations()
+                            ->create();
 
         $this->actingAs($user);
 
         Livewire::test(AiSuggestionPanel::class, [
-            'opportunityId' => $opportunity->id,
-        ])
+                                'opportunityId' => $opportunity->id,
+                            ])
             ->call('refreshInsights')
             ->assertSet('refreshQueued', true)
             ->assertSee('Refresh AI insights');
@@ -113,10 +121,19 @@ class AiSuggestionPanelTest extends TestCase
             $trigger = $job->payload['trigger'] ?? null;
             $payloadUserId = $job->payload['user_id'] ?? null;
 
-            return $payloadOpportunityId === $opportunity->id
-                && $payloadClientId === $opportunity->client_id
-                && $trigger === 'manual_refresh'
-                && $payloadUserId === $user->id;
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $opportunity->client_id) {
+                return false;
+            }
+
+            if ($trigger !== 'manual_refresh') {
+                return false;
+            }
+
+            return $payloadUserId === $user->id;
         });
     }
 
@@ -126,10 +143,11 @@ class AiSuggestionPanelTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
 
         $this->actingAs($user);
 
@@ -149,10 +167,11 @@ class AiSuggestionPanelTest extends TestCase
             RunRecommendationAgentJob::class,
         ]);
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationPending()
-                                ->create();
+                            ->qualificationPending()
+                            ->create();
 
         $this->actingAs($user);
 
@@ -167,19 +186,20 @@ class AiSuggestionPanelTest extends TestCase
 
     public function test_qualified_opportunity_without_recommendations_shows_qualification_insights(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->withAiInsights()
-                                ->create([
-                                    'ai_recommendations' => null,
-                                ]);
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'ai_recommendations' => null,
+                            ]);
 
         $this->actingAs($user);
 
         Livewire::test(AiSuggestionPanel::class, [
-            'opportunityId' => $opportunity->id,
-        ])
+                                'opportunityId' => $opportunity->id,
+                            ])
             ->assertSeeHtml('data-test="ai-suggestion-panel"')
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
             ->assertSee('Ready for a first conversation.')
@@ -189,19 +209,20 @@ class AiSuggestionPanelTest extends TestCase
 
     public function test_qualified_opportunity_without_insights_or_recommendations_shows_empty_state(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create([
-                                    'ai_recommendations' => null,
-                                    'ai_insights' => null,
-                                ]);
+                            ->qualificationQualified()
+                            ->create([
+                                'ai_recommendations' => null,
+                                'ai_insights' => null,
+                            ]);
 
         $this->actingAs($user);
 
         Livewire::test(AiSuggestionPanel::class, [
-            'opportunityId' => $opportunity->id,
-        ])
+                                'opportunityId' => $opportunity->id,
+                            ])
             ->assertSeeHtml('data-test="ai-suggestion-empty"')
             ->assertSee('AI recommendations will appear here after the recommendation job finishes.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"');
@@ -209,10 +230,11 @@ class AiSuggestionPanelTest extends TestCase
 
     public function test_unqualified_opportunity_does_not_render_the_panel(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
-                                ->qualificationPending()
-                                ->create();
+                            ->qualificationPending()
+                            ->create();
 
         $this->actingAs($user);
 

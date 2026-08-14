@@ -16,46 +16,66 @@ class OpportunityValidationRulesTest extends TestCase
 
     public function test_form_rules_require_title_and_client(): void
     {
-        $validator = Validator::make([], OpportunityValidationRules::formRules());
+        $rules = OpportunityValidationRules::formRules();
+
+        $validator = Validator::make([], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('title', $validator->errors()->toArray());
-        $this->assertArrayHasKey('client_id', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('title', $errors);
+        $this->assertArrayHasKey('client_id', $errors);
     }
 
     public function test_form_rules_accept_valid_payload(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $rules = OpportunityValidationRules::formRules();
 
         $validator = Validator::make([
             'title' => 'Enterprise deal',
             'client_id' => $client->id,
             'estimated_value' => '12000.50',
-        ], OpportunityValidationRules::formRules());
+        ], $rules);
 
         $this->assertFalse($validator->fails());
     }
 
     public function test_form_rules_reject_negative_estimated_value(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
+        $rules = OpportunityValidationRules::formRules();
 
         $validator = Validator::make([
             'title' => 'Enterprise deal',
             'client_id' => $client->id,
             'estimated_value' => '-1',
-        ], OpportunityValidationRules::formRules());
+        ], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('estimated_value', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('estimated_value', $errors);
     }
 
     public function test_stage_rules_require_valid_pipeline_stage(): void
     {
-        $validator = Validator::make(['stage' => 'invalid'], OpportunityValidationRules::stageRules());
+        $rules = OpportunityValidationRules::stageRules();
+
+        $validator = Validator::make(['stage' => 'invalid'], $rules);
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('stage', $validator->errors()->toArray());
+
+        $errors = $validator->errors()
+                            ->toArray();
+
+        $this->assertArrayHasKey('stage', $errors);
     }
 
     public function test_stage_rules_accept_enum_values(): void

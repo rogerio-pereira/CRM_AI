@@ -20,15 +20,15 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
         ]);
 
-        $response
-            ->assertSessionHasNoErrors()
+        $response->assertSessionHasNoErrors()
             ->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertAuthenticated();
@@ -36,7 +36,8 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
@@ -57,7 +58,9 @@ class AuthenticationTest extends TestCase
             'confirmPassword' => true,
         ]);
 
-        $user = User::factory()->withTwoFactor()->create();
+        $user = User::factory()
+                    ->withTwoFactor()
+                    ->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
@@ -65,14 +68,17 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertRedirect(route('two-factor.login'));
+
         $this->assertGuest();
     }
 
     public function test_users_can_logout(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $response = $this->actingAs($user)->post(route('logout'));
+        $response = $this->actingAs($user)
+                        ->post(route('logout'));
 
         $response->assertRedirect(route('home'));
 
