@@ -264,13 +264,17 @@ it('creates a task from the kanban card button', function () {
     visit('/opportunities')
         ->assertPresent('[data-test="kanban-card-create-task-'.$opportunity->id.'"]')
         ->click('@kanban-card-create-task-'.$opportunity->id)
-        ->assertPresent('[data-test="tasks-quick-create-modal"]')
+        ->assertSee('New task')
         ->fill('@tasks-quick-form-title', 'Scheduled from Kanban card')
         ->fill('@tasks-quick-form-due-at', $dueAt)
         ->click('@tasks-quick-form-submit')
-        ->assertSee('Task From Kanban');
+        ->waitForText('Task created.');
 
-    expect(Task::where('title', 'Scheduled from Kanban card')->exists())->toBeTrue();
+    expect(
+        Task::query()
+                ->where('title', 'Scheduled from Kanban card')
+                ->exists()
+    )->toBeTrue();
 });
 
 it('drags an opportunity card to another stage', function () {
