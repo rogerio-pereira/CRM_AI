@@ -29,7 +29,8 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_two_factor_setup_can_be_started(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -42,11 +43,15 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_two_factor_setup_reports_error_when_setup_data_is_unavailable(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $user->forceFill([
-            'two_factor_secret' => 'invalid-encrypted-data',
-        ])->save();
+        $corruptedAttributes = [
+                'two_factor_secret' => 'invalid-encrypted-data',
+            ];
+
+        $user->forceFill($corruptedAttributes)
+            ->save();
 
         $this->actingAs($user);
 
@@ -57,14 +62,16 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_two_factor_setup_reports_error_when_secret_is_missing(): void
     {
-        $user = User::factory()->create([
-            'two_factor_secret' => null,
-        ]);
+        $user = User::factory()
+                    ->create([
+                        'two_factor_secret' => null,
+                    ]);
 
         $this->actingAs($user);
 
         $this->mock(EnableTwoFactorAuthentication::class, function ($mock): void {
-            $mock->shouldReceive('__invoke')->once();
+            $mock->shouldReceive('__invoke')
+                ->once();
         });
 
         Livewire::test(TwoFactorSetupModal::class, ['requiresConfirmation' => true])
@@ -74,7 +81,8 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_verification_step_is_shown_when_confirmation_is_required(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -86,7 +94,8 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_two_factor_is_enabled_without_confirmation_step_when_not_required(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -101,23 +110,35 @@ class TwoFactorSetupModalTest extends TestCase
         $google2fa = new Google2FA;
         $secret = $google2fa->generateSecretKey();
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $user->forceFill([
-            'two_factor_secret' => encrypt($secret),
-            'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
-            'two_factor_confirmed_at' => null,
-        ])->save();
+        $recoveryCodes = ['recovery-code-1'];
+        $encodedRecoveryCodes = json_encode($recoveryCodes);
+        $encryptedSecret = encrypt($secret);
+        $encryptedRecoveryCodes = encrypt($encodedRecoveryCodes);
+        $unconfirmedTwoFactorAttributes = [
+                        'two_factor_secret' => $encryptedSecret,
+                        'two_factor_recovery_codes' => $encryptedRecoveryCodes,
+                        'two_factor_confirmed_at' => null,
+            ];
+
+        $user->forceFill($unconfirmedTwoFactorAttributes)
+            ->save();
 
         $this->actingAs($user);
 
+        $currentOtp = $google2fa->getCurrentOtp($secret);
+
         Livewire::test(TwoFactorSetupModal::class, ['requiresConfirmation' => true])
-            ->set('code', $google2fa->getCurrentOtp($secret))
+            ->set('code', $currentOtp)
             ->call('confirmTwoFactor')
             ->assertHasNoErrors()
             ->assertDispatched('two-factor-enabled');
 
-        $this->assertNotNull($user->fresh()->two_factor_confirmed_at);
+        $confirmedUser = $user->fresh();
+
+        $this->assertNotNull($confirmedUser->two_factor_confirmed_at);
     }
 
     public function test_two_factor_confirmation_requires_valid_code(): void
@@ -125,13 +146,21 @@ class TwoFactorSetupModalTest extends TestCase
         $google2fa = new Google2FA;
         $secret = $google2fa->generateSecretKey();
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $user->forceFill([
-            'two_factor_secret' => encrypt($secret),
-            'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
-            'two_factor_confirmed_at' => null,
-        ])->save();
+        $recoveryCodes = ['recovery-code-1'];
+        $encodedRecoveryCodes = json_encode($recoveryCodes);
+        $encryptedSecret = encrypt($secret);
+        $encryptedRecoveryCodes = encrypt($encodedRecoveryCodes);
+        $unconfirmedTwoFactorAttributes = [
+                        'two_factor_secret' => $encryptedSecret,
+                        'two_factor_recovery_codes' => $encryptedRecoveryCodes,
+                        'two_factor_confirmed_at' => null,
+            ];
+
+        $user->forceFill($unconfirmedTwoFactorAttributes)
+            ->save();
 
         $this->actingAs($user);
 
@@ -143,7 +172,8 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_verification_state_can_be_reset(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -158,7 +188,8 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_modal_can_be_closed_and_reset(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -175,20 +206,30 @@ class TwoFactorSetupModalTest extends TestCase
 
     public function test_modal_config_reflects_current_step(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
         $component = Livewire::test(TwoFactorSetupModal::class, ['requiresConfirmation' => true]);
 
-        $this->assertSame(__('Enable two-factor authentication'), $component->instance()->modalConfig['title']);
+        $setupInstance = $component->instance();
+        $setupTitle = $setupInstance->modalConfig['title'];
+
+        $this->assertSame(__('Enable two-factor authentication'), $setupTitle);
 
         $component->set('showVerificationStep', true);
 
-        $this->assertSame(__('Verify authentication code'), $component->instance()->modalConfig['title']);
+        $verificationInstance = $component->instance();
+        $verificationTitle = $verificationInstance->modalConfig['title'];
+
+        $this->assertSame(__('Verify authentication code'), $verificationTitle);
 
         $component->set('setupComplete', true);
 
-        $this->assertSame(__('Two-factor authentication enabled'), $component->instance()->modalConfig['title']);
+        $completedInstance = $component->instance();
+        $completedTitle = $completedInstance->modalConfig['title'];
+
+        $this->assertSame(__('Two-factor authentication enabled'), $completedTitle);
     }
 }

@@ -17,7 +17,8 @@ class QuickCreateModalTest extends TestCase
 
     public function test_open_for_client_prefills_client_without_opportunity(): void
     {
-        $client = Client::factory()->create(['company_name' => 'Follow-up Client Co']);
+        $client = Client::factory()
+                        ->create(['company_name' => 'Follow-up Client Co']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-follow-up-for-client', clientId: $client->id)
@@ -28,8 +29,11 @@ class QuickCreateModalTest extends TestCase
 
     public function test_open_for_opportunity_prefills_client_and_opportunity(): void
     {
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create(['title' => 'Kanban Opp']);
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create(['title' => 'Kanban Opp']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-follow-up-for-opportunity', opportunityId: $opportunity->id)
@@ -40,9 +44,13 @@ class QuickCreateModalTest extends TestCase
 
     public function test_save_creates_follow_up_and_dispatches_event(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($client)->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create();
 
         $this->actingAs($user);
 
@@ -63,10 +71,17 @@ class QuickCreateModalTest extends TestCase
 
     public function test_changing_client_clears_opportunity(): void
     {
-        $firstClient = Client::factory()->create();
-        $secondClient = Client::factory()->create();
-        $firstOpportunity = Opportunity::factory()->for($firstClient)->create(['title' => 'First deal']);
-        Opportunity::factory()->for($secondClient)->create(['title' => 'Second deal']);
+        $firstClient = Client::factory()
+                    ->create();
+        $secondClient = Client::factory()
+                    ->create();
+        $firstOpportunity = Opportunity::factory()
+                    ->for($firstClient)
+                    ->create(['title' => 'First deal']);
+
+        Opportunity::factory()
+            ->for($secondClient)
+            ->create(['title' => 'Second deal']);
 
         Livewire::test(QuickCreateModal::class)
             ->dispatch('open-follow-up-for-opportunity', opportunityId: $firstOpportunity->id)
@@ -78,15 +93,20 @@ class QuickCreateModalTest extends TestCase
 
     public function test_save_without_opportunity_creates_follow_up_for_client_only(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
         Livewire::test(QuickCreateModal::class)
             ->set('client_id', $client->id)
             ->set('opportunity_id', '')
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->call('saveFollowUp')
             ->assertHasNoErrors()
             ->assertDispatched('follow-up-created');

@@ -18,13 +18,15 @@ class HorizonAccessTest extends TestCase
 
         $this->app['env'] = 'staging';
 
-        $user = User::factory()->create([
-            'email' => 'operator@example.com',
-        ]);
+        $user = User::factory()
+                    ->create([
+                        'email' => 'operator@example.com',
+                    ]);
 
-        $this->actingAs($user)
-            ->get('/horizon')
-            ->assertSuccessful();
+        $response = $this->actingAs($user)
+                        ->get('/horizon');
+
+        $response->assertSuccessful();
     }
 
     public function test_non_allowlisted_user_cannot_access_horizon_outside_local(): void
@@ -35,12 +37,14 @@ class HorizonAccessTest extends TestCase
 
         $this->app['env'] = 'staging';
 
-        $user = User::factory()->create([
-            'email' => 'other@example.com',
-        ]);
+        $user = User::factory()
+                    ->create([
+                        'email' => 'other@example.com',
+                    ]);
 
-        $this->actingAs($user)
-            ->get('/horizon')
-            ->assertForbidden();
+        $response = $this->actingAs($user)
+                        ->get('/horizon');
+
+        $response->assertForbidden();
     }
 }

@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Platform;
 
+use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class SchedulerTest extends TestCase
@@ -23,20 +25,7 @@ class SchedulerTest extends TestCase
 
     public function test_prospecting_is_scheduled_weekdays_at_eight(): void
     {
-        $events = $this->app->make(Schedule::class)->events();
-
-        $prospectingEvents = collect($events)->filter(function ($event): bool {
-            $command = $event->command ?? '';
-            $description = $event->description ?? '';
-            $matchesCommand = str_contains($command, 'prospecting:run');
-            $matchesDescription = str_contains($description, 'prospecting:run');
-
-            if ($matchesCommand) {
-                return true;
-            }
-
-            return $matchesDescription;
-        });
+        $prospectingEvents = $this->prospectingScheduledEvents();
 
         $this->assertTrue(
             $prospectingEvents->isNotEmpty(),
@@ -48,31 +37,28 @@ class SchedulerTest extends TestCase
 
         $this->assertSame('0 8 * * 1-5', $event->expression);
 
-        Carbon::setTestNow(Carbon::parse('2026-08-10 08:00:00', $timezone));
-        $this->assertTrue($event->isDue($this->app));
+        $weekday = Carbon::parse('2026-08-10 08:00:00', $timezone);
 
-        Carbon::setTestNow(Carbon::parse('2026-08-08 08:00:00', $timezone));
-        $this->assertFalse($event->isDue($this->app));
+        Carbon::setTestNow($weekday);
+
+        $isDueOnWeekday = $event->isDue($this->app);
+
+        $this->assertTrue($isDueOnWeekday);
+
+        $weekend = Carbon::parse('2026-08-08 08:00:00', $timezone);
+
+        Carbon::setTestNow($weekend);
+
+        $isDueOnWeekend = $event->isDue($this->app);
+
+        $this->assertFalse($isDueOnWeekend);
 
         Carbon::setTestNow();
     }
 
     public function test_prospecting_schedule_is_skipped_when_disabled(): void
     {
-        $events = $this->app->make(Schedule::class)->events();
-
-        $prospectingEvents = collect($events)->filter(function ($event): bool {
-            $command = $event->command ?? '';
-            $description = $event->description ?? '';
-            $matchesCommand = str_contains($command, 'prospecting:run');
-            $matchesDescription = str_contains($description, 'prospecting:run');
-
-            if ($matchesCommand) {
-                return true;
-            }
-
-            return $matchesDescription;
-        });
+        $prospectingEvents = $this->prospectingScheduledEvents();
 
         $event = $prospectingEvents->first();
 
@@ -92,5 +78,25 @@ class SchedulerTest extends TestCase
 
         $this->assertFalse($disabledPasses);
         $this->assertTrue($enabledPasses);
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    private function prospectingScheduledEvents(): Collection
+    {
+        $schedule = $this->app->make(Schedule::class);
+        $events = $schedule->events();
+        $scheduledEvents = collect($events);
+        $prospectingEvents = $scheduledEvents->filter(function (Event $event): bool {
+            $command = $event->command ?? '';
+            $description = $event->description ?? '';
+            $matchesCommand = str_contains($command, 'prospecting:run');
+            $matchesDescription = str_contains($description, 'prospecting:run');
+
+            return $matchesCommand || $matchesDescription;
+        });
+
+        return $prospectingEvents;
     }
 }

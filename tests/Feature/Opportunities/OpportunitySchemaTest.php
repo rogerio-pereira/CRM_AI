@@ -15,25 +15,27 @@ class OpportunitySchemaTest extends TestCase
 
     public function test_opportunity_persists_extended_fields(): void
     {
-        $client = Client::factory()->create();
-
-        $opportunity = Opportunity::factory()->for($client)->create([
-            'title' => 'Enterprise rollout',
-            'stage' => PipelineStage::Lead,
-            'estimated_value' => 12500.50,
-            'status' => OpportunityStatus::Open,
-            'proposal_notes' => 'Draft scope pending review.',
-            'proposal_payload' => ['version' => 1],
-            'ai_recommendations' => ['summary' => 'High intent'],
-        ]);
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->create([
+                                'title' => 'Enterprise rollout',
+                                'stage' => PipelineStage::Lead,
+                                'estimated_value' => 12500.50,
+                                'status' => OpportunityStatus::Open,
+                                'proposal_notes' => 'Draft scope pending review.',
+                                'proposal_payload' => ['version' => 1],
+                                'ai_recommendations' => ['summary' => 'High intent'],
+                            ]);
 
         $this->assertDatabaseHas('opportunities', [
-            'id' => $opportunity->id,
-            'client_id' => $client->id,
-            'title' => 'Enterprise rollout',
-            'stage' => PipelineStage::Lead->value,
-            'estimated_value' => '12500.50',
-            'status' => OpportunityStatus::Open->value,
+                                'id' => $opportunity->id,
+                                'client_id' => $client->id,
+                                'title' => 'Enterprise rollout',
+                                'stage' => PipelineStage::Lead->value,
+                                'estimated_value' => '12500.50',
+                                'status' => OpportunityStatus::Open->value,
         ]);
 
         $fresh = $opportunity->fresh();

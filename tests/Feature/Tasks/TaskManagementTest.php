@@ -23,7 +23,8 @@ class TaskManagementTest extends TestCase
 
     public function test_tasks_index_page_is_displayed_for_authenticated_users(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user)
             ->get(route('tasks.index'))
@@ -34,8 +35,13 @@ class TaskManagementTest extends TestCase
     {
         Event::fake([TaskCreated::class]);
 
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
@@ -43,7 +49,7 @@ class TaskManagementTest extends TestCase
             ->call('openCreateModal')
             ->set('client_id', $client->id)
             ->set('title', 'Prepare proposal')
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->set('priority', TaskPriority::High->value)
             ->set('is_important', true)
             ->call('saveTask')
@@ -62,8 +68,10 @@ class TaskManagementTest extends TestCase
 
     public function test_title_is_required(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -77,10 +85,18 @@ class TaskManagementTest extends TestCase
 
     public function test_opportunity_must_belong_to_selected_client(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $otherClient = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($otherClient)->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $otherClient = Client::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($otherClient)
+                            ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
@@ -89,7 +105,7 @@ class TaskManagementTest extends TestCase
             ->set('client_id', $client->id)
             ->set('opportunity_id', $opportunity->id)
             ->set('title', 'Invalid link')
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->call('saveTask')
             ->assertHasErrors(['opportunity_id']);
     }
@@ -98,8 +114,10 @@ class TaskManagementTest extends TestCase
     {
         Event::fake([TaskUpdated::class]);
 
-        $user = User::factory()->create();
-        $task = Task::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $task = Task::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -117,20 +135,26 @@ class TaskManagementTest extends TestCase
 
     public function test_mark_done_excludes_task_from_pending_dashboard_query(): void
     {
-        $task = Task::factory()->create();
+        $task = Task::factory()
+                    ->create();
         $service = app(TaskService::class);
+        $pendingBeforeMarkDone = $service->pendingForDashboard();
 
-        $this->assertCount(1, $service->pendingForDashboard());
+        $this->assertCount(1, $pendingBeforeMarkDone);
 
         $service->markDone($task);
 
-        $this->assertCount(0, $service->pendingForDashboard());
+        $pendingAfterMarkDone = $service->pendingForDashboard();
+
+        $this->assertCount(0, $pendingAfterMarkDone);
     }
 
     public function test_user_can_delete_a_task(): void
     {
-        $user = User::factory()->create();
-        $task = Task::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $task = Task::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -144,8 +168,10 @@ class TaskManagementTest extends TestCase
 
     public function test_important_flag_is_persisted_on_update(): void
     {
-        $user = User::factory()->create();
-        $task = Task::factory()->create(['is_important' => false]);
+        $user = User::factory()
+                    ->create();
+        $task = Task::factory()
+                    ->create(['is_important' => false]);
 
         $this->actingAs($user);
 
@@ -155,17 +181,22 @@ class TaskManagementTest extends TestCase
             ->call('saveTask')
             ->assertHasNoErrors();
 
-        $this->assertTrue($task->fresh()->is_important);
+        $freshTask = $task->fresh();
+
+        $this->assertTrue($freshTask->is_important);
     }
 
     public function test_filter_changes_reset_pagination(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
-        Task::factory()->count(25)->for($client)->create([
-            'title' => 'Paged task',
-        ]);
+        Task::factory()
+                ->count(25)
+                ->for($client)
+                ->create(['title' => 'Paged task']);
 
         $this->actingAs($user);
 
@@ -195,8 +226,10 @@ class TaskManagementTest extends TestCase
 
     public function test_confirm_delete_without_selected_task_is_no_op(): void
     {
-        $user = User::factory()->create();
-        $task = Task::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $task = Task::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -210,10 +243,15 @@ class TaskManagementTest extends TestCase
 
     public function test_updated_client_id_clears_opportunity_selection(): void
     {
-        $user = User::factory()->create();
-        $firstClient = Client::factory()->create();
-        $secondClient = Client::factory()->create();
-        $opportunity = Opportunity::factory()->for($firstClient)->create();
+        $user = User::factory()
+                    ->create();
+        $firstClient = Client::factory()
+                    ->create();
+        $secondClient = Client::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($firstClient)
+                            ->create();
 
         $this->actingAs($user);
 
@@ -227,7 +265,8 @@ class TaskManagementTest extends TestCase
 
     public function test_opportunity_options_are_empty_until_client_is_selected(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -238,8 +277,13 @@ class TaskManagementTest extends TestCase
 
     public function test_save_task_with_empty_opportunity_id_creates_client_only_task(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $dueAt = now()
+                        ->addDay()
+                        ->format('Y-m-d\TH:i');
 
         $this->actingAs($user);
 
@@ -248,7 +292,7 @@ class TaskManagementTest extends TestCase
             ->set('client_id', $client->id)
             ->set('opportunity_id', '')
             ->set('title', 'No linked opportunity')
-            ->set('due_at', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('due_at', $dueAt)
             ->call('saveTask')
             ->assertHasNoErrors();
 

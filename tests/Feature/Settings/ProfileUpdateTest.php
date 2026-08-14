@@ -18,21 +18,27 @@ class ProfileUpdateTest extends TestCase
 
     public function test_profile_page_is_displayed(): void
     {
-        $this->actingAs($user = User::factory()->create());
+        $user = User::factory()
+                    ->create();
 
-        $this->get(route('profile.edit'))->assertOk();
+        $this->actingAs($user);
+
+        $response = $this->get(route('profile.edit'));
+
+        $response->assertOk();
     }
 
     public function test_profile_information_can_be_updated(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
         $response = Livewire::test(Profile::class)
-            ->set('name', 'Test User')
-            ->set('email', 'test@example.com')
-            ->call('updateProfileInformation');
+                        ->set('name', 'Test User')
+                        ->set('email', 'test@example.com')
+                        ->call('updateProfileInformation');
 
         $response->assertHasNoErrors();
 
@@ -45,51 +51,62 @@ class ProfileUpdateTest extends TestCase
 
     public function test_email_verification_status_is_unchanged_when_email_address_is_unchanged(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
         $response = Livewire::test(Profile::class)
-            ->set('name', 'Test User')
-            ->set('email', $user->email)
-            ->call('updateProfileInformation');
+                        ->set('name', 'Test User')
+                        ->set('email', $user->email)
+                        ->call('updateProfileInformation');
 
         $response->assertHasNoErrors();
 
-        $this->assertNotNull($user->refresh()->email_verified_at);
+        $user->refresh();
+
+        $this->assertNotNull($user->email_verified_at);
     }
 
     public function test_user_can_delete_their_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
         $response = Livewire::test(DeleteUserModal::class)
-            ->set('password', 'password')
-            ->call('deleteUser');
+                        ->set('password', 'password')
+                        ->call('deleteUser');
 
-        $response
-            ->assertHasNoErrors()
+        $response->assertHasNoErrors()
             ->assertRedirect('/');
 
-        $this->assertNull($user->fresh());
-        $this->assertFalse(auth()->check());
+        $deletedUser = $user->fresh();
+
+        $this->assertNull($deletedUser);
+
+        $isAuthenticated = auth()->check();
+
+        $this->assertFalse($isAuthenticated);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
         $response = Livewire::test(DeleteUserModal::class)
-            ->set('password', 'wrong-password')
-            ->call('deleteUser');
+                        ->set('password', 'wrong-password')
+                        ->call('deleteUser');
 
         $response->assertHasErrors(['password']);
 
-        $this->assertNotNull($user->fresh());
+        $persistedUser = $user->fresh();
+
+        $this->assertNotNull($persistedUser);
     }
 
     public function test_verification_notification_can_be_resent(): void
@@ -98,7 +115,9 @@ class ProfileUpdateTest extends TestCase
 
         Notification::fake();
 
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()
+                    ->unverified()
+                    ->create();
 
         $this->actingAs($user);
 
@@ -112,7 +131,8 @@ class ProfileUpdateTest extends TestCase
     {
         $this->skipUnlessFortifyHas(Features::emailVerification());
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 

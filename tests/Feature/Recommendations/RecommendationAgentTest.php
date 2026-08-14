@@ -29,22 +29,26 @@ class RecommendationAgentTest extends TestCase
         Mail::fake();
         Notification::fake();
 
-        $client = Client::factory()->create([
-            'company_name' => 'GreenSprout Lawn Care',
-        ]);
+        $client = Client::factory()
+                        ->create([
+                            'company_name' => 'GreenSprout Lawn Care',
+                        ]);
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->qualificationQualified()
-                                ->create([
-                                    'stage' => PipelineStage::Qualification,
-                                    'qualification_notes' => 'Local service business with a weak website.',
-                                ]);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'qualification_notes' => 'Local service business with a weak website.',
+                            ]);
 
-        RecommendationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        RecommendationFake::fakeSuccessful($opportunityId, $clientId);
 
         $agent = app(RecommendationAgent::class);
         $result = $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -72,7 +76,9 @@ class RecommendationAgentTest extends TestCase
             'Review the example email before any outreach',
             $recommendations['next_steps'][0]['title'],
         );
-        $this->assertTrue($opportunity->hasAiRecommendations());
+        $hasRecommendations = $opportunity->hasAiRecommendations();
+
+        $this->assertTrue($hasRecommendations);
         $this->assertSame(PipelineStage::Contact, $opportunity->stage);
 
         Mail::assertNothingOutgoing();
@@ -82,12 +88,12 @@ class RecommendationAgentTest extends TestCase
     public function test_unqualified_opportunity_skips_ai_and_does_not_persist_recommendations(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationPending()
-                                ->create();
+                            ->qualificationPending()
+                            ->create();
 
         $agent = app(RecommendationAgent::class);
         $result = $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -100,10 +106,10 @@ class RecommendationAgentTest extends TestCase
     public function test_incomplete_recommendation_output_throws(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create([
-                                    'stage' => PipelineStage::Qualification,
-                                ]);
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                            ]);
 
         RecommendationFake::fakeIncomplete();
 
@@ -111,11 +117,13 @@ class RecommendationAgentTest extends TestCase
 
         try {
             $agent->handle([
-                'opportunity_id' => $opportunity->id,
+                            'opportunity_id' => $opportunity->id,
             ]);
             $this->fail('Expected RecommendationFailedException was not thrown.');
         } catch (RecommendationFailedException $exception) {
-            $this->assertSame('Recommendation output was incomplete.', $exception->getMessage());
+            $message = $exception->getMessage();
+
+            $this->assertSame('Recommendation output was incomplete.', $message);
         }
 
         $opportunity->refresh();
@@ -127,17 +135,17 @@ class RecommendationAgentTest extends TestCase
     public function test_missing_recommendations_payload_throws(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
 
         RecommendationAnalysisAgent::fake([
             [
-                'schema_version' => 1,
-                'agent' => 'recommendation',
-                'lead_id' => '1',
-                'opportunity_id' => '1',
-                'ai_recommendations' => null,
-            ],
+                            'schema_version' => 1,
+                            'agent' => 'recommendation',
+                            'lead_id' => '1',
+                            'opportunity_id' => '1',
+                            'ai_recommendations' => null,
+                        ],
         ]);
 
         $agent = app(RecommendationAgent::class);
@@ -152,16 +160,19 @@ class RecommendationAgentTest extends TestCase
 
     public function test_refresh_overwrites_existing_recommendations(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->qualificationQualified()
-                                ->withAiRecommendations()
-                                ->create([
-                                    'stage' => PipelineStage::Contact,
-                                ]);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiRecommendations()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                            ]);
 
-        $updatedPayload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+        $updatedPayload = RecommendationFake::successfulPayload($opportunityId, $clientId);
         $updatedPayload['ai_recommendations']['summary'] = 'Updated recommendation after refresh.';
         $updatedPayload['ai_recommendations']['conversation_strategy']['contact_example']['subject'] = 'Updated subject';
 
@@ -171,8 +182,8 @@ class RecommendationAgentTest extends TestCase
 
         $agent = app(RecommendationAgent::class);
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
-            'trigger' => 'manual_refresh',
+                                'opportunity_id' => $opportunity->id,
+                                'trigger' => 'manual_refresh',
         ]);
 
         $opportunity->refresh();
@@ -185,37 +196,43 @@ class RecommendationAgentTest extends TestCase
 
     public function test_successful_recommendation_does_not_move_opportunity_already_past_contact(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->qualificationQualified()
-                                ->create([
-                                    'stage' => PipelineStage::ProposalGeneration,
-                                ]);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::ProposalGeneration,
+                            ]);
 
-        RecommendationFake::fakeSuccessful((string) $opportunity->id, (string) $client->id);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        RecommendationFake::fakeSuccessful($opportunityId, $clientId);
 
         $agent = app(RecommendationAgent::class);
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
-            'trigger' => 'manual_refresh',
+                                'opportunity_id' => $opportunity->id,
+                                'trigger' => 'manual_refresh',
         ]);
 
         $opportunity->refresh();
 
-        $this->assertTrue($opportunity->hasAiRecommendations());
+        $hasRecommendations = $opportunity->hasAiRecommendations();
+
+        $this->assertTrue($hasRecommendations);
         $this->assertSame(PipelineStage::ProposalGeneration, $opportunity->stage);
     }
 
     public function test_agent_throws_when_prompt_file_is_missing(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
 
         File::partialMock()
-                ->shouldReceive('exists')
-                ->andReturn(false);
+            ->shouldReceive('exists')
+            ->andReturn(false);
 
         $agent = app(RecommendationAgent::class);
 
@@ -223,7 +240,7 @@ class RecommendationAgentTest extends TestCase
         $this->expectExceptionMessage('Recommendation prompt file not found');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                                'opportunity_id' => $opportunity->id,
         ]);
     }
 
@@ -240,14 +257,14 @@ class RecommendationAgentTest extends TestCase
     public function test_agent_throws_when_prompt_file_is_empty(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
 
         $file = File::partialMock();
         $file->shouldReceive('exists')
-                ->andReturn(true);
+            ->andReturn(true);
         $file->shouldReceive('get')
-                ->andReturn('   ');
+            ->andReturn('   ');
 
         $agent = app(RecommendationAgent::class);
 
@@ -255,15 +272,15 @@ class RecommendationAgentTest extends TestCase
         $this->expectExceptionMessage('Recommendation prompt file is empty');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                                'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_agent_throws_when_client_is_missing(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
 
         Client::addGlobalScope('recommendation-missing-client', function ($query): void {
             $query->whereRaw('0 = 1');
@@ -271,12 +288,13 @@ class RecommendationAgentTest extends TestCase
 
         try {
             $agent = app(RecommendationAgent::class);
+            $expectedMessage = 'Recommendation client not found for opportunity: '.$opportunity->id;
 
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Recommendation client not found for opportunity: '.$opportunity->id);
+            $this->expectExceptionMessage($expectedMessage);
 
             $agent->handle([
-                'opportunity_id' => $opportunity->id,
+                                'opportunity_id' => $opportunity->id,
             ]);
         } finally {
             $modelReflection = new ReflectionClass(Client::class);
@@ -290,13 +308,13 @@ class RecommendationAgentTest extends TestCase
     public function test_agent_throws_when_analysis_response_is_not_structured(): void
     {
         $opportunity = Opportunity::factory()
-                                ->qualificationQualified()
-                                ->create();
+                            ->qualificationQualified()
+                            ->create();
         $unstructuredResponse = Mockery::mock(AgentResponse::class);
         $analysisAgent = Mockery::mock(RecommendationAnalysisAgent::class);
         $analysisAgent->shouldReceive('prompt')
-                ->once()
-                ->andReturn($unstructuredResponse);
+            ->once()
+            ->andReturn($unstructuredResponse);
 
         $this->app->bind(RecommendationAnalysisAgent::class, function () use ($analysisAgent) {
             return $analysisAgent;
@@ -308,18 +326,21 @@ class RecommendationAgentTest extends TestCase
         $this->expectExceptionMessage('Recommendation output was incomplete.');
 
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                                'opportunity_id' => $opportunity->id,
         ]);
     }
 
     public function test_persists_defaults_when_optional_fields_are_missing(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $opportunity = Opportunity::factory()
-                                ->for($client)
-                                ->qualificationQualified()
-                                ->create();
-        $payload = RecommendationFake::successfulPayload((string) $opportunity->id, (string) $client->id);
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create();
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+        $payload = RecommendationFake::successfulPayload($opportunityId, $clientId);
         unset(
             $payload['ai_recommendations']['generated_at'],
             $payload['ai_recommendations']['language'],
@@ -335,7 +356,7 @@ class RecommendationAgentTest extends TestCase
 
         $agent = app(RecommendationAgent::class);
         $agent->handle([
-            'opportunity_id' => $opportunity->id,
+                                'opportunity_id' => $opportunity->id,
         ]);
 
         $opportunity->refresh();
@@ -358,8 +379,8 @@ class RecommendationAgentTest extends TestCase
         $agent = app(RecommendationAgent::class);
         $method = new ReflectionMethod(RecommendationAgent::class, 'persistRecommendations');
         $payload = [
-                'ai_recommendations' => null,
-            ];
+                                'ai_recommendations' => null,
+        ];
 
         $this->expectException(RecommendationFailedException::class);
         $this->expectExceptionMessage('Recommendation output was incomplete.');
@@ -369,7 +390,8 @@ class RecommendationAgentTest extends TestCase
 
     public function test_agent_throws_when_opportunity_payload_cannot_be_encoded(): void
     {
-        $client = Client::factory()->create();
+        $client = Client::factory()
+                        ->create();
         $client->company_name = "\xB1\x31";
         $client->save();
 
@@ -383,7 +405,7 @@ class RecommendationAgentTest extends TestCase
         $this->expectExceptionMessage('Recommendation opportunity payload could not be encoded.');
 
         $agent->handle([
-                'opportunity_id' => $opportunity->id,
-            ]);
+                                'opportunity_id' => $opportunity->id,
+        ]);
     }
 }

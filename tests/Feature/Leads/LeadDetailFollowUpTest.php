@@ -18,21 +18,33 @@ class LeadDetailFollowUpTest extends TestCase
 
     public function test_detail_modal_lists_follow_ups_and_add_button_opens_quick_create(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'Follow-up History Co']);
-        $followUp = FollowUp::factory()->for($client)->create([
-            'reminder_status' => FollowUpReminderStatus::Pending,
-            'due_at' => now()->addDay(),
-        ]);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'Follow-up History Co']);
+        $dueAt = now()
+                        ->addDay();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->create([
+                            'reminder_status' => FollowUpReminderStatus::Pending,
+                            'due_at' => $dueAt,
+                        ]);
 
         $this->actingAs($user);
 
+        $pendingLabel = FollowUpReminderStatus::Pending->label();
+        $pendingBadgeClasses = FollowUpReminderStatus::Pending->badgeClasses();
+        $pendingStatusValue = FollowUpReminderStatus::Pending->value;
+        $statusSelector = 'data-test="leads-detail-follow-up-status-'.$followUp->id.'"';
+        $statusAttribute = 'data-status="'.$pendingStatusValue.'"';
+
         Livewire::test(Index::class)
             ->call('openDetailModal', $client->id)
-            ->assertSee(FollowUpReminderStatus::Pending->label())
-            ->assertSeeHtml('data-test="leads-detail-follow-up-status-'.$followUp->id.'"')
-            ->assertSeeHtml('data-status="'.FollowUpReminderStatus::Pending->value.'"')
-            ->assertSeeHtml(FollowUpReminderStatus::Pending->badgeClasses())
+            ->assertSee($pendingLabel)
+            ->assertSeeHtml($statusSelector)
+            ->assertSeeHtml($statusAttribute)
+            ->assertSeeHtml($pendingBadgeClasses)
             ->assertSee(__('Add follow-up'));
 
         Livewire::test(QuickCreateModal::class)
@@ -42,15 +54,17 @@ class LeadDetailFollowUpTest extends TestCase
             ->assertDispatched('follow-up-created');
 
         $this->assertDatabaseHas('follow_ups', [
-            'client_id' => $client->id,
-            'notes' => 'Added from detail',
+                            'client_id' => $client->id,
+                            'notes' => 'Added from detail',
         ]);
     }
 
     public function test_leads_list_actions_menu_can_open_follow_up_quick_create(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['company_name' => 'List Follow-up Co']);
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create(['company_name' => 'List Follow-up Co']);
 
         $this->actingAs($user);
 
@@ -65,16 +79,21 @@ class LeadDetailFollowUpTest extends TestCase
             ->assertDispatched('follow-up-created');
 
         $this->assertDatabaseHas('follow_ups', [
-            'client_id' => $client->id,
-            'notes' => 'Added from list menu',
+                            'client_id' => $client->id,
+                            'notes' => 'Added from list menu',
         ]);
     }
 
     public function test_detail_modal_strikes_through_completed_follow_up_row(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->completed()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->completed()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -86,9 +105,14 @@ class LeadDetailFollowUpTest extends TestCase
 
     public function test_detail_modal_shows_overdue_follow_up_status_in_danger(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
-        $followUp = FollowUp::factory()->for($client)->overdue()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+        $followUp = FollowUp::factory()
+                        ->for($client)
+                        ->overdue()
+                        ->create();
 
         $this->actingAs($user);
 
@@ -102,8 +126,10 @@ class LeadDetailFollowUpTest extends TestCase
 
     public function test_follow_up_created_refreshes_detail_client(): void
     {
-        $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
 
         $this->actingAs($user);
 

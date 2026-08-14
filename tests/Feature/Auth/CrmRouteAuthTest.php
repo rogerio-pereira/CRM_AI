@@ -27,6 +27,9 @@ class CrmRouteAuthTest extends TestCase
         ];
     }
 
+    /**
+     * @return array<string, array{0: string}>
+     */
     public static function authenticatedCrmRoutesProvider(): array
     {
         return [
@@ -42,26 +45,33 @@ class CrmRouteAuthTest extends TestCase
     #[DataProvider('guestProtectedCrmRoutesProvider')]
     public function test_guests_are_redirected_from_crm_routes(string $url): void
     {
-        $this->get($url)->assertRedirect(route('login'));
+        $response = $this->get($url);
+
+        $response->assertRedirect(route('login'));
     }
 
     #[DataProvider('authenticatedCrmRoutesProvider')]
     public function test_authenticated_verified_users_can_access_crm_routes(string $url): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
         $this->actingAs($user);
 
-        $this->get($url)->assertOk();
+        $response = $this->get($url);
+
+        $response->assertOk();
     }
 
     public function test_authenticated_users_can_access_security_settings_after_password_confirmation(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $this->actingAs($user)
-            ->withSession(['auth.password_confirmed_at' => time()])
-            ->get('/settings/security')
-            ->assertOk();
+        $response = $this->actingAs($user)
+                        ->withSession(['auth.password_confirmed_at' => time()])
+                        ->get('/settings/security');
+
+        $response->assertOk();
     }
 }

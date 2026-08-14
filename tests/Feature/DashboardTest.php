@@ -12,20 +12,31 @@ class DashboardTest extends TestCase
 
     public function test_guests_are_redirected_to_the_login_page(): void
     {
-        $response = $this->get(route('dashboard'));
-        $response->assertRedirect(route('login'));
+        $dashboardUrl = route('dashboard');
+        $loginUrl = route('login');
+
+        $response = $this->get($dashboardUrl);
+
+        $response->assertRedirect($loginUrl);
     }
 
     public function test_authenticated_users_can_visit_the_dashboard(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
         $this->actingAs($user);
 
-        $response = $this->get(route('dashboard'));
+        $dashboardUrl = route('dashboard');
+        $response = $this->get($dashboardUrl);
+        $dailyOverview = __('Daily overview');
+        $leadsCreatedToday = __('Leads created today');
+        $tasksAndFollowUps = __('Tasks and follow-ups');
+        $pendingTasks = __('Pending tasks');
+
         $response->assertOk();
-        $response->assertSee(__('Daily overview'), false);
-        $response->assertSee(__('Leads created today'), false);
-        $response->assertSee(__('Tasks and follow-ups'), false);
-        $response->assertSee(__('Pending tasks'), false);
+        $response->assertSee($dailyOverview, false);
+        $response->assertSee($leadsCreatedToday, false);
+        $response->assertSee($tasksAndFollowUps, false);
+        $response->assertSee($pendingTasks, false);
     }
 }

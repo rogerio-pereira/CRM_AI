@@ -31,9 +31,12 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $this->post(route('password.request'), ['email' => $user->email]);
+        $this->post(route('password.request'), [
+            'email' => $user->email,
+        ]);
 
         Notification::assertSentTo($user, ResetPassword::class);
     }
@@ -42,12 +45,17 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $this->post(route('password.request'), ['email' => $user->email]);
+        $this->post(route('password.request'), [
+            'email' => $user->email,
+        ]);
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get(route('password.reset', $notification->token));
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification): bool {
+            $resetUrl = route('password.reset', $notification->token);
+
+            $response = $this->get($resetUrl);
 
             $response->assertOk();
 
@@ -59,11 +67,14 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()
+                    ->create();
 
-        $this->post(route('password.request'), ['email' => $user->email]);
+        $this->post(route('password.request'), [
+            'email' => $user->email,
+        ]);
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user): bool {
             $response = $this->post(route('password.update'), [
                 'token' => $notification->token,
                 'email' => $user->email,
@@ -71,8 +82,7 @@ class PasswordResetTest extends TestCase
                 'password_confirmation' => 'password',
             ]);
 
-            $response
-                ->assertSessionHasNoErrors()
+            $response->assertSessionHasNoErrors()
                 ->assertRedirect(route('login', absolute: false));
 
             return true;
