@@ -6,6 +6,10 @@ use App\Models\Task;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/*
+ * @calls app/Listeners/QueueCalendarEventForTask
+ * @calls app/Listeners/EvaluateSlackRulesForTask
+ */
 class TaskUpdated
 {
     use Dispatchable;

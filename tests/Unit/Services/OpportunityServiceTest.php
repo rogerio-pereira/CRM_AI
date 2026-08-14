@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Events\OpportunityCreated;
 use App\Events\OpportunityStageChanged;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Services\OpportunityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use RuntimeException;
 use Tests\TestCase;
 
 class OpportunityServiceTest extends TestCase
@@ -28,6 +30,8 @@ class OpportunityServiceTest extends TestCase
 
     public function test_create_sets_lead_stage_and_open_status(): void
     {
+        Event::fake([OpportunityCreated::class]);
+
         $client = Client::factory()->create();
 
         $opportunity = $this->service->create([
@@ -39,6 +43,7 @@ class OpportunityServiceTest extends TestCase
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
         $this->assertSame(OpportunityStatus::Open, $opportunity->status);
         $this->assertSame('Created via service', $opportunity->title);
+        Event::assertDispatched(OpportunityCreated::class);
     }
 
     public function test_update_persists_attributes_and_refreshes_client(): void
@@ -97,6 +102,28 @@ class OpportunityServiceTest extends TestCase
         Event::assertDispatched(OpportunityStageChanged::class);
     }
 
+    public function test_move_to_stage_sets_won_status_and_dispatches_event(): void
+    {
+        Event::fake([OpportunityStageChanged::class]);
+
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->open()->create();
+
+        $this->service->moveToStage(
+            $opportunity,
+            PipelineStage::Won,
+            $user->id,
+        );
+
+        $this->assertDatabaseHas('opportunities', [
+            'id' => $opportunity->id,
+            'stage' => PipelineStage::Won->value,
+            'status' => OpportunityStatus::Won->value,
+        ]);
+
+        Event::assertDispatched(OpportunityStageChanged::class);
+    }
+
     public function test_grouped_by_stage_returns_all_stages_with_matching_opportunities(): void
     {
         $client = Client::factory()->create();
@@ -113,5 +140,57 @@ class OpportunityServiceTest extends TestCase
         $this->assertTrue($grouped[PipelineStage::Lead->value]->contains(fn (Opportunity $item): bool => $item->is($lead)));
         $this->assertTrue($grouped[PipelineStage::Won->value]->contains(fn (Opportunity $item): bool => $item->is($won)));
         $this->assertTrue($grouped[PipelineStage::Qualification->value]->isEmpty());
+    }
+
+    public function test_create_throws_when_opportunity_cannot_be_reloaded(): void
+    {
+        Event::fake([OpportunityCreated::class]);
+
+        Opportunity::created(function (Opportunity $opportunity): void {
+            $opportunity->exists = false;
+        });
+
+        $client = Client::factory()->create();
+
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Created opportunity could not be reloaded.');
+
+            $this->service->create([
+                'client_id' => $client->id,
+                'title' => 'Vanishing deal',
+            ]);
+        } finally {
+            Opportunity::flushEventListeners();
+        }
+    }
+
+    public function test_move_to_stage_throws_when_opportunity_cannot_be_reloaded(): void
+    {
+        Event::fake([OpportunityStageChanged::class]);
+
+        $opportunity = Opportunity::factory()->create([
+            'stage' => PipelineStage::Lead,
+        ]);
+
+        Opportunity::saved(function (Opportunity $model) use ($opportunity): void {
+            if ($model->getKey() !== $opportunity->getKey()) {
+                return;
+            }
+
+            $model->exists = false;
+        });
+
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Updated opportunity could not be reloaded.');
+
+            $this->service->moveToStage(
+                $opportunity,
+                PipelineStage::Qualification,
+            );
+        } finally {
+            Opportunity::flushEventListeners();
+        }
     }
 }

@@ -11,7 +11,7 @@
 | Dependency | ADR status | Impact on this FDR |
 | ---------- | ----------- | ------------------ |
 | [ADR-016 — Proposal format](../../ADRs/ADR-016-proposal-generation-undefined-mvp.md) | **Proposed** | **Partial:** stage map entry for **→ Proposal Generation** (dispatch proposal assistant) must use a **stub** until ADR-016 is **Accepted** and [FDR-013](FDR-013-proposal-assistance.md) is updated. |
-| [FDR-011 — Qualification](../../FDRs/ToDo/FDR-011-automated-lead-qualification.md) | Decisions confirmed by ADR-017 | **→ Qualification** automation should move successful qualifications to **Contact**. |
+| [FDR-011 — Qualification](../Done/FDR-011-automated-lead-qualification.md) | Done (ADR-017 amended 2026-08-13) | **→ Qualification** enqueues qualification for **that** opportunity if not already processing/qualified. Successful qualification moves **that** opportunity to **Contact**. |
 
 Other stage actions (follow-ups, tasks, Slack hooks) can be implemented without ADR-016.
 
@@ -21,7 +21,7 @@ Other stage actions (follow-ups, tasks, Slack hooks) can be implemented without 
 
 1. Listen for **`OpportunityStageChanged`** with `from`, `to`, `opportunity_id`.
 2. Configurable **stage → actions** map (PHP config class), e.g.:
-   - → Qualification: enqueue qualification (if not done)
+   - → Qualification: enqueue qualification for **that** opportunity (if not already processing or qualified)
    - → Proposal Generation: enqueue proposal assistant (**full behavior blocked** until ADR-016 **Accepted**; stub OK for wiring tests)
    - → Contact: optional default follow-up task template
 3. May create **follow-ups** or **tasks** automatically (templates per stage).

@@ -27,7 +27,7 @@ class RunQualificationAgentJobTest extends TestCase
             ->once()
             ->with('ai.agent.failed', Mockery::type('array'));
 
-        $job = new RunQualificationAgentJob(['client_id' => 1]);
+        $job = new RunQualificationAgentJob(['opportunity_id' => 1]);
 
         $this->expectException(RuntimeException::class);
 
@@ -36,16 +36,41 @@ class RunQualificationAgentJobTest extends TestCase
 
     public function test_job_logs_metadata_on_success_without_prompt_content(): void
     {
+        $agent = Mockery::mock(QualificationAgent::class);
+        $agent->shouldReceive('handle')
+            ->once()
+            ->andReturn([
+                'agent' => 'qualification',
+                'status' => 'qualified',
+            ]);
+
+        $this->app->instance(QualificationAgent::class, $agent);
+
         Log::shouldReceive('info')
             ->once()
             ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
-                return $context['agent'] === 'qualification'
-                    && $context['provider'] === config('ai.default')
-                    && isset($context['duration_ms'])
-                    && isset($context['result_keys']);
+                $agentName = $context['agent'] ?? null;
+                $provider = $context['provider'] ?? null;
+                $hasDuration = isset($context['duration_ms']);
+                $hasResultKeys = isset($context['result_keys']);
+                $expectedProvider = config('ai.default');
+
+                if ($agentName !== 'qualification') {
+                    return false;
+                }
+
+                if ($provider !== $expectedProvider) {
+                    return false;
+                }
+
+                if ($hasDuration === false) {
+                    return false;
+                }
+
+                return $hasResultKeys;
             }));
 
-        $job = new RunQualificationAgentJob(['client_id' => 1]);
+        $job = new RunQualificationAgentJob(['opportunity_id' => 1]);
         $job->handle();
 
         $this->assertTrue(true);

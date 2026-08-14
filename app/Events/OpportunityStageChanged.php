@@ -7,6 +7,9 @@ use App\Models\Opportunity;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/*
+ * @calls app/Listeners/DispatchAiOnOpportunityStageChanged
+ */
 class OpportunityStageChanged
 {
     use Dispatchable;

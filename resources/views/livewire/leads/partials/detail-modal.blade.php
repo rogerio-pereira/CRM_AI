@@ -30,7 +30,20 @@
                 </div>
                 <div>
                     <flux:subheading>{{ __('Website') }}</flux:subheading>
-                    <flux:text class="text-text-secondary">{{ $client->website ?? '—' }}</flux:text>
+                    @php($websiteUrl = \App\Support\UrlNormalizer::normalize($client->website))
+                    @if ($websiteUrl !== null)
+                        <a
+                            href="{{ $websiteUrl }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-sm text-primary hover:text-primary-hover"
+                            data-test="leads-detail-website-link"
+                        >
+                            {{ $client->website }}
+                        </a>
+                    @else
+                        <flux:text class="text-text-secondary">{{ __('—') }}</flux:text>
+                    @endif
                 </div>
                 <div>
                     <flux:subheading>{{ __('Lead source') }}</flux:subheading>
@@ -51,17 +64,10 @@
 
             @if ($client->qualification_notes)
                 <div>
-                    <flux:subheading>{{ __('Qualification notes') }}</flux:subheading>
+                    <flux:subheading>{{ __('Notes') }}</flux:subheading>
                     <flux:text class="text-text-secondary">{{ $client->qualification_notes }}</flux:text>
                 </div>
             @endif
-
-            <div class="rounded-lg border border-border-default bg-app p-4" data-test="leads-detail-ai-insights">
-                <flux:subheading>{{ __('AI insights') }}</flux:subheading>
-                <flux:text variant="subtle" class="mt-2">
-                    {{ __('AI-generated insights will appear here after lead qualification (features 11–12).') }}
-                </flux:text>
-            </div>
 
             <div data-test="leads-detail-opportunity-history">
                 <flux:subheading>{{ __('Opportunity history') }}</flux:subheading>

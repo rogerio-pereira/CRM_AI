@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Events\OpportunityCreated;
 use App\Events\OpportunityStageChanged;
 use App\Models\Opportunity;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class OpportunityService
 {
@@ -18,7 +20,19 @@ class OpportunityService
         $attributes['stage'] = PipelineStage::Lead;
         $attributes['status'] = OpportunityStatus::Open;
 
-        return Opportunity::create($attributes);
+        $opportunity = Opportunity::create($attributes)
+                            ->fresh(['client']);
+
+        if ($opportunity === null) {
+            throw new RuntimeException('Created opportunity could not be reloaded.');
+        }
+
+        /**
+         * @calls app/Listeners/DispatchAiOnOpportunityCreated
+         */
+        OpportunityCreated::dispatch($opportunity);
+
+        return $opportunity;
     }
 
     /**
@@ -54,8 +68,17 @@ class OpportunityService
 
         $opportunity->save();
 
+        $freshOpportunity = $opportunity->fresh(['client']);
+
+        if ($freshOpportunity === null) {
+            throw new RuntimeException('Updated opportunity could not be reloaded.');
+        }
+
+        /**
+         * @calls app/Listeners/DispatchAiOnOpportunityStageChanged
+         */
         OpportunityStageChanged::dispatch(
-            $opportunity->fresh(['client']),
+            $freshOpportunity,
             $fromStage,
             $targetStage,
             $userId,

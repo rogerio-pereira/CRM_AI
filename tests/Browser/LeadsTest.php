@@ -22,7 +22,9 @@ it('displays the leads page and creates a lead', function () {
         ->click('@leads-form-submit')
         ->assertSee('Browser Test Co');
 
-    expect(Client::where('company_name', 'Browser Test Co')->exists())->toBeTrue();
+    $client = Client::where('company_name', 'Browser Test Co')->first();
+
+    expect($client)->not->toBeNull();
 });
 
 it('opens detail modal and archives a lead from the actions menu', function () {
@@ -30,6 +32,7 @@ it('opens detail modal and archives a lead from the actions menu', function () {
     $client = Client::factory()->create([
         'company_name' => 'Detail Modal Co',
         'qualification_notes' => 'Initial notes',
+        'website' => 'https://detail-modal.test',
     ]);
 
     $this->actingAs($user);
@@ -41,6 +44,8 @@ it('opens detail modal and archives a lead from the actions menu', function () {
         ->assertPresent('[data-test="leads-detail-status-badge"][data-status="active"]')
         ->assertSee('Detail Modal Co')
         ->assertSee('Initial notes')
+        ->assertPresent('[data-test="leads-detail-website-link"]')
+        ->assertSee('https://detail-modal.test')
         ->click('@leads-detail-close')
         ->click('@leads-actions-'.$client->id)
         ->click('@leads-archive-'.$client->id)

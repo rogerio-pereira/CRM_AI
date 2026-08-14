@@ -15,8 +15,7 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
      */
     public function discover(array $options = []): array
     {
-        $defaultLimit = (int) config('prospecting.default_limit', 20);
-        $requestedLimit = $options['limit'] ?? $defaultLimit;
+        $requestedLimit = $options['limit'] ?? 1;
         $limit = (int) $requestedLimit;
 
         if ($limit < 1) {
@@ -30,7 +29,10 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
             throw new RuntimeException('Prospecting discovery requires approved prompt instructions.');
         }
 
-        $userPrompt = "Discover up to {$limit} lead candidates with a public email. Return structured JSON only.";
+        $limitInstruction = "Discover up to {$limit} lead candidates with a public email.";
+        $rankingInstruction = 'Rank website work first even for a simple institutional site. Treat other services as cross-sell. Do not use custom software as the primary reason to add a lead.';
+        $outputInstruction = 'Return structured JSON only.';
+        $userPrompt = $limitInstruction.' '.$rankingInstruction.' '.$outputInstruction;
         $response = $this->promptDiscovery($instructions, $userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {

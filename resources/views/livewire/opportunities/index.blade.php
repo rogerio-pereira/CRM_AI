@@ -108,6 +108,13 @@
                                         {{ $opportunity->client->company_name }}
                                     </flux:text>
 
+                                    <x-status-badge
+                                        :label="$opportunity->qualification_status->label()"
+                                        :classes="$opportunity->qualification_status->badgeClasses()"
+                                        :status="$opportunity->qualification_status->value"
+                                        data-test="kanban-card-qualification-badge-{{ $opportunity->id }}"
+                                    />
+
                                     <div class="flex items-center justify-between gap-2 text-xs text-text-secondary">
                                         <span data-test="kanban-card-value-{{ $opportunity->id }}">
                                             @if ($opportunity->estimated_value !== null)

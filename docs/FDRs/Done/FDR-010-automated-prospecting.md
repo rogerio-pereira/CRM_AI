@@ -32,29 +32,30 @@
 ## How it works
 
 1. **Scheduled command** `prospecting:run` — weekdays 08:00 ([ADR-007](../../ADRs/ADR-007-scheduled-prospecting.md)).
-2. Command calls orchestration to run **Prospecting Agent**.
-3. Agent uses **pluggable discovery adapter** implementing [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md): AI and/or **in-repo scraping** on public/free sources (no paid data APIs; no external unmanaged code).
+2. Command dispatches **one Prospecting Agent job per lead**, up to `PROSPECTING_DEFAULT_LIMIT`, so a single worker does not time out on a batch.
+3. Each job uses the **pluggable discovery adapter** implementing [ADR-015](../../ADRs/ADR-015-prospecting-discovery-undefined-mvp.md): AI and/or **in-repo scraping** on public/free sources (no paid data APIs; no external unmanaged code).
 4. Agent behavior driven by **approved prompt** (stakeholder-provided).
-5. For each discovered company: create **Lead/Client** + **Opportunity** in stage **Lead**; mark source as prospecting.
+5. Each job discovers **one** company: create **Lead/Client** + **Opportunity** in stage **Lead**; mark source as prospecting.
 6. **Deduplicate** before insert: match normalized company name or website domain; also email/phone when available.
-7. If not duplicated, enqueue **qualification** job (feature 11).
+7. The new **opportunity** enters the qualification queue (feature 11). Client-only rows are not qualified.
 
 ```mermaid
 flowchart TD
     Cron[Scheduler 08:00 weekdays] --> Cmd[prospecting:run]
-    Cmd --> Agent[Prospecting Agent]
+    Cmd --> Jobs[N prospecting jobs one lead each]
+    Jobs --> Agent[Prospecting Agent]
     Agent --> Prompt[Approved system prompt]
     Agent --> Disc[AI-led discovery adapter]
     Disc --> Dedup[Deduplicate name/domain/email/phone]
     Dedup --> Save[Create lead + opportunity Lead stage]
-    Save --> Q[Enqueue qualification]
+    Save --> Q[Enqueue qualification for that opportunity]
 ```
 
 ## How to test
 
 - Schedule fake: run command manually; verify leads created.
 - Mock discovery returns N records; dedup prevents duplicates (name, domain, email, phone cases).
-- Qualification job dispatched for each new lead.
+- Qualification job dispatched for each new **opportunity**.
 - No run on Saturday/Sunday.
 - No live paid data API calls in CI; use mocks/fakes.
 
@@ -70,7 +71,7 @@ flowchart TD
 - [x] AI-led discovery adapter implemented per ADR-015 (public/free sources only).
 - [x] Dedup: company name, website; email/phone when present.
 - [x] New records in Lead stage with source marked as prospecting.
-- [x] Qualification queue receives new leads.
+- [x] Qualification queue receives the new **opportunity**.
 - [x] Tests use mocked discovery only (no live AI/data APIs in CI).
 
 ---

@@ -8,6 +8,7 @@ use App\Events\TaskUpdated;
 use App\Models\Opportunity;
 use App\Models\Task;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -29,6 +30,10 @@ class TaskService
 
         $task = Task::create($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskCreated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
@@ -48,6 +53,10 @@ class TaskService
 
         $task->update($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskUpdated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
@@ -59,6 +68,10 @@ class TaskService
         $task->completed_at = now();
         $task->save();
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskUpdated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
@@ -82,11 +95,11 @@ class TaskService
             ->orderBy('due_at');
 
         if ($search !== null && $search !== '') {
-            $query->where(function ($taskQuery) use ($search): void {
+            $query->where(function (Builder $taskQuery) use ($search): void {
                 $term = '%'.strtolower($search).'%';
                 $taskQuery
                     ->whereRaw('lower(title) like ?', [$term])
-                    ->orWhereHas('client', function ($clientQuery) use ($term): void {
+                    ->orWhereHas('client', function (Builder $clientQuery) use ($term): void {
                         $clientQuery->whereRaw('lower(company_name) like ?', [$term]);
                     });
             });

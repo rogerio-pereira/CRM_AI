@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,6 +31,11 @@ class OpportunityFactory extends Factory
             'proposal_notes' => null,
             'proposal_payload' => null,
             'ai_recommendations' => null,
+            'qualification_notes' => null,
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+            'ai_insights' => null,
         ];
     }
 
@@ -66,6 +72,93 @@ class OpportunityFactory extends Factory
     public function lost(): static
     {
         return $this->stage(PipelineStage::Lost);
+    }
+
+    public function qualificationPending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Pending,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationProcessing(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Processing,
+            'qualification_last_error' => null,
+            'qualified_at' => null,
+        ]);
+    }
+
+    public function qualificationQualified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Qualified,
+            'qualification_last_error' => null,
+            'qualified_at' => now(),
+            'ai_insights' => [
+                'schema_version' => 1,
+                'summary' => 'Ready for a first conversation.',
+            ],
+        ]);
+    }
+
+    public function withAiInsights(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'ai_insights' => [
+                'schema_version' => 1,
+                'generated_at' => '2026-08-13T00:00:00Z',
+                'source_agent' => 'qualification',
+                'language' => 'en',
+                'summary' => 'Ready for a first conversation.',
+                'fit' => [
+                    'level' => 'high',
+                    'label' => 'Ready to Contact',
+                    'reason' => 'Public contact details and a practical growth gap are visible.',
+                ],
+                'pain_points' => [
+                    [
+                        'title' => 'Outdated website',
+                        'evidence' => 'The public site looks dated and the next step is hard to find.',
+                        'business_impact' => 'Visitors may keep looking instead of requesting a quote.',
+                    ],
+                ],
+                'opportunities' => [
+                    [
+                        'service' => 'lead_generation',
+                        'title' => 'Create a steadier local lead flow',
+                        'why_it_matters' => 'Less dependence on referrals for new work.',
+                        'priority' => 'high',
+                    ],
+                ],
+                'outreach_strategy' => [
+                    'positioning' => 'Helpful local growth conversation.',
+                    'talking_points' => [
+                        'The website may be losing quote requests.',
+                    ],
+                    'contact_example' => [
+                        'channel' => 'email',
+                        'subject' => 'A simple way to bring in more local conversations',
+                        'body' => "Hi there,\n\nI noticed a practical opportunity to turn more local demand into conversations.",
+                    ],
+                    'avoid' => [
+                        'Technical jargon or pressure.',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function qualificationFailed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'qualification_status' => QualificationStatus::Failed,
+            'qualification_last_error' => 'Qualification could not be completed. The team can try again later.',
+            'qualified_at' => null,
+        ]);
     }
 
     public function withAiRecommendations(): static

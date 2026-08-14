@@ -29,7 +29,7 @@ Feature plan example: `docs/FDRs/ImplementationPlans/IMPLEMENTATION_PLAN_wave_1_
 
 1. Implement **only** the chosen task. Do not do extra tasks in this run.
 2. Follow `.cursor/rules/style-guide.md` strictly (English code, PSR, **no ternary operators** in PHP, explicit sequential data flow, one chained method per line with the documented continuation indent). A task is **not done** until every changed file complies.
-3. Follow `.cursor/rules/kiss.mdc`: sequential named steps, not `normalize*` / `sanitize*` / markdown-parse layers. Use `trim`, `strtolower`, `str_starts_with`, or `File::get` unless a real business rule needs more.
+3. Follow `.cursor/rules/kiss.mdc`: simplest solution that meets the requirement; no overengineering. Do not skip style guide, security, validation, or tests.
 4. In fluent method chains, keep one method call per line and keep indentation consistent.
 5. For assigned fluent chains, use a deeper continuation indent for `->` lines; for standalone chains, use one continuation indent level.
 6. In tests, chained expectations are acceptable when each method call stays on its own line.
@@ -70,7 +70,7 @@ Check at least:
 - One chained method per line, with continuation indent per the guide
 - No PHP ternary operators
 - Arrays and multiline arguments indented per the guide
-- No extra `normalize*` / `sanitize*` / markdown-parse helpers when `trim`, `strtolower`, or `File::get` is enough
+- Simplest solution that meets the requirement; no extra layers, helpers, or abstractions unless needed now
 
 If any file fails, fix it before Phase 2.
 

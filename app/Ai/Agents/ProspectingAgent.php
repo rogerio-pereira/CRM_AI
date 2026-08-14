@@ -28,9 +28,13 @@ class ProspectingAgent implements AiAgent
      */
     public function handle(array $context): array
     {
-        $defaultLimit = (int) config('prospecting.default_limit', 20);
-        $requestedLimit = $context['limit'] ?? $defaultLimit;
+        $requestedLimit = $context['limit'] ?? 1;
         $limit = (int) $requestedLimit;
+
+        if ($limit < 1) {
+            $limit = 1;
+        }
+
         $instructions = $this->loadApprovedPrompt();
 
         $discovery = $this->discovery

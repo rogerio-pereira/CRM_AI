@@ -141,7 +141,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-text-muted" data-test="leads-empty">
+                        <td colspan="6" class="px-4 py-8 text-center text-text-muted" data-test="leads-empty">
                             {{ __('No leads found.') }}
                         </td>
                     </tr>

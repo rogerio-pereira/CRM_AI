@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -33,7 +34,7 @@ it('displays the kanban board and creates an opportunity', function () {
 
 it('moves an opportunity via the action menu', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
+    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
         'title' => 'Move Menu Deal',
         'stage' => PipelineStage::Lead,
     ]);
@@ -51,11 +52,40 @@ it('moves an opportunity via the action menu', function () {
     expect($opportunity->stage)->toBe(PipelineStage::Qualification);
 });
 
+it('opens the opportunity detail modal with structured AI insights', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()
+        ->qualificationQualified()
+        ->withAiInsights()
+        ->create([
+            'title' => 'AI Insights Deal',
+        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-modal"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-insights"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-pain-points"]')
+        ->assertSee('Outdated website')
+        ->assertPresent('[data-test="opportunities-detail-ai-opportunities"]')
+        ->assertSee('Create a steadier local lead flow')
+        ->assertPresent('[data-test="opportunities-detail-ai-outreach"]')
+        ->assertSee('Helpful local growth conversation.')
+        ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
+        ->assertSee('A simple way to bring in more local conversations')
+        ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.');
+});
+
 it('opens the opportunity detail modal with client summary', function () {
     $user = User::factory()->create();
     $client = Client::factory()->create([
         'company_name' => 'Detail Summary Co',
+        'contact_name' => 'Alex Summary',
         'contact_email' => 'detail@summary.test',
+        'contact_phone' => '813-555-0142',
+        'website' => 'https://detail-summary.test',
     ]);
     $opportunity = Opportunity::factory()->for($client)->create([
         'title' => 'Detail Modal Deal',
@@ -68,7 +98,44 @@ it('opens the opportunity detail modal with client summary', function () {
         ->assertPresent('[data-test="opportunities-detail-modal"]')
         ->assertSee('Detail Modal Deal')
         ->assertSee('Detail Summary Co')
-        ->assertSee('detail@summary.test');
+        ->assertSee('Alex Summary')
+        ->assertSee('detail@summary.test')
+        ->assertSee('813-555-0142')
+        ->assertPresent('[data-test="opportunities-detail-website-link"]')
+        ->assertSee('https://detail-summary.test')
+        ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]');
+});
+
+it('renders qualification status chips on the kanban and failed error on detail', function () {
+    $user = User::factory()->create();
+    $pending = Opportunity::factory()->qualificationPending()->create([
+        'title' => 'Pending Chip Deal',
+        'stage' => PipelineStage::Lead,
+    ]);
+    $processing = Opportunity::factory()->qualificationProcessing()->create([
+        'title' => 'Processing Chip Deal',
+        'stage' => PipelineStage::Qualification,
+    ]);
+    $qualified = Opportunity::factory()->qualificationQualified()->create([
+        'title' => 'Qualified Chip Deal',
+        'stage' => PipelineStage::Contact,
+    ]);
+    $failed = Opportunity::factory()->qualificationFailed()->create([
+        'title' => 'Failed Chip Deal',
+        'stage' => PipelineStage::Qualification,
+    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$pending->id.'"][data-status="'.QualificationStatus::Pending->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$processing->id.'"][data-status="'.QualificationStatus::Processing->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$qualified->id.'"][data-status="'.QualificationStatus::Qualified->value.'"]')
+        ->assertPresent('[data-test="kanban-card-qualification-badge-'.$failed->id.'"][data-status="'.QualificationStatus::Failed->value.'"]')
+        ->click('@kanban-card-open-'.$failed->id)
+        ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="failed"]')
+        ->assertPresent('[data-test="opportunities-detail-qualification-error"]')
+        ->assertSee('Qualification could not be completed. The team can try again later.');
 });
 
 it('shows horizontal scroll on narrow viewports', function () {
@@ -129,7 +196,7 @@ it('creates a task from the kanban card button', function () {
 
 it('drags an opportunity card to another stage', function () {
     $user = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
+    $opportunity = Opportunity::factory()->qualificationProcessing()->create([
         'title' => 'Drag Deal',
         'stage' => PipelineStage::Lead,
     ]);

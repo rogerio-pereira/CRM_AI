@@ -22,7 +22,8 @@ return [
     | Prospecting Default Limit
     |--------------------------------------------------------------------------
     |
-    | Maximum number of lead candidates to persist per prospecting run.
+    | Number of prospecting jobs dispatched per run. Each job discovers and
+    | persists one lead so a single queue worker does not time out.
     |
     */
 

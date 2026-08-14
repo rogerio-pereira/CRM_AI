@@ -14,6 +14,12 @@ class OpportunityStatusTest extends TestCase
         $this->assertSame($expectedLabel, $status->label());
     }
 
+    #[DataProvider('statusDescriptionProvider')]
+    public function test_description_returns_expected_value(OpportunityStatus $status, string $expectedDescription): void
+    {
+        $this->assertSame($expectedDescription, $status->description());
+    }
+
     /**
      * @return array<string, array{0: OpportunityStatus, 1: string}>
      */
@@ -23,6 +29,27 @@ class OpportunityStatusTest extends TestCase
             'open' => [OpportunityStatus::Open, 'Open'],
             'won' => [OpportunityStatus::Won, 'Won'],
             'lost' => [OpportunityStatus::Lost, 'Lost'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{0: OpportunityStatus, 1: string}>
+     */
+    public static function statusDescriptionProvider(): array
+    {
+        return [
+            'open' => [
+                OpportunityStatus::Open,
+                'Opportunity in progress (not won or lost yet).',
+            ],
+            'won' => [
+                OpportunityStatus::Won,
+                'Closed as a win.',
+            ],
+            'lost' => [
+                OpportunityStatus::Lost,
+                'Closed as a loss.',
+            ],
         ];
     }
 }

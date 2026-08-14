@@ -78,10 +78,11 @@ class ProspectingAgentTest extends TestCase
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
         $this->assertSame($client->company_name, $opportunity->title);
 
-        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($client): bool {
-            $payloadClientId = $job->payload['client_id'] ?? null;
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
 
-            return $payloadClientId === $client->id;
+            return $payloadOpportunityId === $opportunity->id;
         });
     }
 
@@ -156,17 +157,27 @@ class ProspectingAgentTest extends TestCase
             ],
         ]);
 
+        config([
+            'prospecting.default_limit' => 1,
+        ]);
+
         $this->artisan('prospecting:run')
             ->assertSuccessful();
 
         /** @var RunProspectingAgentJob|null $dispatched */
         $dispatched = null;
 
+        Queue::assertPushed(RunProspectingAgentJob::class, 1);
         Queue::assertPushed(RunProspectingAgentJob::class, function (RunProspectingAgentJob $job) use (&$dispatched): bool {
             $triggeredBy = $job->payload['triggered_by'] ?? null;
+            $limit = $job->payload['limit'] ?? null;
             $dispatched = $job;
 
-            return $triggeredBy === 'prospecting:run';
+            if ($triggeredBy !== 'prospecting:run') {
+                return false;
+            }
+
+            return $limit === 1;
         });
 
         $this->assertNotNull($dispatched);
@@ -240,6 +251,69 @@ class ProspectingAgentTest extends TestCase
         );
     }
 
+    public function test_agent_defaults_to_one_lead_per_job(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+                    ->once()
+                    ->with(Mockery::on(function (array $options): bool {
+                        $limit = $options['limit'] ?? null;
+                        $instructions = $options['instructions'] ?? null;
+
+                        if ($limit !== 1) {
+                            return false;
+                        }
+
+                        return is_string($instructions) && $instructions !== '';
+                    }))
+                    ->andReturn([
+                        'leads' => [],
+                        'skipped' => [],
+                    ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([]);
+
+        $this->assertSame(0, $result['created_count']);
+    }
+
+    public function test_agent_clamps_invalid_limit_to_one_lead(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+                    ->once()
+                    ->with(Mockery::on(function (array $options): bool {
+                        $limit = $options['limit'] ?? null;
+
+                        return $limit === 1;
+                    }))
+                    ->andReturn([
+                        'leads' => [],
+                        'skipped' => [],
+                    ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 0,
+        ]);
+
+        $this->assertSame(0, $result['created_count']);
+    }
+
     public function test_agent_throws_when_prompt_file_is_missing(): void
     {
         File::partialMock()
@@ -272,5 +346,16 @@ class ProspectingAgentTest extends TestCase
         $agent->handle([
             'limit' => 1,
         ]);
+    }
+
+    public function test_approved_prompt_ranks_website_as_the_primary_entry(): void
+    {
+        $promptPath = base_path('docs/prompts/prospecting-agent.md');
+        $prompt = File::get($promptPath);
+        $promptText = (string) $prompt;
+
+        $this->assertStringContainsString('Website design and development — primary entry', $promptText);
+        $this->assertStringContainsString('Custom software development — skip or lowest as the opening offer', $promptText);
+        $this->assertStringContainsString('they could use email', $promptText);
     }
 }

@@ -9,19 +9,30 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('prospecting:run')]
-#[Description('Dispatch the automated prospecting agent via AI orchestration')]
+#[Description('Dispatch one prospecting job per lead via AI orchestration')]
 class RunProspectingCommand extends Command
 {
     public function handle(AiOrchestrationService $orchestration): int
     {
-        $payload = [
-            'triggered_by' => 'prospecting:run',
-            'triggered_at' => now()->toIso8601String(),
-        ];
+        $jobCount = (int) config('prospecting.default_limit', 20);
 
-        $orchestration->dispatch(AgentType::Prospecting, $payload);
+        if ($jobCount < 1) {
+            $jobCount = 1;
+        }
 
-        $this->info('Prospecting agent job dispatched.');
+        $triggeredAt = now()->toIso8601String();
+
+        for ($index = 0; $index < $jobCount; $index++) {
+            $payload = [
+                'triggered_by' => 'prospecting:run',
+                'triggered_at' => $triggeredAt,
+                'limit' => 1,
+            ];
+
+            $orchestration->dispatch(AgentType::Prospecting, $payload);
+        }
+
+        $this->info('Prospecting agent jobs dispatched: '.$jobCount.'.');
 
         return self::SUCCESS;
     }

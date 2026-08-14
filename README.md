@@ -33,7 +33,7 @@ grep -q "^APP_KEY=$" .env && ./vendor/bin/sail artisan key:generate
 - Cache/session: Redis
 - Queue monitoring: Laravel Horizon (`/horizon`)
 - Timezone: `America/New_York` in `config/app.php` (required for weekday **08:00** prospecting per ADR-007)
-- Prospecting schedule: **off by default**. Set `PROSPECTING_ENABLED=true` in `.env` to let the weekday 08:00 cron run `prospecting:run`. Manual `php artisan prospecting:run` always dispatches, even when the flag is `false`.
+- Prospecting schedule: **off by default**. Set `PROSPECTING_ENABLED=true` in `.env` to let the weekday 08:00 cron run `prospecting:run`. Manual `php artisan prospecting:run` always dispatches one job per lead (up to `PROSPECTING_DEFAULT_LIMIT`), even when the flag is `false`.
 
 ## Daily development commands
 

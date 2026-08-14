@@ -8,6 +8,7 @@ use App\Events\FollowUpUpdated;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 class FollowUpService
@@ -25,6 +26,10 @@ class FollowUpService
 
         $followUp = FollowUp::create($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpCreated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;
@@ -44,6 +49,10 @@ class FollowUpService
 
         $followUp->update($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;
@@ -55,6 +64,10 @@ class FollowUpService
         $followUp->completed_at = now();
         $followUp->save();
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;
@@ -73,7 +86,7 @@ class FollowUpService
             ->orderBy('due_at');
 
         if ($search !== null && $search !== '') {
-            $query->whereHas('client', function ($clientQuery) use ($search): void {
+            $query->whereHas('client', function (Builder $clientQuery) use ($search): void {
                 $clientQuery->whereRaw('lower(company_name) like ?', ['%'.strtolower($search).'%']);
             });
         }

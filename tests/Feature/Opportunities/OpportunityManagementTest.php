@@ -11,6 +11,7 @@ use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -29,6 +30,8 @@ class OpportunityManagementTest extends TestCase
 
     public function test_user_can_create_an_opportunity_in_lead_stage(): void
     {
+        Queue::fake();
+
         $user = User::factory()->create();
         $client = Client::factory()->create();
 
@@ -234,6 +237,61 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
+    public function test_opportunity_detail_renders_client_contact_summary(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'company_name' => 'Summary Contact Co',
+            'contact_name' => 'Jordan Contact',
+            'contact_email' => 'jordan@summary.test',
+            'contact_phone' => '813-555-0199',
+            'website' => 'https://summary-contact.test',
+        ]);
+        $opportunity = Opportunity::factory()->for($client)->create([
+            'title' => 'Summary contact deal',
+        ]);
+
+        $this->actingAs($user);
+
+        $statusDescription = $opportunity->status->description();
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-company-name"')
+            ->assertSee('Summary Contact Co')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-name"')
+            ->assertSee('Jordan Contact')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-email"')
+            ->assertSee('jordan@summary.test')
+            ->assertSeeHtml('data-test="opportunities-detail-contact-phone"')
+            ->assertSee('813-555-0199')
+            ->assertSeeHtml('data-test="opportunities-detail-website-link"')
+            ->assertSeeHtml('href="https://summary-contact.test"')
+            ->assertSee('https://summary-contact.test')
+            ->assertSeeHtml('data-test="opportunities-detail-status-badge"')
+            ->assertSee($statusDescription);
+    }
+
+    public function test_opportunity_detail_renders_client_qualification_chip(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'company_name' => 'Failed Qualify Client',
+        ]);
+        $opportunity = Opportunity::factory()->for($client)->qualificationFailed()->create([
+            'title' => 'Failed qualify deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
+            ->assertSeeHtml('data-status="failed"')
+            ->assertSeeHtml('data-test="opportunities-detail-qualification-error"')
+            ->assertSee('Qualification could not be completed. The team can try again later.');
+    }
+
     public function test_moving_to_lost_sets_terminal_status(): void
     {
         $user = User::factory()->create();
@@ -250,5 +308,46 @@ class OpportunityManagementTest extends TestCase
             'stage' => PipelineStage::Lost->value,
             'status' => OpportunityStatus::Lost->value,
         ]);
+    }
+
+    public function test_follow_up_created_event_refreshes_kanban(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'title' => 'Follow-up refresh deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSee('Follow-up refresh deal')
+            ->dispatch('follow-up-created')
+            ->assertSee('Follow-up refresh deal');
+    }
+
+    public function test_task_created_event_refreshes_kanban(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'title' => 'Task refresh deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSee('Task refresh deal')
+            ->dispatch('task-created')
+            ->assertSee('Task refresh deal');
+    }
+
+    public function test_detail_opportunity_is_null_when_record_is_missing(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->set('detailOpportunityId', 99999)
+            ->assertSet('detailOpportunity', null);
     }
 }

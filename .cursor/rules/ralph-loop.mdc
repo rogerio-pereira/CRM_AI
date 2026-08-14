@@ -18,7 +18,7 @@ alwaysApply: false
 - **Do not assume "not implemented".** Always search/read the codebase before concluding something is missing.
 - **Commands:** Use Sail for all PHP/artisan/npm commands. See `.cursor/rules/starting-environment.mdc` for test and lint commands.
 - **Style guide (mandatory):** Follow `.cursor/rules/style-guide.md` on every code change. After implementation, re-read **all** changed files. A task is **not done** until every file complies; tests and Pint are not a substitute.
-- **KISS (mandatory):** Follow `.cursor/rules/kiss.mdc`. Sequential named steps are required; extra normalize/sanitize/parse helpers are not.
+- **KISS (mandatory):** Follow `.cursor/rules/kiss.mdc`. Prefer the simplest solution that meets the requirement; do not overengineer.
 
 ## FDR lifecycle
 
