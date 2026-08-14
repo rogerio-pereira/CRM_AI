@@ -37,6 +37,7 @@ class AiOrchestrationTest extends TestCase
             ->call('moveToStage', $opportunity->id, PipelineStage::Qualification->value)
             ->assertHasNoErrors();
 
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
             return $job->payload['opportunity_id'] === $opportunity->id
                 && $job->payload['to_stage'] === PipelineStage::Qualification->value;
@@ -98,6 +99,7 @@ class AiOrchestrationTest extends TestCase
             ->call('moveToStage', $newDeal->id, PipelineStage::Qualification->value)
             ->assertHasNoErrors();
 
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($newDeal): bool {
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
 
@@ -153,6 +155,7 @@ class AiOrchestrationTest extends TestCase
             'title' => 'AI Orchestration Deal',
         ]);
 
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
@@ -190,5 +193,12 @@ class AiOrchestrationTest extends TestCase
         ]);
 
         Event::assertDispatched(OpportunityCreated::class);
+    }
+
+    public function test_opportunity_created_has_a_single_listener(): void
+    {
+        $listeners = Event::getListeners(OpportunityCreated::class);
+
+        $this->assertCount(1, $listeners);
     }
 }

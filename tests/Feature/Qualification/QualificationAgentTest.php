@@ -107,6 +107,7 @@ class QualificationAgentTest extends TestCase
 
         $this->assertSame(QualificationStatus::Pending, $opportunity->qualification_status);
 
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
         Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity): bool {
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
