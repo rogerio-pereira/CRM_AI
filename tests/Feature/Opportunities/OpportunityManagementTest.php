@@ -253,6 +253,8 @@ class OpportunityManagementTest extends TestCase
 
         $this->actingAs($user);
 
+        $statusDescription = $opportunity->status->description();
+
         Livewire::test(Index::class)
             ->call('openDetailModal', $opportunity->id)
             ->assertSeeHtml('data-test="opportunities-detail-company-name"')
@@ -265,7 +267,9 @@ class OpportunityManagementTest extends TestCase
             ->assertSee('813-555-0199')
             ->assertSeeHtml('data-test="opportunities-detail-website-link"')
             ->assertSeeHtml('href="https://summary-contact.test"')
-            ->assertSee('https://summary-contact.test');
+            ->assertSee('https://summary-contact.test')
+            ->assertSeeHtml('data-test="opportunities-detail-status-badge"')
+            ->assertSee($statusDescription);
     }
 
     public function test_opportunity_detail_renders_client_qualification_chip(): void
@@ -304,5 +308,46 @@ class OpportunityManagementTest extends TestCase
             'stage' => PipelineStage::Lost->value,
             'status' => OpportunityStatus::Lost->value,
         ]);
+    }
+
+    public function test_follow_up_created_event_refreshes_kanban(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'title' => 'Follow-up refresh deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSee('Follow-up refresh deal')
+            ->dispatch('follow-up-created')
+            ->assertSee('Follow-up refresh deal');
+    }
+
+    public function test_task_created_event_refreshes_kanban(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()->create([
+            'title' => 'Task refresh deal',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSee('Task refresh deal')
+            ->dispatch('task-created')
+            ->assertSee('Task refresh deal');
+    }
+
+    public function test_detail_opportunity_is_null_when_record_is_missing(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->set('detailOpportunityId', 99999)
+            ->assertSet('detailOpportunity', null);
     }
 }

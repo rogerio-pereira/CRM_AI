@@ -52,6 +52,32 @@ it('moves an opportunity via the action menu', function () {
     expect($opportunity->stage)->toBe(PipelineStage::Qualification);
 });
 
+it('opens the opportunity detail modal with structured AI insights', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()
+        ->qualificationQualified()
+        ->withAiInsights()
+        ->create([
+            'title' => 'AI Insights Deal',
+        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-modal"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-insights"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-pain-points"]')
+        ->assertSee('Outdated website')
+        ->assertPresent('[data-test="opportunities-detail-ai-opportunities"]')
+        ->assertSee('Create a steadier local lead flow')
+        ->assertPresent('[data-test="opportunities-detail-ai-outreach"]')
+        ->assertSee('Helpful local growth conversation.')
+        ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
+        ->assertSee('A simple way to bring in more local conversations')
+        ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.');
+});
+
 it('opens the opportunity detail modal with client summary', function () {
     $user = User::factory()->create();
     $client = Client::factory()->create([

@@ -84,6 +84,44 @@ class QualificationStatusChipTest extends TestCase
             ->assertSeeHtml('data-status="'.QualificationStatus::Qualified->value.'"')
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights-summary"')
             ->assertSee('Ready for a first conversation.')
+            ->assertSee('AI Insight')
+            ->assertDontSee('AI insights')
             ->assertSee('AI-generated. Not a confirmed human decision.');
+    }
+
+    public function test_opportunity_detail_renders_structured_ai_insights_for_outreach(): void
+    {
+        $user = User::factory()->create();
+        $opportunity = Opportunity::factory()
+            ->qualificationQualified()
+            ->withAiInsights()
+            ->create([
+                'title' => 'Structured Insights Deal',
+            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-ai-insights"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-fit"')
+            ->assertSee('Ready to Contact')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-pain-points"')
+            ->assertSee('Outdated website')
+            ->assertSee('The public site looks dated and the next step is hard to find.')
+            ->assertSee('Visitors may keep looking instead of requesting a quote.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-opportunities"')
+            ->assertSee('Create a steadier local lead flow')
+            ->assertSee('Less dependence on referrals for new work.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-outreach"')
+            ->assertSee('Helpful local growth conversation.')
+            ->assertSee('The website may be losing quote requests.')
+            ->assertSee('Technical jargon or pressure.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-contact-example"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-contact-subject"')
+            ->assertSee('A simple way to bring in more local conversations')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-contact-body"')
+            ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-copy-email"');
     }
 }

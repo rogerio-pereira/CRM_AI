@@ -105,6 +105,53 @@ class OpportunityFactory extends Factory
         ]);
     }
 
+    public function withAiInsights(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'ai_insights' => [
+                'schema_version' => 1,
+                'generated_at' => '2026-08-13T00:00:00Z',
+                'source_agent' => 'qualification',
+                'language' => 'en',
+                'summary' => 'Ready for a first conversation.',
+                'fit' => [
+                    'level' => 'high',
+                    'label' => 'Ready to Contact',
+                    'reason' => 'Public contact details and a practical growth gap are visible.',
+                ],
+                'pain_points' => [
+                    [
+                        'title' => 'Outdated website',
+                        'evidence' => 'The public site looks dated and the next step is hard to find.',
+                        'business_impact' => 'Visitors may keep looking instead of requesting a quote.',
+                    ],
+                ],
+                'opportunities' => [
+                    [
+                        'service' => 'lead_generation',
+                        'title' => 'Create a steadier local lead flow',
+                        'why_it_matters' => 'Less dependence on referrals for new work.',
+                        'priority' => 'high',
+                    ],
+                ],
+                'outreach_strategy' => [
+                    'positioning' => 'Helpful local growth conversation.',
+                    'talking_points' => [
+                        'The website may be losing quote requests.',
+                    ],
+                    'contact_example' => [
+                        'channel' => 'email',
+                        'subject' => 'A simple way to bring in more local conversations',
+                        'body' => "Hi there,\n\nI noticed a practical opportunity to turn more local demand into conversations.",
+                    ],
+                    'avoid' => [
+                        'Technical jargon or pressure.',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     public function qualificationFailed(): static
     {
         return $this->state(fn (array $attributes) => [
