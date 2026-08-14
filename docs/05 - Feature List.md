@@ -29,7 +29,7 @@
 | 09 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | [FDR-009](FDRs/Done/FDR-009-ai-orchestration.md) |
 | 10 | [10 Automated prospecting](#f10-automated-prospecting) | [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md) |
 | 11 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md) |
-| 12 | [12 AI recommendations and insights](#f12-ai-recommendations) | [FDR-012](FDRs/ToDo/FDR-012-ai-recommendations.md) |
+| 12 | [12 AI recommendations and insights](#f12-ai-recommendations) | [FDR-012](FDRs/Done/FDR-012-ai-recommendations.md) |
 | 13 | [13 Proposal assistance](#f13-proposal-assistance) | [FDR-013](FDRs/ToDo/FDR-013-proposal-assistance.md) |
 | 14 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [FDR-014](FDRs/ToDo/FDR-014-pipeline-stage-automation.md) |
 | 15 | [15 Slack notifications](#f15-slack-notifications) | [FDR-015](FDRs/ToDo/FDR-015-slack-notifications.md) |
@@ -458,7 +458,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | **1** | Done | [01 Platform foundation](#f01-platform-foundation), [02 Authentication](#f02-authentication), [03 Application shell and design system](#f03-application-shell-design-system) |
 | **2** | Done | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management) |
 | **3** | Done | [07 Task management](#f07-task-management), [08 Operational dashboard](#f08-operational-dashboard), [09 AI provider layer and orchestration](#f09-ai-orchestration) |
-| **4** | In progress | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
+| **4** | Done | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations) |
 | **5** | Pending | [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
 | **6** | Pending | [16 Google Calendar integration](#f16-google-calendar) |
 

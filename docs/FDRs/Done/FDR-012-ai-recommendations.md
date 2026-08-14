@@ -1,7 +1,7 @@
 # FDR-012: AI recommendations and insights
 
 **Feature:** 12  
-**Status:** Approved  
+**Status:** Implemented  
 **Reference:** [12 AI recommendations and insights](../../05%20-%20Feature%20List.md#f12-ai-recommendations), [ADR-011](../../ADRs/ADR-011-human-approval-commercial-actions.md), [ADR-013](../../ADRs/ADR-013-dark-mode-design-system.md), [ADR-017](../../ADRs/ADR-017-wave-4-ai-qualification-schema.md)
 
 ---
@@ -26,12 +26,12 @@
 
 ## Acceptance criteria
 
-- [ ] PRD suggestion types covered.
-- [ ] Recommendations follow schema version 1 from ADR-017.
-- [ ] AI UI patterns per Design System §17.
-- [ ] Human approval model respected (no autonomous outreach).
-- [ ] Livewire components render insights on lead and opportunity views.
-- [ ] Tests with fixture AI JSON.
+- [x] PRD suggestion types covered.
+- [x] Recommendations follow schema version 1 from ADR-017.
+- [x] AI UI patterns per Design System §17.
+- [x] Human approval model respected (no autonomous outreach).
+- [x] Livewire components render insights on lead and opportunity views.
+- [x] Tests with fixture AI JSON.
 
 ---
 
