@@ -15,7 +15,9 @@ class ClientSeeder extends Seeder
     public function run(): void
     {
         for ($daysAgo = 0; $daysAgo < 30; $daysAgo++) {
-            $createdAt = $this->randomTimeOnDay(now()->subDays($daysAgo));
+            $day = Carbon::now()
+                           ->subDays($daysAgo);
+            $createdAt = $this->randomTimeOnDay($day);
             $count = fake()->numberBetween(1, 3);
 
             Client::factory()
@@ -24,12 +26,53 @@ class ClientSeeder extends Seeder
                 ->create();
         }
 
-        Client::factory()->archived()->createdAt($this->randomTimeOnDay(now()->subDays(12)))->create();
-        Client::factory()->archived()->createdAt($this->randomTimeOnDay(now()->subDays(20)))->create();
-        Client::factory()->ignored()->createdAt($this->randomTimeOnDay(now()->subDays(8)))->create();
-        Client::factory()->ignored()->createdAt($this->randomTimeOnDay(now()->subDays(25)))->create();
-        Client::factory()->contactIntent()->createdAt($this->randomTimeOnDay(now()->subDays(3)))->create();
-        Client::factory()->contactIntent()->createdAt($this->randomTimeOnDay(now()->subDays(18)))->create();
+        $archivedDayA = Carbon::now()
+                                ->subDays(12);
+        $archivedCreatedAtA = $this->randomTimeOnDay($archivedDayA);
+        Client::factory()
+            ->archived()
+            ->createdAt($archivedCreatedAtA)
+            ->create();
+
+        $archivedDayB = Carbon::now()
+                                ->subDays(20);
+        $archivedCreatedAtB = $this->randomTimeOnDay($archivedDayB);
+        Client::factory()
+            ->archived()
+            ->createdAt($archivedCreatedAtB)
+            ->create();
+
+        $ignoredDayA = Carbon::now()
+                               ->subDays(8);
+        $ignoredCreatedAtA = $this->randomTimeOnDay($ignoredDayA);
+        Client::factory()
+            ->ignored()
+            ->createdAt($ignoredCreatedAtA)
+            ->create();
+
+        $ignoredDayB = Carbon::now()
+                               ->subDays(25);
+        $ignoredCreatedAtB = $this->randomTimeOnDay($ignoredDayB);
+        Client::factory()
+            ->ignored()
+            ->createdAt($ignoredCreatedAtB)
+            ->create();
+
+        $contactIntentDayA = Carbon::now()
+                                     ->subDays(3);
+        $contactIntentCreatedAtA = $this->randomTimeOnDay($contactIntentDayA);
+        Client::factory()
+            ->contactIntent()
+            ->createdAt($contactIntentCreatedAtA)
+            ->create();
+
+        $contactIntentDayB = Carbon::now()
+                                     ->subDays(18);
+        $contactIntentCreatedAtB = $this->randomTimeOnDay($contactIntentDayB);
+        Client::factory()
+            ->contactIntent()
+            ->createdAt($contactIntentCreatedAtB)
+            ->create();
     }
 
     private function randomTimeOnDay(CarbonInterface $day): Carbon

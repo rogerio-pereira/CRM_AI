@@ -7,6 +7,7 @@ use App\Enums\FollowUpReminderStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -34,18 +35,27 @@ class FollowUpFactory extends Factory
 
     public function overdue(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'due_at' => now()->subDay(),
-            'reminder_status' => FollowUpReminderStatus::Pending,
-        ]);
+        return $this->state(function (array $attributes): array {
+            $dueAt = Carbon::now()
+                        ->subDay();
+
+            return [
+                'due_at' => $dueAt,
+                'reminder_status' => FollowUpReminderStatus::Pending,
+            ];
+        });
     }
 
     public function completed(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'reminder_status' => FollowUpReminderStatus::Completed,
-            'completed_at' => now(),
-        ]);
+        return $this->state(function (array $attributes): array {
+            $completedAt = Carbon::now();
+
+            return [
+                'reminder_status' => FollowUpReminderStatus::Completed,
+                'completed_at' => $completedAt,
+            ];
+        });
     }
 
     public function withOpportunity(): static

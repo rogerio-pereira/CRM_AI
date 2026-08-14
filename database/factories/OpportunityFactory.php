@@ -94,15 +94,19 @@ class OpportunityFactory extends Factory
 
     public function qualificationQualified(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'qualification_status' => QualificationStatus::Qualified,
-            'qualification_last_error' => null,
-            'qualified_at' => now(),
-            'ai_insights' => [
-                'schema_version' => 1,
-                'summary' => 'Ready for a first conversation.',
-            ],
-        ]);
+        return $this->state(function (array $attributes): array {
+            $qualifiedAt = Carbon::now();
+
+            return [
+                'qualification_status' => QualificationStatus::Qualified,
+                'qualification_last_error' => null,
+                'qualified_at' => $qualifiedAt,
+                'ai_insights' => [
+                    'schema_version' => 1,
+                    'summary' => 'Ready for a first conversation.',
+                ],
+            ];
+        });
     }
 
     public function withAiInsights(): static

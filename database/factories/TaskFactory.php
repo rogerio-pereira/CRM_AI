@@ -7,6 +7,7 @@ use App\Enums\TaskStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -43,18 +44,27 @@ class TaskFactory extends Factory
 
     public function overdue(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'due_at' => now()->subDay(),
-            'status' => TaskStatus::Pending,
-        ]);
+        return $this->state(function (array $attributes): array {
+            $dueAt = Carbon::now()
+                        ->subDay();
+
+            return [
+                'due_at' => $dueAt,
+                'status' => TaskStatus::Pending,
+            ];
+        });
     }
 
     public function done(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => TaskStatus::Done,
-            'completed_at' => now(),
-        ]);
+        return $this->state(function (array $attributes): array {
+            $completedAt = Carbon::now();
+
+            return [
+                'status' => TaskStatus::Done,
+                'completed_at' => $completedAt,
+            ];
+        });
     }
 
     public function withOpportunity(): static

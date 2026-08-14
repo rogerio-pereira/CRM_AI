@@ -19,11 +19,15 @@ class OpportunitySeederMonth extends Seeder
         $clients = Client::query()->get();
 
         if ($clients->isEmpty()) {
-            $clients = Client::factory()->count(8)->create();
+            $clients = Client::factory()
+                ->count(8)
+                ->create();
         }
 
         for ($daysAgo = 0; $daysAgo < 30; $daysAgo++) {
-            $createdAt = $this->randomTimeOnDay(now()->subDays($daysAgo));
+            $day = Carbon::now()
+                           ->subDays($daysAgo);
+            $createdAt = $this->randomTimeOnDay($day);
             $count = fake()->numberBetween(1, 2);
 
             Opportunity::factory()
@@ -34,7 +38,10 @@ class OpportunitySeederMonth extends Seeder
         }
 
         foreach (PipelineStage::ordered() as $stage) {
-            $createdAt = $this->randomTimeOnDay(now()->subDays(fake()->numberBetween(0, 29)));
+            $daysAgo = fake()->numberBetween(0, 29);
+            $day = Carbon::now()
+                           ->subDays($daysAgo);
+            $createdAt = $this->randomTimeOnDay($day);
 
             Opportunity::factory()
                 ->count(2)
@@ -45,7 +52,9 @@ class OpportunitySeederMonth extends Seeder
         }
 
         for ($daysAgo = 0; $daysAgo < 30; $daysAgo += 3) {
-            $wonAt = $this->randomTimeOnDay(now()->subDays($daysAgo));
+            $day = Carbon::now()
+                           ->subDays($daysAgo);
+            $wonAt = $this->randomTimeOnDay($day);
 
             Opportunity::factory()
                 ->wonOn($wonAt)

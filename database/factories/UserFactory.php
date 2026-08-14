@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,10 +25,12 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $emailVerifiedAt = Carbon::now();
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            'email_verified_at' => $emailVerifiedAt,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
@@ -51,10 +54,17 @@ class UserFactory extends Factory
      */
     public function withTwoFactor(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'two_factor_secret' => encrypt('secret'),
-            'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
-            'two_factor_confirmed_at' => now(),
-        ]);
+        return $this->state(function (array $attributes): array {
+            $confirmedAt = Carbon::now();
+            $encryptedSecret = encrypt('secret');
+            $encodedRecoveryCodes = json_encode(['recovery-code-1']);
+            $encryptedRecoveryCodes = encrypt($encodedRecoveryCodes);
+
+            return [
+                'two_factor_secret' => $encryptedSecret,
+                'two_factor_recovery_codes' => $encryptedRecoveryCodes,
+                'two_factor_confirmed_at' => $confirmedAt,
+            ];
+        });
     }
 }
