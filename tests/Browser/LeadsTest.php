@@ -6,6 +6,7 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Tests\Support\RecommendationFake;
 
 it('displays the leads page and creates a lead', function () {
     $user = User::factory()->create();
@@ -69,9 +70,9 @@ it('opens the lead detail modal with related opportunity AI recommendations', fu
         ->for($client)
         ->qualificationQualified()
         ->withAiInsights()
-        ->withAiRecommendations()
         ->create([
             'title' => 'Related AI Deal',
+            'ai_recommendations' => RecommendationFake::panelRecommendations(),
         ]);
 
     $this->actingAs($user);

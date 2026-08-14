@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
+use Tests\Support\RecommendationFake;
 use Tests\TestCase;
 
 class AiSuggestionPanelTest extends TestCase
@@ -24,9 +25,9 @@ class AiSuggestionPanelTest extends TestCase
         $opportunity = Opportunity::factory()
             ->qualificationQualified()
             ->withAiInsights()
-            ->withAiRecommendations()
             ->create([
                 'title' => 'Recommendation Detail Deal',
+                'ai_recommendations' => RecommendationFake::panelRecommendations(),
             ]);
 
         $this->actingAs($user);
@@ -64,9 +65,9 @@ class AiSuggestionPanelTest extends TestCase
             ->for($client)
             ->qualificationQualified()
             ->withAiInsights()
-            ->withAiRecommendations()
             ->create([
                 'title' => 'Related Recommendation Deal',
+                'ai_recommendations' => RecommendationFake::panelRecommendations(),
             ]);
 
         $this->actingAs($user);

@@ -7,6 +7,7 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Tests\Support\RecommendationFake;
 
 it('displays the kanban board and creates an opportunity', function () {
     $user = User::factory()->create();
@@ -83,9 +84,9 @@ it('opens the opportunity detail modal with AI recommendations and a refresh act
     $opportunity = Opportunity::factory()
         ->qualificationQualified()
         ->withAiInsights()
-        ->withAiRecommendations()
         ->create([
             'title' => 'AI Recommendations Deal',
+            'ai_recommendations' => RecommendationFake::panelRecommendations(),
         ]);
 
     $this->actingAs($user);
@@ -113,9 +114,9 @@ it('creates a task from a next-step recommendation', function () {
     $opportunity = Opportunity::factory()
         ->qualificationQualified()
         ->withAiInsights()
-        ->withAiRecommendations()
         ->create([
             'title' => 'Next Step Task Deal',
+            'ai_recommendations' => RecommendationFake::panelRecommendations(),
         ]);
 
     $this->actingAs($user);
