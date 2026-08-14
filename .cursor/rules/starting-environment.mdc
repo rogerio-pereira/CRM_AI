@@ -55,6 +55,16 @@ grep -q "^APP_KEY=$" .env && \
 ./vendor/bin/sail exec laravel.test vendor/bin/pint --parallel
 ```
 
+### Cleaning queues
+```
+./vendor/bin/sail artisan horizon:clear --queue=default
+```
+
+### Restarting Horizon
+```
+./vendor/bin/sail artisan horizon:terminate
+```
+
 **Before running tests:** the full suite (including Browser tests per `phpunit.xml`) needs the frontend built or the dev server running. Either run `./vendor/bin/sail npm run build` once, or run `./vendor/bin/sail npm run dev` in a separate terminal and keep it running, then run the test commands above.
 
 ### Testing policy (mandatory)
