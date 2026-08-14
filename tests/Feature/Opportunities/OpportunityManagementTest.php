@@ -9,6 +9,7 @@ use App\Livewire\Opportunities\Index;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -389,7 +390,9 @@ class OpportunityManagementTest extends TestCase
     {
         $user = User::factory()
                     ->create();
-        $updatedAt = now()->subDays(2)->startOfDay();
+        $updatedAt = Carbon::now()
+                        ->subDays(2)
+                        ->startOfDay();
         $opportunity = Opportunity::factory()
                             ->create([
                                 'title' => 'Updated At Deal',

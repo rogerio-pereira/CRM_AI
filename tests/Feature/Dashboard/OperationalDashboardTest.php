@@ -49,10 +49,10 @@ class OperationalDashboardTest extends TestCase
     {
         Carbon::setTestNow('2026-05-28 12:00:00');
 
-        $now = now();
-        $yesterday = now()
+        $now = Carbon::now();
+        $yesterday = Carbon::now()
                             ->subDay();
-        $twoDaysAgo = now()
+        $twoDaysAgo = Carbon::now()
                             ->subDays(2);
 
         Client::factory()
@@ -103,7 +103,7 @@ class OperationalDashboardTest extends TestCase
 
         $client = Client::factory()
                         ->create();
-        $now = now();
+        $now = Carbon::now();
 
         Opportunity::factory()
             ->for($client)
@@ -123,7 +123,7 @@ class OperationalDashboardTest extends TestCase
 
         $service = app(DashboardMetricsService::class);
         $series = $service->salesPerDayLast30Days();
-        $todayDate = now()
+        $todayDate = Carbon::now()
                             ->toDateString();
         $seriesCollection = collect($series);
         $today = $seriesCollection->firstWhere('date', $todayDate);
@@ -202,7 +202,7 @@ class OperationalDashboardTest extends TestCase
                 ->count(12)
                 ->for($client)
                 ->sequence(function ($sequence): array {
-                    $dueAt = now();
+                    $dueAt = Carbon::now();
                     $dueAt->addHours($sequence->index + 1);
 
                     return [
@@ -231,7 +231,7 @@ class OperationalDashboardTest extends TestCase
                 ->count(11)
                 ->for($client)
                 ->sequence(function ($sequence): array {
-                    $dueAt = now();
+                    $dueAt = Carbon::now();
                     $dueAt->addHours($sequence->index + 1);
 
                     return [
@@ -260,7 +260,7 @@ class OperationalDashboardTest extends TestCase
                 ->count(15)
                 ->for($client)
                 ->sequence(function ($sequence): array {
-                    $dueAt = now();
+                    $dueAt = Carbon::now();
                     $dueAt->addHours($sequence->index + 1);
 
                     return [

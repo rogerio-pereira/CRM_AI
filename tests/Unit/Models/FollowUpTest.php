@@ -4,6 +4,7 @@ namespace Tests\Unit\Models;
 
 use App\Enums\FollowUpReminderStatus;
 use App\Models\FollowUp;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,7 +23,7 @@ class FollowUpTest extends TestCase
 
     public function test_status_badge_classes_use_reminder_status_when_not_overdue(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $followUp = FollowUp::factory()

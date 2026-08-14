@@ -5,6 +5,7 @@ use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\User;
+use Carbon\Carbon;
 
 it('displays the follow-ups page and creates a follow-up', function () {
     $user = User::factory()
@@ -40,7 +41,7 @@ it('completes a follow-up from the actions menu', function () {
                 ->create();
     $client = Client::factory()
                     ->create(['company_name' => 'Complete Browser Co']);
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay();
     $followUp = FollowUp::factory()
                     ->for($client)

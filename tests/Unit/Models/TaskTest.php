@@ -6,6 +6,7 @@ use App\Enums\TaskStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +16,7 @@ class TaskTest extends TestCase
 
     public function test_is_overdue_is_false_when_task_is_done(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->subDay();
 
         $task = Task::factory()
@@ -29,7 +30,7 @@ class TaskTest extends TestCase
 
     public function test_is_overdue_is_true_when_pending_and_past_due(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->subHour();
 
         $task = Task::factory()
@@ -43,7 +44,7 @@ class TaskTest extends TestCase
 
     public function test_status_badge_classes_use_danger_when_overdue(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->subHour();
 
         $task = Task::factory()
@@ -57,7 +58,7 @@ class TaskTest extends TestCase
 
     public function test_status_badge_classes_use_status_when_not_overdue(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $task = Task::factory()
@@ -84,7 +85,7 @@ class TaskTest extends TestCase
 
     public function test_has_overdue_row_highlight_when_pending_and_past_due(): void
     {
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->subHour();
 
         $task = Task::factory()

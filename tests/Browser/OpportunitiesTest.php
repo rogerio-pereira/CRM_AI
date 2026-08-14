@@ -7,6 +7,7 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\Support\RecommendationFake;
 
 it('displays the kanban board and creates an opportunity', function () {
@@ -136,7 +137,7 @@ it('creates a task from a next-step recommendation', function () {
 
     $this->actingAs($user);
 
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay()
                     ->format('Y-m-d\TH:i');
 
@@ -286,7 +287,7 @@ it('creates a task from the kanban card button', function () {
 
     $this->actingAs($user);
 
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay()
                     ->format('Y-m-d\TH:i');
 

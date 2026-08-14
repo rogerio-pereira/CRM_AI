@@ -4,6 +4,7 @@ namespace Tests\Feature\Settings;
 
 use App\Livewire\Settings\Security;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Features;
@@ -163,7 +164,7 @@ class SecurityTest extends TestCase
                             'name' => 'Test Device',
                             'credential_id' => 'test-credential-id-1',
                             'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
-                            'last_used_at' => now(),
+                            'last_used_at' => Carbon::now(),
                         ]);
 
         $this->actingAs($user);

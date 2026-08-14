@@ -12,6 +12,7 @@ use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\TaskService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
@@ -39,7 +40,7 @@ class TaskManagementTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 
@@ -94,7 +95,7 @@ class TaskManagementTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($otherClient)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 
@@ -281,7 +282,7 @@ class TaskManagementTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 

@@ -7,6 +7,7 @@ use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -585,7 +586,9 @@ class ClientManagementTest extends TestCase
     {
         $user = User::factory()
                     ->create();
-        $createdAt = now()->subDays(3)->startOfDay();
+        $createdAt = Carbon::now()
+                        ->subDays(3)
+                        ->startOfDay();
         $client = Client::factory()
                         ->create([
                             'company_name' => 'Created At Co',

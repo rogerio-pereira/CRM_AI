@@ -8,6 +8,7 @@ use App\Livewire\Tasks\QuickCreateModal;
 use App\Models\Client;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -80,7 +81,7 @@ class LeadDetailTaskTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
         $task = Task::factory()
                     ->for($client)

@@ -6,6 +6,7 @@ use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\Support\RecommendationFake;
 
 it('displays the leads page and creates a lead', function () {
@@ -160,7 +161,7 @@ it('creates a task from the leads list actions menu', function () {
 
     $this->actingAs($user);
 
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay()
                     ->format('Y-m-d\TH:i');
 
@@ -188,7 +189,7 @@ it('creates a task from the client detail modal', function () {
 
     $this->actingAs($user);
 
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay()
                     ->format('Y-m-d\TH:i');
 

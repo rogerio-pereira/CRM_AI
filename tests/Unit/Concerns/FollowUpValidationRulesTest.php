@@ -5,6 +5,7 @@ namespace Tests\Unit\Concerns;
 use App\Concerns\FollowUpValidationRules;
 use App\Enums\FollowUpPriority;
 use App\Models\Client;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Enum;
@@ -34,7 +35,7 @@ class FollowUpValidationRulesTest extends TestCase
     {
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->toDateTimeString();
         $rules = FollowUpValidationRules::formRules();

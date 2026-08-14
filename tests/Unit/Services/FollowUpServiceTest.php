@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
@@ -37,7 +38,7 @@ class FollowUpServiceTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($client)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $followUp = $this->service->create([
@@ -64,7 +65,7 @@ class FollowUpServiceTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($otherClient)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $this->expectException(ValidationException::class);
@@ -88,7 +89,7 @@ class FollowUpServiceTest extends TestCase
                         ->create([
                             'notes' => 'Original notes',
                         ]);
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDays(2);
 
         $updated = $this->service->update($followUp, [
@@ -131,9 +132,9 @@ class FollowUpServiceTest extends TestCase
 
         $client = Client::factory()
                         ->create();
-        $withoutKeyDueAt = now()
+        $withoutKeyDueAt = Carbon::now()
                                 ->addDay();
-        $withNullDueAt = now()
+        $withNullDueAt = Carbon::now()
                                 ->addDays(2);
 
         $withoutKey = $this->service->create([
@@ -170,7 +171,7 @@ class FollowUpServiceTest extends TestCase
     {
         $method = new \ReflectionMethod($this->service, 'assertOpportunityBelongsToClient');
         $method->setAccessible(true);
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $method->invoke($this->service, [
@@ -203,9 +204,9 @@ class FollowUpServiceTest extends TestCase
 
         $otherClient = Client::factory()
                     ->create(['company_name' => 'Other Corp']);
-        $overdueAt = now()
+        $overdueAt = Carbon::now()
                             ->subDay();
-        $futureDueAt = now()
+        $futureDueAt = Carbon::now()
                             ->addDay();
 
         $matching = FollowUp::factory()

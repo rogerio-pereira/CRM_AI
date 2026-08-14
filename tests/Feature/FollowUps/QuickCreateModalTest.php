@@ -7,6 +7,7 @@ use App\Livewire\FollowUps\QuickCreateModal;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -97,7 +98,7 @@ class QuickCreateModalTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 

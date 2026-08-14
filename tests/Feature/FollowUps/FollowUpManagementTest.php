@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -39,7 +40,7 @@ class FollowUpManagementTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 
@@ -92,7 +93,7 @@ class FollowUpManagementTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($otherClient)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay()
                         ->format('Y-m-d\TH:i');
 
@@ -136,7 +137,7 @@ class FollowUpManagementTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         FollowUp::factory()
@@ -164,7 +165,7 @@ class FollowUpManagementTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
         $followUp = FollowUp::factory()
                         ->for($client)
@@ -201,7 +202,7 @@ class FollowUpManagementTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($client)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDays(3)
                         ->startOfMinute();
         $followUp = FollowUp::factory()
@@ -378,7 +379,7 @@ class FollowUpManagementTest extends TestCase
     {
         $user = User::factory()
                     ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->subDay();
 
         FollowUp::factory()

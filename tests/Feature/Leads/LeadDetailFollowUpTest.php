@@ -8,6 +8,7 @@ use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class LeadDetailFollowUpTest extends TestCase
                     ->create();
         $client = Client::factory()
                         ->create(['company_name' => 'Follow-up History Co']);
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
         $followUp = FollowUp::factory()
                         ->for($client)

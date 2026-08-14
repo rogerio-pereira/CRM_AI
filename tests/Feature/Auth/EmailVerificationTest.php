@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -41,7 +42,7 @@ class EmailVerificationTest extends TestCase
 
         Event::fake();
 
-        $expiresAt = now()
+        $expiresAt = Carbon::now()
                             ->addMinutes(60);
         $emailHash = sha1($user->email);
         $verificationParameters = [
@@ -69,7 +70,7 @@ class EmailVerificationTest extends TestCase
                     ->unverified()
                     ->create();
 
-        $expiresAt = now()
+        $expiresAt = Carbon::now()
                             ->addMinutes(60);
         $invalidEmailHash = sha1('wrong-email');
         $verificationParameters = [
@@ -91,12 +92,12 @@ class EmailVerificationTest extends TestCase
     {
         $user = User::factory()
                     ->create([
-                        'email_verified_at' => now(),
+                        'email_verified_at' => Carbon::now(),
                     ]);
 
         Event::fake();
 
-        $expiresAt = now()
+        $expiresAt = Carbon::now()
                             ->addMinutes(60);
         $emailHash = sha1($user->email);
         $verificationParameters = [

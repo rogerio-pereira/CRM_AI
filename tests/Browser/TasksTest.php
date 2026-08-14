@@ -5,6 +5,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 
 it('displays the tasks page and creates a task', function () {
     $user = User::factory()
@@ -44,7 +45,7 @@ it('marks a task done from the actions menu', function () {
                 ->create();
     $client = Client::factory()
                     ->create(['company_name' => 'Done Browser Co']);
-    $dueAt = now()
+    $dueAt = Carbon::now()
                     ->addDay();
     $task = Task::factory()
                 ->for($client)

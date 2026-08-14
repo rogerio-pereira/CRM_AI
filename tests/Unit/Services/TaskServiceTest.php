@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Services\TaskService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
@@ -37,7 +38,7 @@ class TaskServiceTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($client)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $task = $this->service->create([
@@ -66,7 +67,7 @@ class TaskServiceTest extends TestCase
         $opportunity = Opportunity::factory()
                             ->for($otherClient)
                             ->create();
-        $dueAt = now()
+        $dueAt = Carbon::now()
                         ->addDay();
 
         $this->expectException(ValidationException::class);
@@ -99,9 +100,9 @@ class TaskServiceTest extends TestCase
     {
         $client = Client::factory()
                         ->create();
-        $laterDueAt = now()
+        $laterDueAt = Carbon::now()
                             ->addDays(3);
-        $soonerDueAt = now()
+        $soonerDueAt = Carbon::now()
                             ->addDay();
 
         $later = Task::factory()
@@ -293,9 +294,9 @@ class TaskServiceTest extends TestCase
 
         $client = Client::factory()
                         ->create();
-        $withoutOpportunityDueAt = now()
+        $withoutOpportunityDueAt = Carbon::now()
                                         ->addDay();
-        $withNullOpportunityDueAt = now()
+        $withNullOpportunityDueAt = Carbon::now()
                                         ->addDay();
 
         $withoutOpportunityKey = $this->service->create([
