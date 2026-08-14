@@ -26,11 +26,11 @@
 
 ## Acceptance criteria
 
-- [ ] Catalog table + model/factory/seed with category slug, name, description, default price, active.
-- [ ] Livewire/Flux CRUD reachable from sidebar with stable `data-test` selectors.
-- [ ] Documented relationship to `docs/services/` categories (no auto-sync).
-- [ ] Prices are for proposals only (not billing/invoicing).
-- [ ] Feature and browser tests cover happy path and validation.
+- [x] Catalog table + model/factory/seed with category slug, name, description, default price, active.
+- [x] Livewire/Flux CRUD reachable from sidebar with stable `data-test` selectors.
+- [x] Documented relationship to `docs/services/` categories (no auto-sync).
+- [x] Prices are for proposals only (not billing/invoicing).
+- [x] Feature and browser tests cover happy path and validation.
 
 ---
 

@@ -64,6 +64,15 @@
                 >
                     {{ __('Tasks') }}
                 </flux:sidebar.item>
+                <flux:sidebar.item
+                    icon="briefcase"
+                    :href="route('services.index')"
+                    :current="request()->routeIs('services.*')"
+                    wire:navigate
+                    data-test="nav-services"
+                >
+                    {{ __('Services') }}
+                </flux:sidebar.item>
             </flux:sidebar.nav>
 
             <flux:spacer />

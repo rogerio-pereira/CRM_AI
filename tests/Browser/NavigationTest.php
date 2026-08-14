@@ -33,6 +33,11 @@ function crmSidebarRoutes(): array
             'path' => '/tasks',
             'marker' => 'tasks-page',
         ],
+        'services' => [
+            'nav' => 'nav-services',
+            'path' => '/services',
+            'marker' => 'services-page',
+        ],
     ];
 }
 

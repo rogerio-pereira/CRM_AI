@@ -44,4 +44,4 @@ Those concerns have different data and change requirements:
 
 - [ADR-017 Qualification flow and schema](ADR-017-wave-4-ai-qualification-schema.md)
 - [ADR-018 Proposal domain and artifacts](ADR-018-proposal-artifact-rendering-and-delivery.md)
-- [FDR-018 Commercial service catalog](../FDRs/ToDo/FDR-018-commercial-service-catalog.md)
+- [FDR-018 Commercial service catalog](../FDRs/Done/FDR-018-commercial-service-catalog.md)
