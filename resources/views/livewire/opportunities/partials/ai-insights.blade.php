@@ -277,12 +277,28 @@
                             $stepReason = (string) ($nextStep['reason'] ?? '');
                         @endphp
                         <li class="rounded-md border border-border-default p-3">
-                            @if (filled($stepTitle))
-                                <div class="font-medium text-text-primary">{{ $stepTitle }}</div>
-                            @endif
-                            @if (filled($stepReason))
-                                <flux:text class="mt-1 text-text-secondary">{{ $stepReason }}</flux:text>
-                            @endif
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    @if (filled($stepTitle))
+                                        <div class="font-medium text-text-primary">{{ $stepTitle }}</div>
+                                    @endif
+                                    @if (filled($stepReason))
+                                        <flux:text class="mt-1 text-text-secondary">{{ $stepReason }}</flux:text>
+                                    @endif
+                                </div>
+                                <flux:button
+                                    type="button"
+                                    size="xs"
+                                    variant="ghost"
+                                    icon="clipboard-document-list"
+                                    data-step-title="{{ $stepTitle }}"
+                                    data-step-reason="{{ $stepReason }}"
+                                    x-on:click="Livewire.dispatch('open-task-for-opportunity', { opportunityId: {{ (int) $opportunityId }}, title: $el.dataset.stepTitle, description: $el.dataset.stepReason })"
+                                    data-test="ai-suggestion-create-task-{{ $loop->index }}"
+                                >
+                                    {{ __('Create Task') }}
+                                </flux:button>
+                            </div>
                         </li>
                     @endif
                 @endforeach

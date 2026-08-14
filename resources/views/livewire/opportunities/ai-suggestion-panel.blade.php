@@ -47,6 +47,7 @@
                 'questionsToAsk' => $questionsToAsk,
                 'nextSteps' => $nextSteps,
                 'showRefresh' => $isQualified,
+                'opportunityId' => $opportunity->id,
             ])
         @else
             <div class="rounded-lg border border-ai/30 p-4">
