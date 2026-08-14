@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\ClientStatus;
 use App\Enums\PipelineStage;
-use App\Events\ClientCreated;
 use App\Models\Client;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -18,11 +17,6 @@ class ClientService
     public function create(array $attributes): Client
     {
         $client = Client::create($attributes);
-
-        /**
-         * No listeners registered.
-         */
-        ClientCreated::dispatch($client->fresh());
 
         return $client;
     }
