@@ -14,6 +14,7 @@ it('visits primary CRM navigation routes without JavaScript errors', function ()
         '/opportunities',
         '/follow-ups',
         '/tasks',
+        '/services',
         '/settings/profile',
         '/settings/security',
     ]);

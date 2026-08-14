@@ -32,6 +32,7 @@ it('runs smoke checks for authenticated web routes without JavaScript errors', f
         '/opportunities',
         '/follow-ups',
         '/tasks',
+        '/services',
         '/settings/profile',
         '/settings/security',
     ]);
