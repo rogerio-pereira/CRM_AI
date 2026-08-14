@@ -66,8 +66,6 @@ class QualificationAgent implements AiAgent
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulQualification($payload);
         $this->persistSuccessfulQualification($opportunity, $payload);
-        $this->opportunities
-                ->moveToStage($opportunity, PipelineStage::Contact);
         $this->orchestration
                 ->dispatch(AgentType::Recommendation, [
                     'trigger' => 'qualification_completed',

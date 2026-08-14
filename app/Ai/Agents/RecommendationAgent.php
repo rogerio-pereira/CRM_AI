@@ -4,6 +4,7 @@ namespace App\Ai\Agents;
 
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\RecommendationFailedException;
+use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -47,7 +48,8 @@ class RecommendationAgent implements AiAgent
 
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulRecommendation($payload);
-        $this->persistRecommendations($opportunity, $payload);
+        $updatedOpportunity = $this->persistRecommendations($opportunity, $payload);
+        $this->moveToContactWhenReady($updatedOpportunity);
 
         return [
                 'agent' => 'recommendation',
@@ -112,7 +114,7 @@ class RecommendationAgent implements AiAgent
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function persistRecommendations(Opportunity $opportunity, array $payload): void
+    private function persistRecommendations(Opportunity $opportunity, array $payload): Opportunity
     {
         $rawRecommendations = $payload['ai_recommendations'] ?? null;
 
@@ -142,10 +144,22 @@ class RecommendationAgent implements AiAgent
                 'confidence' => $confidence,
             ];
 
+        $updatedOpportunity = $this->opportunities
+                                    ->update($opportunity, [
+                                        'ai_recommendations' => $recommendations,
+                                    ]);
+
+        return $updatedOpportunity;
+    }
+
+    private function moveToContactWhenReady(Opportunity $opportunity): void
+    {
+        if ($opportunity->stage !== PipelineStage::Qualification) {
+            return;
+        }
+
         $this->opportunities
-                ->update($opportunity, [
-                    'ai_recommendations' => $recommendations,
-                ]);
+                ->moveToStage($opportunity, PipelineStage::Contact);
     }
 
     private function buildUserPrompt(Opportunity $opportunity, Client $client): string
