@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Services\TaskService;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -221,7 +222,10 @@ class Index extends Component
         $this->opportunity_id = null;
         $this->title = '';
         $this->description = '';
-        $this->due_at = now()->addDay()->format('Y-m-d\TH:i');
+        $defaultDueAt = Carbon::now()
+                            ->addDay()
+                            ->format('Y-m-d\TH:i');
+        $this->due_at = $defaultDueAt;
         $this->priority = TaskPriority::Medium->value;
         $this->is_important = false;
         $this->resetValidation();

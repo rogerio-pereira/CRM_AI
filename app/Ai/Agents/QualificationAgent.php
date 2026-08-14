@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Responses\StructuredAgentResponse;
@@ -183,12 +184,14 @@ class QualificationAgent implements AiAgent
             throw new QualificationFailedException('Qualification output was incomplete.');
         }
 
+        $qualifiedAt = Carbon::now();
+
         $this->opportunities
                 ->update($opportunity, [
                     'qualification_notes' => $notes,
                     'qualification_status' => QualificationStatus::Qualified,
                     'qualification_last_error' => null,
-                    'qualified_at' => now(),
+                    'qualified_at' => $qualifiedAt,
                     'ai_insights' => $insights,
                 ]);
     }

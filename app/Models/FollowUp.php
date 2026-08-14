@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
+use Carbon\Carbon;
 use Database\Factories\FollowUpFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -92,8 +93,10 @@ class FollowUp extends Model
     #[Scope]
     protected function overdue(Builder $query): void
     {
+        $now = Carbon::now();
+
         $query
             ->where('reminder_status', FollowUpReminderStatus::Pending)
-            ->where('due_at', '<', now());
+            ->where('due_at', '<', $now);
     }
 }

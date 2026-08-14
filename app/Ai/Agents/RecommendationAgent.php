@@ -9,6 +9,7 @@ use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\OpportunityService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Responses\StructuredAgentResponse;
@@ -122,7 +123,8 @@ class RecommendationAgent implements AiAgent
             throw new RecommendationFailedException('Recommendation output was incomplete.');
         }
 
-        $now = now()->toIso8601String();
+        $now = Carbon::now()
+                    ->toIso8601String();
         $generatedAt = $rawRecommendations['generated_at'] ?? $now;
         $language = $rawRecommendations['language'] ?? 'en';
         $confidence = $rawRecommendations['confidence'] ?? 'medium';

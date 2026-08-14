@@ -7,6 +7,7 @@ use App\Enums\FollowUpPriority;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
+use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -121,7 +122,10 @@ class QuickCreateModal extends Component
     {
         $this->client_id = null;
         $this->opportunity_id = null;
-        $this->due_at = now()->addDay()->format('Y-m-d\TH:i');
+        $defaultDueAt = Carbon::now()
+                            ->addDay()
+                            ->format('Y-m-d\TH:i');
+        $this->due_at = $defaultDueAt;
         $this->priority = FollowUpPriority::Medium->value;
         $this->notes = '';
         $this->resetValidation();

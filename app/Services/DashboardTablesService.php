@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\FollowUpReminderStatus;
 use App\Models\FollowUp;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class DashboardTablesService
@@ -46,10 +47,12 @@ class DashboardTablesService
      */
     public function actionableFollowUps(): Collection
     {
+        $now = Carbon::now();
+
         return FollowUp::query()
             ->with(['client', 'opportunity'])
             ->where('reminder_status', FollowUpReminderStatus::Pending)
-            ->orderByRaw('CASE WHEN due_at < ? THEN 0 ELSE 1 END', [now()])
+            ->orderByRaw('CASE WHEN due_at < ? THEN 0 ELSE 1 END', [$now])
             ->orderBy('due_at')
             ->limit(self::TABLE_LIMIT)
             ->get();

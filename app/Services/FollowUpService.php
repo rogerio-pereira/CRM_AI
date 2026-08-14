@@ -7,6 +7,7 @@ use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
@@ -61,7 +62,7 @@ class FollowUpService
     public function markComplete(FollowUp $followUp): FollowUp
     {
         $followUp->reminder_status = FollowUpReminderStatus::Completed;
-        $followUp->completed_at = now();
+        $followUp->completed_at = Carbon::now();
         $followUp->save();
 
         /**

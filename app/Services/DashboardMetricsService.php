@@ -75,7 +75,7 @@ class DashboardMetricsService
             ->orderBy('day')
             ->get();
 
-        $aggregated = $rows->mapWithKeys(function ($row): array {
+        $aggregated = $rows->mapWithKeys(function (Opportunity $row): array {
             $day = Carbon::parse($row->day)->toDateString();
 
             return [$day => (float) $row->total];
@@ -88,7 +88,7 @@ class DashboardMetricsService
      * @param  Builder<Model>  $query
      * @return Collection<string, int>
      */
-    private function aggregateDailyCounts($query, string $column): Collection
+    private function aggregateDailyCounts(Builder $query, string $column): Collection
     {
         $start = $this->seriesStart();
 
@@ -99,7 +99,7 @@ class DashboardMetricsService
             ->orderBy('day')
             ->get();
 
-        return $rows->mapWithKeys(function ($row): array {
+        return $rows->mapWithKeys(function (Model $row): array {
             $day = Carbon::parse($row->day)->toDateString();
 
             return [$day => (int) $row->total];
@@ -108,7 +108,9 @@ class DashboardMetricsService
 
     private function seriesStart(): Carbon
     {
-        return Carbon::parse(now()->startOfDay()->subDays(self::SERIES_DAYS - 1));
+        return Carbon::now()
+                    ->startOfDay()
+                    ->subDays(self::SERIES_DAYS - 1);
     }
 
     /**
@@ -121,8 +123,17 @@ class DashboardMetricsService
         $series = [];
 
         for ($offset = 0; $offset < self::SERIES_DAYS; $offset++) {
-            $date = $start->copy()->addDays($offset)->toDateString();
-            $value = $aggregated->get($date, $isFloat ? 0.0 : 0);
+            $date = $start->copy()
+                        ->addDays($offset)
+                        ->toDateString();
+
+            if ($isFloat) {
+                $defaultValue = 0.0;
+            } else {
+                $defaultValue = 0;
+            }
+
+            $value = $aggregated->get($date, $defaultValue);
 
             if ($isFloat) {
                 $series[] = [

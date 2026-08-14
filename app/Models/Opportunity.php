@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use Carbon\Carbon;
 use Database\Factories\OpportunityFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -113,12 +114,14 @@ class Opportunity extends Model
     #[Scope]
     protected function withNextFollowUpDate(Builder $query): void
     {
+        $now = Carbon::now();
+
         $query->withMin(
             [
-                'followUps as next_follow_up_date' => function (Builder $followUpQuery): void {
+                'followUps as next_follow_up_date' => function (Builder $followUpQuery) use ($now): void {
                     $followUpQuery
                         ->where('reminder_status', 'pending')
-                        ->where('due_at', '>=', now());
+                        ->where('due_at', '>=', $now);
                 },
             ],
             'due_at',

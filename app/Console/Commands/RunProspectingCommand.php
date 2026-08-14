@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\AgentType;
 use App\Services\AiOrchestrationService;
+use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -20,7 +21,8 @@ class RunProspectingCommand extends Command
             $jobCount = 1;
         }
 
-        $triggeredAt = now()->toIso8601String();
+        $triggeredAt = Carbon::now()
+                            ->toIso8601String();
 
         for ($index = 0; $index < $jobCount; $index++) {
             $payload = [

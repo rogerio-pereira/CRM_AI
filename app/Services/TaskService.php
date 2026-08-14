@@ -7,6 +7,7 @@ use App\Events\TaskCreated;
 use App\Events\TaskUpdated;
 use App\Models\Opportunity;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -65,7 +66,7 @@ class TaskService
     public function markDone(Task $task): Task
     {
         $task->status = TaskStatus::Done;
-        $task->completed_at = now();
+        $task->completed_at = Carbon::now();
         $task->save();
 
         /**
