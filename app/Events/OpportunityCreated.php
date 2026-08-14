@@ -6,6 +6,9 @@ use App\Models\Opportunity;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/*
+ * @calls app/Listeners/DispatchAiOnOpportunityCreated
+ */
 class OpportunityCreated
 {
     use Dispatchable;

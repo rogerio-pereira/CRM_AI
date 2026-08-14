@@ -25,6 +25,10 @@ class FollowUpService
 
         $followUp = FollowUp::create($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpCreated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;
@@ -44,6 +48,10 @@ class FollowUpService
 
         $followUp->update($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;
@@ -55,6 +63,10 @@ class FollowUpService
         $followUp->completed_at = now();
         $followUp->save();
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForFollowUp
+         * @calls app/Listeners/EvaluateSlackRulesForFollowUp
+         */
         FollowUpUpdated::dispatch($followUp->fresh(['client', 'opportunity']));
 
         return $followUp;

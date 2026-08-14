@@ -6,6 +6,9 @@ use App\Models\Client;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/*
+ * No listeners registered.
+ */
 class ClientCreated
 {
     use Dispatchable;

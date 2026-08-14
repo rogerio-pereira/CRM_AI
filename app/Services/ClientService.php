@@ -19,6 +19,9 @@ class ClientService
     {
         $client = Client::create($attributes);
 
+        /**
+         * No listeners registered.
+         */
         ClientCreated::dispatch($client->fresh());
 
         return $client;

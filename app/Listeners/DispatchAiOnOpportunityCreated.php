@@ -6,6 +6,9 @@ use App\Enums\AgentType;
 use App\Events\OpportunityCreated;
 use App\Services\AiOrchestrationService;
 
+/*
+ * Called by app/Events/OpportunityCreated.php
+ */
 class DispatchAiOnOpportunityCreated
 {
     public function __construct(

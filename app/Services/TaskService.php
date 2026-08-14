@@ -29,6 +29,10 @@ class TaskService
 
         $task = Task::create($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskCreated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
@@ -48,6 +52,10 @@ class TaskService
 
         $task->update($attributes);
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskUpdated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
@@ -59,6 +67,10 @@ class TaskService
         $task->completed_at = now();
         $task->save();
 
+        /**
+         * @calls app/Listeners/QueueCalendarEventForTask
+         * @calls app/Listeners/EvaluateSlackRulesForTask
+         */
         TaskUpdated::dispatch($task->fresh(['client', 'opportunity']));
 
         return $task;
