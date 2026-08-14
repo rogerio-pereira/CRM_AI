@@ -36,6 +36,16 @@ class RunRecommendationAgentJobTest extends TestCase
 
     public function test_job_logs_metadata_on_success_without_prompt_content(): void
     {
+        $agent = Mockery::mock(RecommendationAgent::class);
+        $agent->shouldReceive('handle')
+            ->once()
+            ->andReturn([
+                'agent' => 'recommendation',
+                'status' => 'completed',
+            ]);
+
+        $this->app->instance(RecommendationAgent::class, $agent);
+
         Log::shouldReceive('info')
             ->once()
             ->with('ai.agent.completed', Mockery::on(function (array $context): bool {
