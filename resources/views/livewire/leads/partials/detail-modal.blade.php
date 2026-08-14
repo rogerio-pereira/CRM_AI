@@ -80,13 +80,9 @@
                         @foreach ($client->opportunities as $opportunity)
                             @php($opportunityInsights = $opportunity->ai_insights)
                             @php($hasOpportunityInsights = is_array($opportunityInsights) && $opportunityInsights !== [])
-                            @php($showSuggestionPanel = $opportunity->hasAiRecommendations() || $opportunity->qualification_status === \App\Enums\QualificationStatus::Qualified)
+                            @php($showSuggestionPanel = $opportunity->hasAiRecommendations() || $hasOpportunityInsights || $opportunity->qualification_status === \App\Enums\QualificationStatus::Qualified)
                             <li class="space-y-3" data-test="leads-detail-opportunity-{{ $opportunity->id }}">
                                 <div>{{ $opportunity->title }} — {{ $opportunity->stage->label() }}</div>
-
-                                @if ($hasOpportunityInsights)
-                                    @include('livewire.opportunities.partials.ai-insights', ['insights' => $opportunityInsights])
-                                @endif
 
                                 @if ($showSuggestionPanel)
                                     <livewire:opportunities.ai-suggestion-panel

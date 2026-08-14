@@ -1,8 +1,6 @@
 <flux:modal wire:model.self="showDetailModal" class="max-w-2xl" data-test="opportunities-detail-modal">
     @if ($this->detailOpportunity)
         @php($opportunity = $this->detailOpportunity)
-        @php($insights = $opportunity->ai_insights)
-        @php($hasInsights = is_array($insights) && $insights !== [])
         @php($websiteUrl = \App\Support\UrlNormalizer::normalize($opportunity->client->website))
 
         <div class="space-y-6">
@@ -97,10 +95,6 @@
                         {{ $opportunity->qualification_notes }}
                     </flux:text>
                 </div>
-            @endif
-
-            @if ($hasInsights)
-                @include('livewire.opportunities.partials.ai-insights', ['insights' => $insights])
             @endif
 
             <livewire:opportunities.ai-suggestion-panel
