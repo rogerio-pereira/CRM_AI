@@ -85,7 +85,7 @@ class QualificationStatusChipTest extends TestCase
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights-summary"')
             ->assertSee('Ready for a first conversation.')
             ->assertSee('AI Insight')
-            ->assertDontSee('AI insights')
+            ->assertSee('Refresh AI insights')
             ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 

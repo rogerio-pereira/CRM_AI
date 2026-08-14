@@ -3,6 +3,7 @@
 use App\Enums\ClientStatus;
 use App\Models\Client;
 use App\Models\FollowUp;
+use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
 
@@ -57,6 +58,34 @@ it('opens detail modal and archives a lead from the actions menu', function () {
 
     visit('/leads')
         ->assertPresent('[data-test="leads-status-badge-'.$client->id.'"][data-status="archived"]');
+});
+
+it('opens the lead detail modal with related opportunity AI recommendations', function () {
+    $user = User::factory()->create();
+    $client = Client::factory()->create([
+        'company_name' => 'Lead Recommendations Co',
+    ]);
+    $opportunity = Opportunity::factory()
+        ->for($client)
+        ->qualificationQualified()
+        ->withAiRecommendations()
+        ->create([
+            'title' => 'Related AI Deal',
+        ]);
+
+    $this->actingAs($user);
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-view-'.$client->id)
+        ->assertPresent('[data-test="leads-detail-modal"]')
+        ->assertPresent('[data-test="leads-detail-opportunity-'.$opportunity->id.'"]')
+        ->assertPresent('[data-test="ai-suggestion-panel"]')
+        ->assertSee('Start with a clearer website, then a simple follow-up conversation.')
+        ->assertSee('Make the first impression easier to act on')
+        ->assertSee('Review the example email before any outreach')
+        ->assertPresent('[data-test="ai-suggestion-refresh"]')
+        ->assertSee('AI-generated. Not a confirmed human decision. This is not sent automatically.');
 });
 
 it('creates a follow-up from the leads list actions menu', function () {
