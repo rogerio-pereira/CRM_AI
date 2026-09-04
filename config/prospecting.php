@@ -22,8 +22,9 @@ return [
     | Prospecting Default Limit
     |--------------------------------------------------------------------------
     |
-    | Number of prospecting jobs dispatched per run. Each job discovers and
-    | persists one lead so a single queue worker does not time out.
+    | Number of prospecting jobs dispatched per run when prospecting:run is
+    | called without a count argument. Each job discovers and persists one
+    | lead so a single queue worker does not time out.
     |
     */
 

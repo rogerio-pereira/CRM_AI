@@ -9,15 +9,20 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('prospecting:run')]
+#[Signature('prospecting:run {count? : Number of prospecting jobs to dispatch}')]
 #[Description('Dispatch one prospecting job per lead via AI orchestration')]
 class RunProspectingCommand extends Command
 {
     public function handle(AiOrchestrationService $orchestration): int
     {
-        $jobCount = (int) config('prospecting.default_limit', 20);
+        $countArgument = $this->argument('count');
+        $configLimit = config('prospecting.default_limit');
 
-        if ($jobCount < 1) {
+        if ($countArgument !== null) {
+            $jobCount = (int) $countArgument;
+        } elseif ($configLimit !== null) {
+            $jobCount = (int) $configLimit;
+        } else {
             $jobCount = 1;
         }
 
