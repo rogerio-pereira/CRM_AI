@@ -11,13 +11,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        /*
+         * =============================================================================================================
+         * REAL DATA
+         * =============================================================================================================
+         */
         $this->call([
             UserSeeder::class,
-            // ClientSeeder::class,
-            // OpportunitySeeder::class,
-            // OpportunitySeederMonth::class,
-            // FollowUpSeeder::class,
-            // TaskSeeder::class,
         ]);
+
+        /*
+         * =============================================================================================================
+         * FAKE DATA
+         * =============================================================================================================
+         */
+        $currentEnv = config('app.env');
+        if (
+            $currentEnv === 'local' ||
+            $currentEnv === 'testing'
+        ) {
+            $this->call([
+                ClientSeeder::class,
+                OpportunitySeeder::class,
+                OpportunitySeederMonth::class,
+                FollowUpSeeder::class,
+                TaskSeeder::class,
+            ]);
+        }
     }
 }
