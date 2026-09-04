@@ -57,12 +57,12 @@ class RunProspectingCommandTest extends TestCase
         Queue::assertPushed(RunProspectingAgentJob::class, 2);
     }
 
-    public function test_command_dispatches_at_least_one_job_when_limit_is_invalid(): void
+    public function test_command_dispatches_one_job_when_count_and_config_are_missing(): void
     {
         Queue::fake();
 
         config([
-            'prospecting.default_limit' => 0,
+            'prospecting.default_limit' => null,
         ]);
 
         $this->artisan('prospecting:run')
@@ -70,5 +70,20 @@ class RunProspectingCommandTest extends TestCase
             ->expectsOutputToContain('Prospecting agent jobs dispatched: 1.');
 
         Queue::assertPushed(RunProspectingAgentJob::class, 1);
+    }
+
+    public function test_command_dispatches_the_given_count_argument(): void
+    {
+        Queue::fake();
+
+        config([
+            'prospecting.default_limit' => 20,
+        ]);
+
+        $this->artisan('prospecting:run', ['count' => 5])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Prospecting agent jobs dispatched: 5.');
+
+        Queue::assertPushed(RunProspectingAgentJob::class, 5);
     }
 }
