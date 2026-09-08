@@ -186,6 +186,33 @@ class ProspectingAgentTest extends TestCase
         ]);
     }
 
+    public function test_agent_throws_when_no_unique_contactable_lead_is_found(): void
+    {
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->times(5)
+            ->andReturn([
+                'leads' => [],
+                'skipped' => [
+                    [
+                        'name' => 'No Email Biz',
+                        'reason' => 'Missing company name or valid public email.',
+                    ],
+                ],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting could not find a unique contactable lead.');
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
+    }
+
     public function test_command_job_persists_leads_with_mocked_discovery(): void
     {
         Queue::fake();
@@ -286,6 +313,43 @@ class ProspectingAgentTest extends TestCase
             ],
             $mixedSocial->social_links,
         );
+    }
+
+    public function test_agent_stores_empty_social_links_when_value_is_not_a_list(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn([
+                'leads' => [
+                    [
+                        'company_name' => 'No Social List Co',
+                        'email' => 'hello@nosocial.example',
+                        'social_links' => 'not-a-list',
+                    ],
+                ],
+                'skipped' => [],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $client = Client::query()
+                        ->where('company_name', 'No Social List Co')
+                        ->first();
+
+        $this->assertSame(1, $result['created_count']);
+        $this->assertNotNull($client);
+        $this->assertSame([], $client->social_links);
     }
 
     public function test_agent_defaults_to_one_lead_per_job(): void
