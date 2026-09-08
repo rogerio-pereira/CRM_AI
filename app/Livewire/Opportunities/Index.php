@@ -3,9 +3,12 @@
 namespace App\Livewire\Opportunities;
 
 use App\Concerns\OpportunityValidationRules;
+use App\Enums\AgentType;
 use App\Enums\PipelineStage;
+use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
@@ -152,6 +155,44 @@ class Index extends Component
         Flux::toast(variant: 'success', text: __('Opportunity moved to :stage.', [
             'stage' => $targetStage->label(),
         ]));
+
+        unset($this->opportunitiesByStage, $this->detailOpportunity);
+    }
+
+    public function requalifyOpportunity(int $opportunityId): void
+    {
+        $opportunity = Opportunity::findOrFail($opportunityId);
+
+        if ($opportunity->qualification_status !== QualificationStatus::Failed) {
+            Flux::toast(
+                variant: 'danger',
+                text: __('Only failed qualifications can be retried.'),
+            );
+
+            return;
+        }
+
+        $opportunityService = app(OpportunityService::class);
+        $resetAttributes = [
+                'qualification_status' => QualificationStatus::Pending,
+                'qualification_last_error' => null,
+            ];
+        $updatedOpportunity = $opportunityService->update($opportunity, $resetAttributes);
+
+        $userId = auth()->id();
+        $payload = [
+                'trigger' => 'manual_requalify',
+                'opportunity_id' => $updatedOpportunity->id,
+                'client_id' => $updatedOpportunity->client_id,
+                'user_id' => $userId,
+            ];
+        $orchestration = app(AiOrchestrationService::class);
+        $orchestration->dispatch(AgentType::Qualification, $payload);
+
+        Flux::toast(
+            variant: 'success',
+            text: __('Qualification queued.'),
+        );
 
         unset($this->opportunitiesByStage, $this->detailOpportunity);
     }
