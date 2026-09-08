@@ -5,6 +5,7 @@ namespace Tests\Unit\Ai\Discovery;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use App\Ai\Discovery\PublicWebDiscoveryAdapter;
+use Illuminate\Support\Facades\File;
 use Laravel\Ai\Providers\Tools\WebFetch;
 use Laravel\Ai\Providers\Tools\WebSearch;
 use Laravel\Ai\Responses\AgentResponse;
@@ -248,6 +249,40 @@ class PublicWebDiscoveryAdapterTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Prospecting discovery did not return structured output.');
+
+        $adapter->discover([
+            'instructions' => 'Approved prospecting instructions for tests.',
+        ]);
+    }
+
+    public function test_discover_throws_when_prompt_file_is_missing(): void
+    {
+        File::partialMock()
+            ->shouldReceive('exists')
+            ->andReturn(false);
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting discovery prompt file not found');
+
+        $adapter->discover([
+            'instructions' => 'Approved prospecting instructions for tests.',
+        ]);
+    }
+
+    public function test_discover_throws_when_prompt_file_is_empty(): void
+    {
+        $file = File::partialMock();
+        $file->shouldReceive('exists')
+            ->andReturn(true);
+        $file->shouldReceive('get')
+            ->andReturn('   ');
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting discovery prompt file is empty');
 
         $adapter->discover([
             'instructions' => 'Approved prospecting instructions for tests.',
