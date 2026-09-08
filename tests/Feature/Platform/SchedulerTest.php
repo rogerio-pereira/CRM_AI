@@ -35,9 +35,9 @@ class SchedulerTest extends TestCase
         $event = $prospectingEvents->first();
         $timezone = config('app.timezone');
 
-        $this->assertSame('0 8 * * 1-5', $event->expression);
+        $this->assertSame('0 4 * * 1-5', $event->expression);
 
-        $weekday = Carbon::parse('2026-08-10 08:00:00', $timezone);
+        $weekday = Carbon::parse('2026-08-10 04:00:00', $timezone);
 
         Carbon::setTestNow($weekday);
 
@@ -45,7 +45,7 @@ class SchedulerTest extends TestCase
 
         $this->assertTrue($isDueOnWeekday);
 
-        $weekend = Carbon::parse('2026-08-08 08:00:00', $timezone);
+        $weekend = Carbon::parse('2026-08-08 04:00:00', $timezone);
 
         Carbon::setTestNow($weekend);
 
