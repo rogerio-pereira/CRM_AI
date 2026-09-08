@@ -126,10 +126,10 @@ class FirstContactEmailAgent implements AiAgent
         }
 
         $firstPain = $this->firstArrayItem($insights['pain_points'] ?? []);
-        $firstOpportunity = $this->firstArrayItem($insights['opportunities'] ?? []);
+        $preferredOpportunity = $this->preferredCatalogItem($insights['opportunities'] ?? []);
         $rawHook = $firstPain['evidence'] ?? $firstPain['title'] ?? '';
-        $rawService = $firstOpportunity['service'] ?? 'lead_generation';
-        $rawOpportunity = $firstOpportunity['why_it_matters'] ?? $firstOpportunity['title'] ?? '';
+        $rawService = $preferredOpportunity['service'] ?? 'lead_generation';
+        $rawOpportunity = $preferredOpportunity['why_it_matters'] ?? $preferredOpportunity['title'] ?? '';
         $rawSummary = $insights['summary'] ?? '';
 
         return [
@@ -142,6 +142,53 @@ class FirstContactEmailAgent implements AiAgent
                 'opportunity' => (string) $rawOpportunity,
                 'sample_insight' => (string) $rawSummary,
             ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function preferredCatalogItem(mixed $items): array
+    {
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $priorityOrder = [
+                'high',
+                'medium',
+                'low',
+            ];
+
+        foreach ($priorityOrder as $priority) {
+            $match = $this->firstItemWithPriority($items, $priority);
+
+            if ($match !== []) {
+                return $match;
+            }
+        }
+
+        return $this->firstArrayItem($items);
+    }
+
+    /**
+     * @param  array<int|string, mixed>  $items
+     * @return array<string, mixed>
+     */
+    private function firstItemWithPriority(array $items, string $priority): array
+    {
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $itemPriority = $item['priority'] ?? '';
+
+            if ($itemPriority === $priority) {
+                return $item;
+            }
+        }
+
+        return [];
     }
 
     /**

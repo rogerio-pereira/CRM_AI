@@ -164,6 +164,114 @@ class FirstContactEmailAgentTest extends TestCase
         ]);
     }
 
+    public function test_copywriter_brief_uses_the_highest_priority_opportunity(): void
+    {
+        Queue::fake([
+            RunRecommendationAgentJob::class,
+        ]);
+
+        $client = Client::factory()
+                        ->create([
+                            'contact_name' => 'Daniel',
+                            'company_name' => 'Lakeland Lawn Co',
+                        ]);
+        $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];
+        $insights['opportunities'] = [
+                [
+                    'service' => 'website_design_development',
+                    'title' => 'Rebuild the public site',
+                    'why_it_matters' => 'A custom site is not the opening for this owner.',
+                    'priority' => 'low',
+                ],
+                [
+                    'service' => 'lead_generation',
+                    'title' => 'Create a steadier local lead flow',
+                    'why_it_matters' => 'Less dependence on referrals for new work.',
+                    'priority' => 'high',
+                ],
+            ];
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => $insights,
+                            ]);
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $agent->handle([
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        WriteFirstContactEmailAgent::assertPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasLeadGeneration = str_contains($promptText, 'lead_generation');
+            $hasReferralGap = str_contains($promptText, 'Less dependence on referrals for new work.');
+            $hasWebsiteRebuild = str_contains($promptText, 'A custom site is not the opening for this owner.');
+
+            if ($hasLeadGeneration === false) {
+                return false;
+            }
+
+            if ($hasReferralGap === false) {
+                return false;
+            }
+
+            return $hasWebsiteRebuild === false;
+        });
+    }
+
+    public function test_copywriter_brief_falls_back_when_outreach_and_opportunities_are_not_arrays(): void
+    {
+        Queue::fake([
+            RunRecommendationAgentJob::class,
+        ]);
+
+        $client = Client::factory()
+                        ->create([
+                            'contact_name' => 'Maya',
+                            'company_name' => 'Plant City Pools',
+                        ]);
+        $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];
+        $insights['opportunities'] = 'not-an-array';
+        $insights['outreach_strategy'] = 'not-an-array';
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => $insights,
+                            ]);
+        $copywriter = QualificationFake::copywriterPayload();
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $agent->handle([
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        $opportunity->refresh();
+        $storedInsights = $opportunity->ai_insights;
+
+        $this->assertSame($copywriter['subject'], $storedInsights['outreach_strategy']['contact_example']['subject']);
+        $this->assertSame($copywriter['body'], $storedInsights['outreach_strategy']['contact_example']['body']);
+        $this->assertSame(PipelineStage::Contact, $opportunity->stage);
+        WriteFirstContactEmailAgent::assertPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasCompany = str_contains($promptText, 'Plant City Pools');
+            $hasDefaultService = str_contains($promptText, 'lead_generation');
+
+            if ($hasCompany === false) {
+                return false;
+            }
+
+            return $hasDefaultService;
+        });
+    }
+
     public function test_copywriter_brief_falls_back_when_pain_points_are_malformed(): void
     {
         Queue::fake([
