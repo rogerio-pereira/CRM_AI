@@ -26,18 +26,23 @@ trait RunsAiAgentJob
 
         try {
             $result = $this->resolveAgent()->handle($this->payload);
+            $elapsedSeconds = microtime(true) - $startedAt;
+            $durationMs = (int) round($elapsedSeconds * 1000);
 
             Log::info('ai.agent.completed', [
                 'agent' => $agentType->value,
                 'provider' => config('ai.default'),
-                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                'duration_ms' => $durationMs,
                 'result_keys' => array_keys($result),
             ]);
         } catch (Throwable $exception) {
+            $elapsedSeconds = microtime(true) - $startedAt;
+            $durationMs = (int) round($elapsedSeconds * 1000);
+
             Log::warning('ai.agent.failed', [
                 'agent' => $agentType->value,
                 'provider' => config('ai.default'),
-                'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                'duration_ms' => $durationMs,
                 'message' => $exception->getMessage(),
             ]);
 
