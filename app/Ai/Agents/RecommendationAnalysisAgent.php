@@ -2,16 +2,18 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\WriteFirstContactEmail;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
+use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
 
-#[MaxSteps(6)]
+#[MaxSteps(8)]
 #[Timeout(120)]
-class RecommendationAnalysisAgent implements Agent, HasStructuredOutput
+class RecommendationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
 {
     use Promptable;
 
@@ -22,6 +24,18 @@ class RecommendationAnalysisAgent implements Agent, HasStructuredOutput
     public function instructions(): string
     {
         return $this->instructions;
+    }
+
+    /**
+     * @return iterable<int, WriteFirstContactEmail>
+     */
+    public function tools(): iterable
+    {
+        $writeFirstContactEmail = new WriteFirstContactEmail;
+
+        return [
+                $writeFirstContactEmail,
+            ];
     }
 
     /**

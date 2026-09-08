@@ -2,6 +2,7 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\WriteFirstContactEmail;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Timeout;
@@ -12,7 +13,7 @@ use Laravel\Ai\Promptable;
 use Laravel\Ai\Providers\Tools\WebFetch;
 use Laravel\Ai\Providers\Tools\WebSearch;
 
-#[MaxSteps(8)]
+#[MaxSteps(10)]
 #[Timeout(120)]
 class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
 {
@@ -28,7 +29,7 @@ class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
     }
 
     /**
-     * @return iterable<int, WebSearch|WebFetch>
+     * @return iterable<int, WebSearch|WebFetch|WriteFirstContactEmail>
      */
     public function tools(): iterable
     {
@@ -40,10 +41,12 @@ class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
         );
 
         $webFetch = new WebFetch;
+        $writeFirstContactEmail = new WriteFirstContactEmail;
 
         return [
                 $webSearch,
                 $webFetch,
+                $writeFirstContactEmail,
             ];
     }
 

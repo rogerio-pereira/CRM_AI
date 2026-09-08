@@ -3,17 +3,23 @@
 namespace Tests\Unit\Ai\Agents;
 
 use App\Ai\Agents\RecommendationAnalysisAgent;
+use App\Ai\Tools\WriteFirstContactEmail;
 use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 use Tests\TestCase;
 
 class RecommendationAnalysisAgentTest extends TestCase
 {
-    public function test_agent_uses_provided_instructions_without_tools(): void
+    public function test_agent_exposes_first_contact_email_tool(): void
     {
         $agent = new RecommendationAnalysisAgent('Recommend next steps.');
+        $toolsIterator = $agent->tools();
+        $tools = iterator_to_array($toolsIterator);
+        $writeFirstContactEmail = $tools[0] ?? null;
 
         $this->assertSame('Recommend next steps.', $agent->instructions());
-        $this->assertFalse(method_exists($agent, 'tools'));
+        $this->assertCount(1, $tools);
+        $this->assertInstanceOf(WriteFirstContactEmail::class, $writeFirstContactEmail);
+        $this->assertSame('write_first_contact_email', $writeFirstContactEmail->name());
     }
 
     public function test_schema_requires_recommendation_payload_fields(): void
