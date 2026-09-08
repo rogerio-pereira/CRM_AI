@@ -7,7 +7,7 @@ interface DiscoveryAdapter
     /**
      * Discover lead candidates from public/free sources (ADR-015).
      *
-     * @param  array{limit?: int, instructions?: string}  $options
+     * @param  array{limit?: int, instructions?: string, exclude_company_names?: list<string>}  $options
      * @return array{leads: list<array<string, mixed>>, skipped: list<array<string, mixed>>}
      */
     public function discover(array $options = []): array;

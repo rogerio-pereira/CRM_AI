@@ -5,6 +5,7 @@ namespace Tests\Unit\Ai\Discovery;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use App\Ai\Discovery\PublicWebDiscoveryAdapter;
+use Illuminate\Support\Facades\File;
 use Laravel\Ai\Providers\Tools\WebFetch;
 use Laravel\Ai\Providers\Tools\WebSearch;
 use Laravel\Ai\Responses\AgentResponse;
@@ -64,10 +65,19 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            $hasExpectedLimit = str_contains($promptText, 'Discover up to 5 lead candidates');
+            $hasExpectedLimit = str_contains($promptText, 'Discover 1 lead candidate with a public email.');
             $hasExpectedRanking = str_contains($promptText, 'Rank website work first');
+            $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
 
-            return $hasExpectedLimit && $hasExpectedRanking;
+            if ($hasExpectedLimit === false) {
+                return false;
+            }
+
+            if ($hasExpectedRanking === false) {
+                return false;
+            }
+
+            return $hasExpectedEmail;
         });
     }
 
@@ -140,7 +150,7 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            return str_contains($promptText, 'Discover up to 1 lead candidates');
+            return str_contains($promptText, 'Discover 1 lead candidate with a public email.');
         });
     }
 
@@ -183,6 +193,48 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         $this->assertSame('US', $webSearch->country);
     }
 
+    public function test_discover_excludes_existing_companies_from_the_prompt(): void
+    {
+        ProspectingDiscoveryAgent::fake([
+            [
+                'leads' => [
+                    [
+                        'company_name' => 'New Lawn Co',
+                        'email' => 'hello@newlawn.example',
+                    ],
+                ],
+                'skipped' => [],
+            ],
+        ]);
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $adapter->discover([
+            'limit' => 1,
+            'instructions' => 'Approved prospecting instructions for tests.',
+            'exclude_company_names' => [
+                'Existing Lawn Co',
+            ],
+        ]);
+
+        ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasExpectedExclude = str_contains($promptText, 'Do not return these companies already in the CRM: Existing Lawn Co.');
+            $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
+            $hasExpectedFilePrompt = str_contains($promptText, 'Discover 1 lead candidate with a public email.');
+
+            if ($hasExpectedExclude === false) {
+                return false;
+            }
+
+            if ($hasExpectedFilePrompt === false) {
+                return false;
+            }
+
+            return $hasExpectedEmail;
+        });
+    }
+
     public function test_discover_throws_when_response_is_not_structured(): void
     {
         $unstructuredResponse = Mockery::mock(AgentResponse::class);
@@ -197,6 +249,40 @@ class PublicWebDiscoveryAdapterTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Prospecting discovery did not return structured output.');
+
+        $adapter->discover([
+            'instructions' => 'Approved prospecting instructions for tests.',
+        ]);
+    }
+
+    public function test_discover_throws_when_prompt_file_is_missing(): void
+    {
+        File::partialMock()
+            ->shouldReceive('exists')
+            ->andReturn(false);
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting discovery prompt file not found');
+
+        $adapter->discover([
+            'instructions' => 'Approved prospecting instructions for tests.',
+        ]);
+    }
+
+    public function test_discover_throws_when_prompt_file_is_empty(): void
+    {
+        $file = File::partialMock();
+        $file->shouldReceive('exists')
+            ->andReturn(true);
+        $file->shouldReceive('get')
+            ->andReturn('   ');
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting discovery prompt file is empty');
 
         $adapter->discover([
             'instructions' => 'Approved prospecting instructions for tests.',

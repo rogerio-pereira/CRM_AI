@@ -49,12 +49,11 @@ class ProspectingAgentTest extends TestCase
 
         $result = $agent->handle([
             'triggered_by' => 'prospecting:run',
-            'limit' => 5,
+            'limit' => 1,
         ]);
 
         $this->assertSame('completed', $result['status']);
         $this->assertSame(1, $result['created_count']);
-        $this->assertSame(0, $result['duplicate_count']);
 
         $client = Client::query()
                         ->where('company_name', 'GreenSprout Lawn Care')
@@ -86,61 +85,132 @@ class ProspectingAgentTest extends TestCase
         });
     }
 
-    public function test_agent_skips_duplicates(): void
+    public function test_agent_searches_again_when_the_first_lead_is_a_duplicate(): void
     {
         Queue::fake([
             RunQualificationAgentJob::class,
         ]);
 
         Client::factory()
-                ->create([
-                    'company_name' => 'Existing By Name',
-                    'website' => 'https://unique-name.example',
-                    'contact_email' => 'name@example.com',
-                    'contact_phone' => '8135550001',
-                ]);
+            ->create([
+                'company_name' => 'Existing By Name',
+                'website' => 'https://unique-name.example',
+                'contact_email' => 'name@example.com',
+                'contact_phone' => '8135550001',
+            ]);
 
-        Client::factory()
-                ->create([
-                    'company_name' => 'Domain Holder',
-                    'website' => 'https://www.domain-match.example',
-                    'contact_email' => 'domain@example.com',
-                    'contact_phone' => '8135550002',
-                ]);
-
-        ProspectingDiscoveryAgent::fake([
-            [
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->twice()
+            ->andReturn(
+                [
                     'leads' => [
-                    [
-                    'company_name' => 'Existing By Name',
-                    'email' => 'new1@example.com',
-                    'website' => 'https://brand-new-1.example',
-                ],
-                    [
-                        'company_name' => 'Other Domain Biz',
-                        'email' => 'new2@example.com',
-                        'website' => 'https://domain-match.example',
+                        [
+                            'company_name' => 'Existing By Name',
+                            'email' => 'new1@example.com',
+                            'website' => 'https://brand-new-1.example',
+                        ],
                     ],
+                    'skipped' => [],
                 ],
-                'skipped' => [],
-            ],
-        ]);
+                [
+                    'leads' => [
+                        [
+                            'company_name' => 'Fresh Pool Co',
+                            'email' => 'hello@freshpool.example',
+                            'website' => 'https://freshpool.example',
+                        ],
+                    ],
+                    'skipped' => [],
+                ],
+            );
 
-        $clientQuery = Client::query();
-        $beforeClients = $clientQuery->count('*');
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
         $agent = app(ProspectingAgent::class);
 
         $result = $agent->handle([
-            'limit' => 10,
+            'limit' => 1,
         ]);
 
-        $clientQuery = Client::query();
-        $afterClients = $clientQuery->count('*');
+        $this->assertSame(1, $result['created_count']);
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'Fresh Pool Co',
+            'lead_source' => 'prospecting',
+        ]);
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+    }
 
-        $this->assertSame(0, $result['created_count']);
-        $this->assertSame(2, $result['duplicate_count']);
-        $this->assertSame($beforeClients, $afterClients);
-        Queue::assertNothingPushed();
+    public function test_agent_searches_again_when_discovery_returns_no_valid_email(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->twice()
+            ->andReturn(
+                [
+                    'leads' => [],
+                    'skipped' => [
+                        [
+                            'name' => 'No Email Biz',
+                            'reason' => 'Missing company name or valid public email.',
+                        ],
+                    ],
+                ],
+                [
+                    'leads' => [
+                        [
+                            'company_name' => 'Contactable Co',
+                            'email' => 'hello@contactable.example',
+                        ],
+                    ],
+                    'skipped' => [],
+                ],
+            );
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $this->assertSame(1, $result['created_count']);
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'Contactable Co',
+            'lead_source' => 'prospecting',
+        ]);
+    }
+
+    public function test_agent_throws_when_no_unique_contactable_lead_is_found(): void
+    {
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->times(5)
+            ->andReturn([
+                'leads' => [],
+                'skipped' => [
+                    [
+                        'name' => 'No Email Biz',
+                        'reason' => 'Missing company name or valid public email.',
+                    ],
+                ],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Prospecting could not find a unique contactable lead.');
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
     }
 
     public function test_command_job_persists_leads_with_mocked_discovery(): void
@@ -203,11 +273,6 @@ class ProspectingAgentTest extends TestCase
         $discoveredPayload = [
             'leads' => [
                 [
-                    'company_name' => 'No Social Co',
-                    'email' => 'hello@nosocial.example',
-                    'social_links' => 'not-an-array',
-                ],
-                [
                     'company_name' => 'Mixed Social Co',
                     'email' => 'hello@mixedsocial.example',
                     'social_links' => [
@@ -230,19 +295,14 @@ class ProspectingAgentTest extends TestCase
         $agent = app(ProspectingAgent::class);
 
         $result = $agent->handle([
-            'limit' => 5,
+            'limit' => 1,
         ]);
 
-        $noSocial = Client::query()
-                        ->where('company_name', 'No Social Co')
-                        ->first();
         $mixedSocial = Client::query()
                             ->where('company_name', 'Mixed Social Co')
                             ->first();
 
-        $this->assertSame(2, $result['created_count']);
-        $this->assertNotNull($noSocial);
-        $this->assertSame([], $noSocial->social_links);
+        $this->assertSame(1, $result['created_count']);
         $this->assertNotNull($mixedSocial);
         $this->assertSame(
             [
@@ -253,6 +313,43 @@ class ProspectingAgentTest extends TestCase
             ],
             $mixedSocial->social_links,
         );
+    }
+
+    public function test_agent_stores_empty_social_links_when_value_is_not_a_list(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn([
+                'leads' => [
+                    [
+                        'company_name' => 'No Social List Co',
+                        'email' => 'hello@nosocial.example',
+                        'social_links' => 'not-a-list',
+                    ],
+                ],
+                'skipped' => [],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $client = Client::query()
+                        ->where('company_name', 'No Social List Co')
+                        ->first();
+
+        $this->assertSame(1, $result['created_count']);
+        $this->assertNotNull($client);
+        $this->assertSame([], $client->social_links);
     }
 
     public function test_agent_defaults_to_one_lead_per_job(): void
@@ -267,6 +364,7 @@ class ProspectingAgentTest extends TestCase
             ->with(Mockery::on(function (array $options): bool {
                 $limit = $options['limit'] ?? null;
                 $instructions = $options['instructions'] ?? null;
+                $excludeCompanyNames = $options['exclude_company_names'] ?? null;
 
                 if ($limit !== 1) {
                     return false;
@@ -276,10 +374,19 @@ class ProspectingAgentTest extends TestCase
                     return false;
                 }
 
-                return $instructions !== '';
+                if ($instructions === '') {
+                    return false;
+                }
+
+                return $excludeCompanyNames === [];
             }))
             ->andReturn([
-                'leads' => [],
+                'leads' => [
+                    [
+                        'company_name' => 'One Lead Co',
+                        'email' => 'hello@onelead.example',
+                    ],
+                ],
                 'skipped' => [],
             ]);
 
@@ -289,25 +396,39 @@ class ProspectingAgentTest extends TestCase
 
         $result = $agent->handle([]);
 
-        $this->assertSame(0, $result['created_count']);
+        $this->assertSame(1, $result['created_count']);
     }
 
-    public function test_agent_clamps_invalid_limit_to_one_lead(): void
+    public function test_agent_passes_existing_companies_to_discovery(): void
     {
         Queue::fake([
             RunQualificationAgentJob::class,
         ]);
 
+        Client::factory()
+            ->create([
+                'company_name' => 'Already In Crm',
+            ]);
+
         $discovery = Mockery::mock(DiscoveryAdapter::class);
         $discovery->shouldReceive('discover')
             ->once()
             ->with(Mockery::on(function (array $options): bool {
-                $limit = $options['limit'] ?? null;
+                $excludeCompanyNames = $options['exclude_company_names'] ?? null;
 
-                return $limit === 1;
+                if (! is_array($excludeCompanyNames)) {
+                    return false;
+                }
+
+                return in_array('Already In Crm', $excludeCompanyNames, true);
             }))
             ->andReturn([
-                'leads' => [],
+                'leads' => [
+                    [
+                        'company_name' => 'Brand New Co',
+                        'email' => 'hello@brandnew.example',
+                    ],
+                ],
                 'skipped' => [],
             ]);
 
@@ -316,10 +437,13 @@ class ProspectingAgentTest extends TestCase
         $agent = app(ProspectingAgent::class);
 
         $result = $agent->handle([
-            'limit' => 0,
+            'limit' => 1,
         ]);
 
-        $this->assertSame(0, $result['created_count']);
+        $this->assertSame(1, $result['created_count']);
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'Brand New Co',
+        ]);
     }
 
     public function test_agent_throws_when_prompt_file_is_missing(): void

@@ -126,7 +126,12 @@ These examples guide AI recommendations and internal sales notes. They should fr
 
 ### Complete email examples
 
-These complete examples are reference material for AI-generated `contact_example` output. The agent must adapt them to the real lead evidence, but every successful qualification must include a complete email example with `subject` and `body`. Email structure must follow `docs/prompts/references/cold-outreach-email-guidelines.md`.
+These complete examples are reference material for AI-generated `contact_example` output. The agent must adapt them to the real lead evidence, but every successful qualification must include a complete email example with `subject` and `body`. Email structure must follow `docs/prompts/references/cold-outreach-email-guidelines.md`. The signature must be only:
+
+Roger Pereira
+[Front Porch Creative](https://frontporchcreative.io)
+
+Do not add LinkedIn, a separate company line, or a bare `frontporchcreative.io` URL.
 
 #### Lead generation
 
@@ -147,9 +152,7 @@ Most of my work is focused on helping small local businesses create simple syste
 Would you be open to hearing what I noticed? If it is not relevant, no worries at all.
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 #### Email marketing
 
@@ -170,9 +173,7 @@ I help small local businesses create practical growth systems, especially around
 Would you be interested in hearing the idea? Happy to share it briefly if it would be useful.
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 #### Website design and development
 
@@ -193,9 +194,7 @@ Most of my work is helping local businesses make their digital presence easier t
 Would you be open to a quick conversation about what I noticed?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 #### Content creation
 
@@ -216,9 +215,7 @@ I work with small businesses on practical marketing systems that make their expe
 Would you be interested in hearing a few content ideas specific to Happy Paws?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 #### Business automation
 
@@ -239,9 +236,7 @@ Most of my work involves helping small businesses simplify lead follow-up, custo
 Would it be helpful if I shared what that could look like in a simple setup?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 #### Custom software development
 
@@ -262,9 +257,7 @@ My background is in software and automation, but I usually start by looking for 
 Would you be open to sharing where the current process feels most repetitive?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ## Prompt assets
 

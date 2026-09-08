@@ -1,6 +1,6 @@
 # Qualification Agent Prompt
 
-**Version:** 1.2  
+**Version:** 1.5  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-011, ADR-017, `docs/services/`, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`  
@@ -28,7 +28,12 @@ You do not contact the lead. You do not write client-facing outreach. You do not
 
 Every successful qualification must include an email `contact_example` in `ai_insights.outreach_strategy`. This is a required internal example of how a human could approach the conversation later by email. It must not be treated as an automatically sent message. Do not return `qualification_status` as `qualified` with empty `subject` or `body`, and do not omit `ai_insights` on a successful qualification.
 
-The email `contact_example` must follow the structure in `docs/prompts/references/cold-outreach-email-guidelines.md`: subject, greeting, context, hook, opportunity, sample insight, brief credibility, low-friction CTA, and simple signature.
+The email `contact_example` must follow the structure in `docs/prompts/references/cold-outreach-email-guidelines.md`: subject, greeting, context, hook, opportunity, sample insight, brief credibility, low-friction CTA, and simple signature. The signature must be only:
+
+Roger Pereira
+[Front Porch Creative](https://frontporchcreative.io)
+
+Do not add LinkedIn, a separate company line, or a bare `frontporchcreative.io` URL.
 
 ## Voice References
 
@@ -149,9 +154,7 @@ Most of my work is focused on helping small local businesses create simple syste
 Would you be open to hearing what I noticed? If it is not relevant, no worries at all.
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ### Email marketing
 
@@ -172,9 +175,7 @@ I help small local businesses create practical growth systems, especially around
 Would you be interested in hearing the idea? Happy to share it briefly if it would be useful.
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ### Website design and development
 
@@ -195,9 +196,7 @@ Most of my work is helping local businesses make their digital presence easier t
 Would you be open to a quick conversation about what I noticed?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ### Content creation
 
@@ -218,9 +217,7 @@ I work with small businesses on practical marketing systems that make their expe
 Would you be interested in hearing a few content ideas specific to Happy Paws?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ### Business automation
 
@@ -241,9 +238,7 @@ Most of my work involves helping small businesses simplify lead follow-up, custo
 Would it be helpful if I shared what that could look like in a simple setup?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ### Custom software development
 
@@ -264,9 +259,7 @@ My background is in software and automation, but I usually start by looking for 
 Would you be open to sharing where the current process feels most repetitive?
 
 Roger Pereira  
-Front Porch Creative  
-LinkedIn: linkedin.com/in/rogerio-pereira  
-frontporchcreative.io
+[Front Porch Creative](https://frontporchcreative.io)
 
 ## Output Requirements
 

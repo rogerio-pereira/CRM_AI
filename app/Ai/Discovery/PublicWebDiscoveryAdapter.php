@@ -4,12 +4,15 @@ namespace App\Ai\Discovery;
 
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Support\UrlNormalizer;
+use Illuminate\Support\Facades\File;
 use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 
 class PublicWebDiscoveryAdapter implements DiscoveryAdapter
 {
+    private const DISCOVERY_PROMPT_PATH = 'docs/prompts/prospecting-discovery.md';
+
     /**
      * {@inheritdoc}
      */
@@ -29,10 +32,15 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
             throw new RuntimeException('Prospecting discovery requires approved prompt instructions.');
         }
 
-        $limitInstruction = "Discover up to {$limit} lead candidates with a public email.";
-        $rankingInstruction = 'Rank website work first even for a simple institutional site. Treat other services as cross-sell. Do not use custom software as the primary reason to add a lead.';
-        $outputInstruction = 'Return structured JSON only.';
-        $userPrompt = $limitInstruction.' '.$rankingInstruction.' '.$outputInstruction;
+        $userPrompt = $this->loadDiscoveryPrompt();
+
+        $excludeCompanyNames = $options['exclude_company_names'] ?? [];
+        $totalExcluded = count($excludeCompanyNames);
+        if ($totalExcluded > 0) {
+            $list = implode(', ', $excludeCompanyNames);
+            $userPrompt = $userPrompt."\n\nDo not return these companies already in the CRM: ".$list.'.';
+        }
+
         $response = $this->promptDiscovery($instructions, $userPrompt);
 
         if (! $response instanceof StructuredAgentResponse) {
@@ -109,6 +117,24 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
         $agent = new ProspectingDiscoveryAgent($instructions);
 
         return $agent->prompt($userPrompt);
+    }
+
+    private function loadDiscoveryPrompt(): string
+    {
+        $path = base_path(self::DISCOVERY_PROMPT_PATH);
+
+        if (! File::exists($path)) {
+            throw new RuntimeException('Prospecting discovery prompt file not found: '.$path);
+        }
+
+        $contents = File::get($path);
+        $prompt = trim((string) $contents);
+
+        if ($prompt === '') {
+            throw new RuntimeException('Prospecting discovery prompt file is empty: '.$path);
+        }
+
+        return $prompt;
     }
 
     /**

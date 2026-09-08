@@ -240,9 +240,19 @@ The easier it is to respond, the more likely you'll receive a reply.
 Keep it simple.
 
 -   Name
--   Title
--   LinkedIn
--   Website
+-   Company name as a clickable link to the website
+
+Do not include LinkedIn, a separate title line, or a bare website URL.
+
+Example:
+
+``` text
+Roger Pereira
+[Front Porch Creative](https://frontporchcreative.io)
+```
+
+Always write the company name as `[Front Porch Creative](https://frontporchcreative.io)`.
+Do not write `frontporchcreative.io` as a separate signature line.
 
 ------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@ namespace App\Ai\Agents;
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Enums\ClientStatus;
+use App\Models\Client;
 use App\Services\ClientService;
 use App\Services\LeadDeduplicationService;
 use App\Services\OpportunityService;
@@ -14,6 +15,8 @@ use RuntimeException;
 class ProspectingAgent implements AiAgent
 {
     private const APPROVED_PROMPT_PATH = 'docs/prompts/prospecting-agent.md';
+
+    private const MAX_DISCOVERY_ATTEMPTS = 5;
 
     public function __construct(
         private readonly DiscoveryAdapter $discovery,
@@ -28,25 +31,39 @@ class ProspectingAgent implements AiAgent
      */
     public function handle(array $context): array
     {
-        $requestedLimit = $context['limit'] ?? 1;
-        $limit = (int) $requestedLimit;
-
-        if ($limit < 1) {
-            $limit = 1;
-        }
-
         $instructions = $this->loadApprovedPrompt();
+        $excludeCompanyNames = Client::orderBy('company_name')
+                                    ->pluck('company_name')
+                                    ->all();
+        $attempt = 0;
 
-        $discovery = $this->discovery
-                            ->discover([
-                                'limit' => $limit,
-                                'instructions' => $instructions,
-                            ]);
+        while ($attempt < self::MAX_DISCOVERY_ATTEMPTS) {
+            $attempt++;
 
-        $created = [];
-        $duplicates = [];
+            $discovery = $this->discovery
+                                ->discover([
+                                    'limit' => 1,
+                                    'instructions' => $instructions,
+                                    'exclude_company_names' => $excludeCompanyNames,
+                                ]);
 
-        foreach ($discovery['leads'] as $lead) {
+            $leads = $discovery['leads'];
+            $lead = $leads[0] ?? null;
+
+            if ($lead === null) {
+                // Discovery can return companies in `skipped` that were found
+                // but are not a contactable lead (for example, no public email).
+                // Exclude those names so the next attempt does not suggest them again.
+                $skipped = $discovery['skipped'];
+
+                foreach ($skipped as $item) {
+                    $name = $item['name'];
+                    $excludeCompanyNames[] = $name;
+                }
+
+                continue; // Goes back to while
+            }
+
             $rawCompanyName = $lead['company_name'] ?? '';
             $companyName = (string) $rawCompanyName;
             $website = $lead['website'] ?? null;
@@ -63,29 +80,22 @@ class ProspectingAgent implements AiAgent
                                 ->findDuplicate($candidate);
 
             if ($duplicate !== null) {
-                $duplicates[] = [
-                        'company_name' => $companyName,
-                        'matched_client_id' => $duplicate->id,
-                    ];
+                $excludeCompanyNames[] = $companyName;
 
-                continue;
+                continue; // Goes back to while
             }
 
-            $created[] = $this->createLeadAndOpportunity($lead, $companyName);
+            $created = $this->createLeadAndOpportunity($lead, $companyName);
+
+            return [
+                    'agent' => 'prospecting',
+                    'status' => 'completed',
+                    'created_count' => 1,
+                    'created' => [$created],
+                ];
         }
 
-        $createdCount = count($created);
-        $duplicateCount = count($duplicates);
-
-        return [
-                'agent' => 'prospecting',
-                'status' => 'completed',
-                'created_count' => $createdCount,
-                'duplicate_count' => $duplicateCount,
-                'created' => $created,
-                'duplicates' => $duplicates,
-                'skipped' => $discovery['skipped'],
-            ];
+        throw new RuntimeException('Prospecting could not find a unique contactable lead.');
     }
 
     /**
