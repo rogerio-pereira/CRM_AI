@@ -27,6 +27,9 @@ class WriteFirstContactEmailAgentTest extends TestCase
         $this->assertStringContainsString('The emoji must **belong to this email**', $instructions);
         $this->assertStringContainsString('Do not copy a sample', $instructions);
         $this->assertStringContainsString('Do not sound like someone selling a car, insurance, or solar panels', $instructions);
+        $this->assertStringContainsString('same** problem', $instructions);
+        $this->assertStringContainsString('Do not bait with one topic and switch', $instructions);
+        $this->assertStringContainsString('A branded or custom-domain email raises prices', $instructions);
         $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $instructions);
         $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $instructions);
         $this->assertStringNotContainsString('[frontporchcreative.io](https://frontporchcreative.io)', $instructions);

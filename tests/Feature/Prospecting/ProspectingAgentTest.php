@@ -480,14 +480,21 @@ class ProspectingAgentTest extends TestCase
         ]);
     }
 
-    public function test_approved_prompt_ranks_website_as_the_primary_entry(): void
+    public function test_approved_prompt_analyzes_the_full_catalog_without_a_fixed_ranking(): void
     {
         $promptPath = base_path('docs/prompts/prospecting-agent.md');
         $prompt = File::get($promptPath);
         $promptText = (string) $prompt;
 
-        $this->assertStringContainsString('Website design and development — primary entry', $promptText);
-        $this->assertStringContainsString('Custom software development — skip or lowest as the opening offer', $promptText);
-        $this->assertStringContainsString('they could use email', $promptText);
+        $this->assertStringContainsString('independent outbound salesperson', $promptText);
+        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringContainsString('Lead generation', $promptText);
+        $this->assertStringContainsString('Content creation', $promptText);
+        $this->assertStringContainsString('Email marketing', $promptText);
+        $this->assertStringContainsString('Business automations', $promptText);
+        $this->assertStringContainsString('Website design and development', $promptText);
+        $this->assertStringContainsString('Custom software development', $promptText);
+        $this->assertStringContainsString('later upsell', $promptText);
+        $this->assertStringNotContainsString('Website design and development — primary entry', $promptText);
     }
 }

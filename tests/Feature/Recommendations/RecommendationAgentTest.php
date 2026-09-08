@@ -255,6 +255,9 @@ class RecommendationAgentTest extends TestCase
         $this->assertStringContainsString('write_first_contact_email', $promptText);
         $this->assertStringContainsString('line_of_business', $promptText);
         $this->assertStringContainsString('Do not write the email example yourself', $promptText);
+        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringContainsString('independent outbound salesperson', $promptText);
+        $this->assertStringNotContainsString('Lead with website design and development', $promptText);
     }
 
     public function test_agent_throws_when_prompt_file_is_empty(): void

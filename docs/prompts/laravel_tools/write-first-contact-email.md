@@ -1,6 +1,6 @@
 # Write First Contact Email Tool
 
-**Version:** 1.2
+**Version:** 1.3
 **Status:** Approved for Wave 4 implementation
 **Owner:** Product owner
 **Used by:** Qualification Agent, Recommendation Agent
@@ -42,6 +42,14 @@ Name the client’s **line of business** in plain words: lawn care, pool routes,
 
 Put it in the subject **and** the body. Show you know their week. Do not paste a label like “Line of business: cleaning.” Do not use Front Porch service codes (`lead_generation`, `website_design_development`, etc) as if that were their trade.
 
+## One job, one thread
+
+The brief fields `service_angle`, `observed_hook`, and `opportunity` are the job of this email. Write that job. Do not switch to a website rebuild, a branded mailbox, or another catalog service unless that is the brief.
+
+The subject, the first body line, the observation, the quick win, and the offer must be about the **same** problem.
+
+If the subject names the website, the body is about the website. If the subject names getting more jobs, quotes, or follow-up, the body is about that. Do not bait with one topic and switch.
+
 ## Subject line
 
 The subject must stand out in a busy inbox.
@@ -49,9 +57,10 @@ The subject must stand out in a busy inbox.
 - Personal, specific, and human.
 - Curiosity plus a real reason this email is for them.
 - Use the first name when you know it.
-- Tie it to their line of business or to one fact from this lead.
+- Tie it to their line of business **and** to the same problem the body will discuss.
 - Sentence case. No ALL CAPS.
 - Avoid spam words: free, limited time, act now, guaranteed, winner, etc.
+- Avoid empty subjects like “quick question” that do not name the problem.
 
 **Exactly one emoji in the subject. Zero emojis in the body.**
 
@@ -89,6 +98,18 @@ A simple market fact is fine (“people search for lawn care every week”). Bla
 
 Still refuse: fake urgency, fake scarcity, guarantees, hype, and jargon.
 
+## Honest help only
+
+Name a result this owner would actually feel: more people asking for work, past customers coming back, fewer missed quotes, less time chasing email.
+
+Do not claim:
+
+- A branded or custom-domain email raises prices or instantly professionalizes the business.
+- A new website will bring customers, command premium pricing, or convert better just because it is custom.
+- A Gmail address is the reason they lose work.
+
+If the brief is about lead flow, content, email, or automation, do not pitch a site rebuild as the main offer.
+
 ## Quick win (not a replacement)
 
 Give **one small idea that can bring a result**. Call this a quick win.
@@ -96,14 +117,18 @@ Give **one small idea that can bring a result**. Call this a quick win.
 Rules:
 
 - It must be small and easy to picture.
+- It must belong to the **same** problem as the subject, the observation, and the offer.
 - It must point to a real result (clearer next step, fewer missed follow-ups, easier quote request).
 - It must **not** replace Front Porch’s work. Do not hand them a DIY plan for the service you sell.
 - Do not write a full how-to (no step lists they can use instead of hiring you).
 - Use it as proof you looked, then move to how you can help.
 
+If you noticed they rely on referrals, do not suggest an email signature. If you noticed missed quotes, do not suggest a blog post. The quick win is a taste of the same help you are offering.
+
 These rules are for you, the writer. Never say them in the email. Do not write lines like “this is not a full system,” “this will not replace our work,” or “it only shows the gap.”
 
 Bad: a recipe they can finish without you (rebuild the site, run the whole email system, install the tracker).
+Bad: a tip that has nothing to do with the problem in this email.
 Good: one clear result they can see, then the offer to do the real work.
 
 ## How the email body should feel
@@ -112,11 +137,11 @@ Write a new email for this lead. Do not copy a sample. Do not follow a fixed par
 
 When they finish reading, these things should be true:
 
-- The first line continues the subject (inbox preview).
+- The first line continues the subject (inbox preview) and stays on that topic.
 - Their line of business is in plain words.
-- One specific observation that proves you looked. No flattery.
-- One quick win that shows a result, without giving away the service.
-- How Roger can help **this** owner. Be direct. Name the kind of help (more quote requests, a clearer website, simple follow-up, less repeat typing).
+- One specific observation that proves you looked. No flattery. Same problem as the subject.
+- One quick win that shows a result on that same problem, without giving away the service.
+- How Roger can help **this** owner with that same problem. Be direct. Name the kind of help (more quote requests, simple follow-up, staying in touch, less repeat typing). Do not default to “a clearer website” unless that is the brief.
 - A **clear CTA**. Tell them exactly what to do. Prefer: reply to this email, or reply “yes.” Do not hide the ask. Do not use a weak close like “easy to ignore if not.”
 - The signature below.
 
