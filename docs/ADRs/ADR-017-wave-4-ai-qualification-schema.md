@@ -26,9 +26,10 @@ The 2026-07-31 decisions below that placed qualification status, errors, timesta
    - The UI must not require users to click a "Qualify" action for normal processing.
    - A client that already has a qualified opportunity must not skip qualification of a later opportunity.
 
-2. **Successful qualification advances that opportunity to Contact.**
+2. **Successful qualification keeps that opportunity in Qualification until the first-contact email job finishes.**
    - When a qualification job starts, **that** opportunity in `Lead` may move to `Qualification`.
-   - When qualification succeeds, **that** opportunity moves to `Contact`.
+   - When qualification succeeds, **that** opportunity stays in `Qualification` and a first-contact email job is dispatched.
+   - When that email is written, **that** opportunity moves to `Contact`.
    - Sibling opportunities on the same client are not moved.
    - `Contact` remains human-driven per [ADR-019](ADR-019-human-controlled-proposal-delivery.md); AI does not send outreach.
 
@@ -124,7 +125,7 @@ These examples guide AI recommendations and internal sales notes. They should fr
 | `business_automation` | Position automation as removing repeated manual work so the owner has more time for customers and sales. |
 | `custom_software_development` | Use only when there is a clear operational need. Frame as a tailored tool after simpler options are considered, not as the first pitch. |
 
-Qualification and recommendation agents must call the `write_first_contact_email` tool with the lead facts, including `line_of_business`, and copy `channel`, `subject`, and `body` into `contact_example`. They must not draft the email themselves. The subject uses one emoji that belongs to that email. The body names the client's trade in plain language.
+Qualification analysis does **not** write the finished `contact_example`. A dedicated first-contact email job runs after qualification succeeds: it calls `write_first_contact_email`, stores `contact_example`, then moves the opportunity to `Contact` and dispatches recommendation. Gemini rejects mixing built-in `WebSearch` / `WebFetch` with a custom function on the same request, so the qualification analysis agent keeps only those provider tools. Recommendation analysis has no built-in tools, so it still calls `write_first_contact_email` itself. Both email paths must pass `line_of_business` (what the client does, not a Front Porch service name). The subject uses one emoji that belongs to that email. The body names the client's trade in plain language.
 
 ## Prompt assets
 
