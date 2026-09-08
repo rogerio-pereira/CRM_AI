@@ -7,8 +7,8 @@ use App\Ai\Agents\QualificationAnalysisAgent;
 use App\Ai\Exceptions\QualificationFailedException;
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunQualificationAgentJob;
-use App\Jobs\RunRecommendationAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\ClientService;
@@ -29,10 +29,10 @@ class QualificationAgentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_successful_qualification_updates_opportunity_stays_in_qualification_and_dispatches_recommendation(): void
+    public function test_successful_qualification_updates_opportunity_stays_in_qualification_and_dispatches_first_contact_email(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $client = Client::factory()
@@ -88,7 +88,7 @@ class QualificationAgentTest extends TestCase
         $this->assertSame(PipelineStage::Lead, $sibling->stage);
         $this->assertSame(QualificationStatus::Pending, $sibling->qualification_status);
 
-        Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity, $client): bool {
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, function (RunFirstContactEmailAgentJob $job) use ($opportunity, $client): bool {
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $payloadClientId = $job->payload['client_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
@@ -154,7 +154,7 @@ class QualificationAgentTest extends TestCase
     public function test_new_opportunity_on_already_qualified_client_is_analyzed_again(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $client = Client::factory()
@@ -199,7 +199,7 @@ class QualificationAgentTest extends TestCase
     public function test_already_qualified_opportunity_skips_ai(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $opportunity = Opportunity::factory()
@@ -223,7 +223,7 @@ class QualificationAgentTest extends TestCase
     public function test_prospecting_initial_run_stores_catalog_entries_on_a_single_opportunity(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $client = Client::factory()
@@ -333,30 +333,12 @@ class QualificationAgentTest extends TestCase
         $this->assertStringNotContainsString('OpenAI', (string) $opportunity->qualification_last_error);
     }
 
-    public function test_missing_contact_example_is_treated_as_incomplete_output(): void
+    public function test_missing_outreach_strategy_still_qualifies_and_dispatches_first_contact_email(): void
     {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example']['body'] = '';
-
-        QualificationAnalysisAgent::fake([
-            $payload,
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
         ]);
 
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
-    }
-
-    public function test_missing_outreach_strategy_is_incomplete(): void
-    {
         $opportunity = Opportunity::factory()
                             ->create();
         $opportunityId = (string) $opportunity->id;
@@ -368,57 +350,16 @@ class QualificationAgentTest extends TestCase
         ]);
 
         $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
         $agent->handle([
                             'opportunity_id' => $opportunity->id,
         ]);
-    }
 
-    public function test_missing_contact_example_object_is_incomplete(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example'] = null;
+        $opportunity->refresh();
+        $insights = $opportunity->ai_insights;
 
-        QualificationAnalysisAgent::fake([
-            $payload,
-        ]);
-
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
-    }
-
-    public function test_empty_contact_subject_is_incomplete(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example']['subject'] = '  ';
-
-        QualificationAnalysisAgent::fake([
-            $payload,
-        ]);
-
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
+        $this->assertNull($insights['outreach_strategy']);
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class);
     }
 
     public function test_agent_throws_when_opportunity_id_is_missing(): void
@@ -509,7 +450,7 @@ class QualificationAgentTest extends TestCase
     public function test_empty_notes_are_stored_as_null(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $opportunity = Opportunity::factory()
@@ -676,7 +617,7 @@ class QualificationAgentTest extends TestCase
     public function test_non_markdown_catalog_files_are_skipped(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunFirstContactEmailAgentJob::class,
         ]);
 
         $skipPath = base_path('docs/services/_coverage_skip.txt');
@@ -739,7 +680,7 @@ class QualificationAgentTest extends TestCase
         $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
         $this->assertStringContainsString('write_first_contact_email', $promptText);
         $this->assertStringContainsString('line_of_business', $promptText);
-        $this->assertStringContainsString('Do not draft `contact_example` in this prompt', $promptText);
+        $this->assertStringContainsString('A follow-up job rewrites `ai_insights.outreach_strategy.contact_example`', $promptText);
     }
 
     /**

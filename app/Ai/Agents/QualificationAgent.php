@@ -68,7 +68,7 @@ class QualificationAgent implements AiAgent
         $this->assertSuccessfulQualification($payload);
         $this->persistSuccessfulQualification($opportunity, $payload);
         $this->orchestration
-                ->dispatch(AgentType::Recommendation, [
+                ->dispatch(AgentType::FirstContactEmail, [
                     'trigger' => 'qualification_completed',
                     'opportunity_id' => $opportunity->id,
                     'client_id' => $client->id,
@@ -123,38 +123,16 @@ class QualificationAgent implements AiAgent
         }
 
         $insights = $payload['ai_insights'] ?? null;
-        $outreachStrategy = null;
-        $contactExample = null;
-        $subject = '';
-        $body = '';
-
-        if (is_array($insights)) {
-            $outreachStrategy = $insights['outreach_strategy'] ?? null;
-        }
-
-        if (is_array($outreachStrategy)) {
-            $contactExample = $outreachStrategy['contact_example'] ?? null;
-        }
-
-        if (is_array($contactExample)) {
-            $rawSubject = $contactExample['subject'] ?? '';
-            $subject = trim((string) $rawSubject);
-            $rawBody = $contactExample['body'] ?? '';
-            $body = trim((string) $rawBody);
-        }
 
         if (
             $status !== 'qualified' ||
-            $subject === '' ||
-            $body === ''
+            ! is_array($insights)
         ) {
             $payloadKeys = array_keys($payload);
 
             Log::warning('ai.qualification.incomplete', [
                 'qualification_status' => $status,
                 'has_insights' => is_array($insights),
-                'subject_length' => strlen($subject),
-                'body_length' => strlen($body),
                 'payload_keys' => $payloadKeys,
             ]);
 

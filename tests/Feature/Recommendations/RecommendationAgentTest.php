@@ -79,7 +79,7 @@ class RecommendationAgentTest extends TestCase
         $hasRecommendations = $opportunity->hasAiRecommendations();
 
         $this->assertTrue($hasRecommendations);
-        $this->assertSame(PipelineStage::Contact, $opportunity->stage);
+        $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
 
         Mail::assertNothingOutgoing();
         Notification::assertNothingSent();

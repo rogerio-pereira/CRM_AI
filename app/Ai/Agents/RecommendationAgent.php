@@ -4,7 +4,6 @@ namespace App\Ai\Agents;
 
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\RecommendationFailedException;
-use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -49,8 +48,7 @@ class RecommendationAgent implements AiAgent
 
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulRecommendation($payload);
-        $updatedOpportunity = $this->persistRecommendations($opportunity, $payload);
-        $this->moveToContactWhenReady($updatedOpportunity);
+        $this->persistRecommendations($opportunity, $payload);
 
         return [
                 'agent' => 'recommendation',
@@ -152,16 +150,6 @@ class RecommendationAgent implements AiAgent
                                     ]);
 
         return $updatedOpportunity;
-    }
-
-    private function moveToContactWhenReady(Opportunity $opportunity): void
-    {
-        if ($opportunity->stage !== PipelineStage::Qualification) {
-            return;
-        }
-
-        $this->opportunities
-                ->moveToStage($opportunity, PipelineStage::Contact);
     }
 
     private function buildUserPrompt(Opportunity $opportunity, Client $client): string
