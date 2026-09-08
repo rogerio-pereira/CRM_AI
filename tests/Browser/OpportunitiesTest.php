@@ -297,13 +297,18 @@ it('creates a follow-up from the kanban card button', function () {
 
     $this->actingAs($user);
 
+    $dueAt = Carbon::now()
+                    ->addDay()
+                    ->format('Y-m-d\TH:i');
+
     visit('/opportunities')
         ->assertPresent('[data-test="kanban-card-create-follow-up-'.$opportunity->id.'"]')
         ->click('@kanban-card-create-follow-up-'.$opportunity->id)
-        ->assertPresent('[data-test="follow-ups-quick-create-modal"]')
+        ->assertSee('New follow-up')
+        ->fill('@follow-ups-form-due-at', $dueAt)
         ->fill('@follow-ups-form-notes', 'Scheduled from Kanban card')
         ->click('@follow-ups-form-submit')
-        ->assertSee('Follow Up From Kanban');
+        ->waitForText('Follow-up created.');
 
     $followUpExists = FollowUp::where('notes', 'Scheduled from Kanban card')
                           ->exists();
