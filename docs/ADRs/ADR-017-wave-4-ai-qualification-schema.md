@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (amended 2026-08-13; service catalog interpretation partially superseded by [ADR-020](ADR-020-commercial-service-catalog-boundary.md))
+Accepted (amended 2026-08-13; service catalog interpretation partially superseded by [ADR-020](ADR-020-commercial-service-catalog-boundary.md); amended 2026-09-08 to drop a fixed service ranking)
 
 ADR-017 remains authoritative for qualification. Where the historical text calls `docs/services/` the service source of truth, ADR-020 narrows that role to qualification categories and makes the database catalog authoritative for priced proposal line items.
 
@@ -112,15 +112,23 @@ The 2026-07-31 decisions below that placed qualification status, errors, timesta
 }
 ```
 
+### Amendment 2026-09-08 — no fixed service ranking
+
+Prospecting, qualification, and recommendation analyze the **whole** business. They do not apply a global service ranking and do not treat website work as the required commercial opening.
+
+Priority comes from evidence on this company. Recurring catalog work (lead generation, content, email, automations) is often the better first engagement. A website rebuild is an opening only when the public site is missing, broken, or clearly blocking inquiries; otherwise it is a later upsell. Custom software stays in the catalog scan and stays low unless a simpler service cannot cover a clear operational need.
+
+Do not invent benefits such as “a branded mailbox raises prices” or “a new site will convert because it is custom.” Order `ai_insights.opportunities` by actual need for this company, highest first. The top pain, top opportunity, talking points, and first-contact email must describe the same opening.
+
 ### Service opportunity reference examples
 
-These examples guide AI recommendations and internal sales notes. They should frame services as practical opportunities to grow revenue, save time, and reduce friction, not as expenses the prospect is being pressured to buy. Mental triggers may be used with a light hand. Never sound like someone selling insurance, a car, or solar panels.
+These examples guide AI recommendations and internal sales notes. They are tone references, not a ranking and not an opening order. They should frame services as practical opportunities to grow revenue, save time, and reduce friction, not as expenses the prospect is being pressured to buy. Mental triggers may be used with a light hand. Never sound like someone selling insurance, a car, or solar panels.
 
 | Service | Reference angle |
 | ------- | --------------- |
 | `lead_generation` | Show the owner that referrals are valuable, but they should not be the only path to new work. Frame lead generation as a way to create a steadier flow of opportunities. |
 | `email_marketing` | Position email as a simple way to stay remembered by people who already know or considered the business. Emphasize follow-up and repeat revenue. |
-| `website_design_development` | Frame the website as the first trust check before someone calls. Focus on clarity, mobile experience, and making it easy to take the next step. |
+| `website_design_development` | Frame the website as the first trust check before someone calls. Recommend a rebuild only when the current site is actually in the way. |
 | `content_creation` | Present content as useful local proof and education, not vanity posting. Emphasize consistency and trust. |
 | `business_automation` | Position automation as removing repeated manual work so the owner has more time for customers and sales. |
 | `custom_software_development` | Use only when there is a clear operational need. Frame as a tailored tool after simpler options are considered, not as the first pitch. |
@@ -132,6 +140,7 @@ Qualification analysis does **not** write the finished `contact_example`. A dedi
 Wave 4 agent prompts are versioned in:
 
 - `docs/prompts/prospecting-agent.md`
+- `docs/prompts/prospecting-discovery.md`
 - `docs/prompts/qualification-agent.md`
 - `docs/prompts/recommendation-agent.md`
 - `docs/prompts/laravel_tools/write-first-contact-email.md`
