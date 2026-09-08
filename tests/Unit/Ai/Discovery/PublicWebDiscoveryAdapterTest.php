@@ -64,10 +64,19 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            $hasExpectedLimit = str_contains($promptText, 'Discover up to 5 lead candidates');
+            $hasExpectedLimit = str_contains($promptText, 'Discover 1 lead candidate with a public email.');
             $hasExpectedRanking = str_contains($promptText, 'Rank website work first');
+            $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
 
-            return $hasExpectedLimit && $hasExpectedRanking;
+            if ($hasExpectedLimit === false) {
+                return false;
+            }
+
+            if ($hasExpectedRanking === false) {
+                return false;
+            }
+
+            return $hasExpectedEmail;
         });
     }
 
@@ -140,7 +149,7 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
-            return str_contains($promptText, 'Discover up to 1 lead candidates');
+            return str_contains($promptText, 'Discover 1 lead candidate with a public email.');
         });
     }
 
@@ -181,6 +190,48 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         $this->assertSame('Plant City', $webSearch->city);
         $this->assertSame('FL', $webSearch->region);
         $this->assertSame('US', $webSearch->country);
+    }
+
+    public function test_discover_excludes_existing_companies_from_the_prompt(): void
+    {
+        ProspectingDiscoveryAgent::fake([
+            [
+                'leads' => [
+                    [
+                        'company_name' => 'New Lawn Co',
+                        'email' => 'hello@newlawn.example',
+                    ],
+                ],
+                'skipped' => [],
+            ],
+        ]);
+
+        $adapter = $this->app->make(DiscoveryAdapter::class);
+
+        $adapter->discover([
+            'limit' => 1,
+            'instructions' => 'Approved prospecting instructions for tests.',
+            'exclude_company_names' => [
+                'Existing Lawn Co',
+            ],
+        ]);
+
+        ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasExpectedExclude = str_contains($promptText, 'Do not return these companies already in the CRM: Existing Lawn Co.');
+            $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
+            $hasExpectedFilePrompt = str_contains($promptText, 'Discover 1 lead candidate with a public email.');
+
+            if ($hasExpectedExclude === false) {
+                return false;
+            }
+
+            if ($hasExpectedFilePrompt === false) {
+                return false;
+            }
+
+            return $hasExpectedEmail;
+        });
     }
 
     public function test_discover_throws_when_response_is_not_structured(): void
