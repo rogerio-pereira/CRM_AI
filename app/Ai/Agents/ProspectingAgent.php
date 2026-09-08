@@ -51,10 +51,15 @@ class ProspectingAgent implements AiAgent
             $lead = $leads[0] ?? null;
 
             if ($lead === null) {
-                $excludeCompanyNames = $this->appendExcludedNames(
-                    $excludeCompanyNames,
-                    $discovery['skipped'],
-                );
+                // Discovery can return companies in `skipped` that were found
+                // but are not a contactable lead (for example, no public email).
+                // Exclude those names so the next attempt does not suggest them again.
+                $skipped = $discovery['skipped'];
+
+                foreach ($skipped as $item) {
+                    $name = $item['name'];
+                    $excludeCompanyNames[] = $name;
+                }
 
                 continue; // Goes back to while
             }
@@ -170,27 +175,6 @@ class ProspectingAgent implements AiAgent
         }
 
         return $socialLinks;
-    }
-
-    /**
-     * @param  list<string>  $excludeCompanyNames
-     * @param  list<array<string, mixed>>  $skipped
-     * @return list<string>
-     */
-    private function appendExcludedNames(array $excludeCompanyNames, array $skipped): array
-    {
-        foreach ($skipped as $item) {
-            $rawName = $item['name'] ?? '';
-            $name = trim((string) $rawName);
-
-            if ($name === '') {
-                continue;
-            }
-
-            $excludeCompanyNames[] = $name;
-        }
-
-        return $excludeCompanyNames;
     }
 
     private function loadApprovedPrompt(): string
