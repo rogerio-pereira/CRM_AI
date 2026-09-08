@@ -5,7 +5,11 @@ namespace Tests\Unit\Ai\Tools;
 use App\Ai\Agents\WriteFirstContactEmailAgent;
 use App\Ai\Tools\WriteFirstContactEmail;
 use Illuminate\JsonSchema\JsonSchemaTypeFactory;
+use Laravel\Ai\Responses\AgentResponse;
+use Laravel\Ai\Responses\StructuredAgentResponse;
 use Laravel\Ai\Tools\Request;
+use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 class WriteFirstContactEmailTest extends TestCase
@@ -41,16 +45,7 @@ class WriteFirstContactEmailTest extends TestCase
         ]);
 
         $tool = new WriteFirstContactEmail;
-        $request = new Request([
-                'contact_name' => 'Sarah',
-                'company_name' => 'GreenSprout Lawn Care',
-                'line_of_business' => 'lawn care',
-                'location' => 'Lakeland, FL',
-                'service_angle' => 'lead_generation',
-                'observed_hook' => 'Most new work still comes from referrals.',
-                'opportunity' => 'Turn more local search into quote requests.',
-                'sample_insight' => 'Show served neighborhoods next to the quote action.',
-            ]);
+        $request = $this->makeBriefRequest();
         $encoded = $tool->handle($request);
         $decoded = json_decode((string) $encoded, true);
 
@@ -71,5 +66,79 @@ class WriteFirstContactEmailTest extends TestCase
 
             return $hasHook;
         });
+    }
+
+    public function test_handle_returns_plain_text_when_response_is_not_structured(): void
+    {
+        $plainText = 'Hi Sarah, this is a plain draft.';
+        $unstructuredResponse = Mockery::mock(AgentResponse::class);
+        $unstructuredResponse->text = $plainText;
+        $copywriter = Mockery::mock(WriteFirstContactEmailAgent::class);
+        $copywriter->shouldReceive('prompt')
+            ->once()
+            ->andReturn($unstructuredResponse);
+
+        $this->app->bind(WriteFirstContactEmailAgent::class, function () use ($copywriter) {
+            return $copywriter;
+        });
+
+        $tool = new WriteFirstContactEmail;
+        $request = $this->makeBriefRequest();
+        $result = $tool->handle($request);
+
+        $this->assertSame($plainText, (string) $result);
+    }
+
+    public function test_handle_throws_when_structured_email_cannot_be_encoded(): void
+    {
+        $structuredResponse = Mockery::mock(StructuredAgentResponse::class);
+        $structuredResponse->shouldReceive('toArray')
+            ->once()
+            ->andReturn([
+                    'channel' => "\xB1\x31",
+                    'subject' => 'Broken subject',
+                    'body' => 'Broken body',
+                ]);
+        $copywriter = Mockery::mock(WriteFirstContactEmailAgent::class);
+        $copywriter->shouldReceive('prompt')
+            ->once()
+            ->andReturn($structuredResponse);
+
+        $this->app->bind(WriteFirstContactEmailAgent::class, function () use ($copywriter) {
+            return $copywriter;
+        });
+
+        $tool = new WriteFirstContactEmail;
+        $request = $this->makeBriefRequest();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('First contact email could not be encoded.');
+
+        $tool->handle($request);
+    }
+
+    public function test_handle_throws_when_the_brief_cannot_be_encoded(): void
+    {
+        $tool = new WriteFirstContactEmail;
+        $request = $this->makeBriefRequest("\xB1\x31");
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('First contact email brief could not be encoded.');
+
+        $tool->handle($request);
+    }
+
+    private function makeBriefRequest(string $contactName = 'Sarah'): Request
+    {
+        return new Request([
+                'contact_name' => $contactName,
+                'company_name' => 'GreenSprout Lawn Care',
+                'line_of_business' => 'lawn care',
+                'location' => 'Lakeland, FL',
+                'service_angle' => 'lead_generation',
+                'observed_hook' => 'Most new work still comes from referrals.',
+                'opportunity' => 'Turn more local search into quote requests.',
+                'sample_insight' => 'Show served neighborhoods next to the quote action.',
+            ]);
     }
 }
