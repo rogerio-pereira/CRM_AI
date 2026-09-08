@@ -1,342 +1,75 @@
-# Cold Outreach Email Structure
+# Cold Outreach Email
 
-The goal of a cold outreach email is **not to sell your service**.
+This is a **sales email**. Its job is to introduce how Roger can help this business owner, and to get a clear reply.
 
-The goal is to earn a conversation by presenting a genuine opportunity
-in a way that feels natural, relevant, and low-pressure.
+Write in **simple English**. Stay calm and direct. Do not sound like someone selling a car, insurance, or solar panels.
 
-------------------------------------------------------------------------
+Write a new email for this lead. Do not copy a sample. Do not follow a fixed paragraph shape.
 
-# Structure
-
-``` text
-Subject
-
-Greeting
-
-1. Context (Who you are + Why them)
-
-2. Hook (Show that you noticed something)
-
-3. Opportunity (What could improve)
-
-4. Sample Insight (Give them a taste)
-
-5. Credibility
-
-6. Low-Friction CTA
-
-Signature
-```
+Tone follows `docs/01 PRD.md`, `docs/02 HLD.md`, `docs/03 - Branding Manual.md`, `docs/04 - Design System.md`, and `docs/05 - Feature List.md`: simple, calm, efficient, not playful, not decorative.
 
 ------------------------------------------------------------------------
 
-# 1. Greeting
+# What the email must do
 
-Keep it short and natural.
+When they finish reading, all of this should be true:
 
-``` text
-Hi John,
+- Their **line of business** is in plain words (lawn care, pool routes, pet sitting).
+- You noticed something specific about **them**. No flattery.
+- You gave one **quick win** that points to a result, but does **not** replace Front Porch’s work.
+- They know how Roger can help **this** owner.
+- They know exactly what to do next (clear CTA, usually reply to this email).
 
-Hello Sarah,
-
-Good morning Mike,
-```
-
-------------------------------------------------------------------------
-
-# 2. Context
-
-Answer the two questions every recipient has:
-
--   Who are you?
--   Why are you contacting me?
-
-Example:
-
-``` text
-I'm <who you are>.
-
-I came across <company> while researching companies in <industry>.
-```
-
-or
-
-``` text
-I found your company through LinkedIn while looking at businesses in the manufacturing space.
-```
-
-The objective is not to sell.
-
-The objective is to establish legitimacy.
+Do not fill a numbered template. Do not write a free how-to.
 
 ------------------------------------------------------------------------
 
-# 3. Hook
+# Subject
 
-This is the most important section.
+The subject does most of the work.
 
-Show that there is a specific reason you reached out.
+- Personal, specific, human. Curiosity plus relevance.
+- Their trade or one fact from this lead.
+- First name when it is known.
+- Sentence case. About 5 to 9 words.
+- **Exactly one emoji**, and it must belong to this email. If the same emoji would fit a dentist and a bakery, pick another.
+- Zero emojis in the body.
+- The first body line continues the subject.
 
-Examples:
-
--   Outdated website
--   Manual process
--   Recent expansion
--   Hiring activity
--   Product launch
--   Customer experience
--   Operational bottleneck
-
-Structure:
-
-``` text
-While looking through your website, I noticed...
-
-While reading about your company...
-
-One thing caught my attention...
-
-I was curious about...
-```
-
-The reader should think:
-
-> "They actually looked into my business."
+Avoid: checking in, quick question, ALL CAPS, free, act now, guaranteed.
 
 ------------------------------------------------------------------------
 
-# 4. Opportunity
+# Body
 
-Don't sell.
+Lead with their world. Say how you can help after the observation. End with a clear ask.
 
-Present a possibility.
-
-Structure:
-
-``` text
-It made me wonder if...
-
-I think there might be an opportunity to...
-
-There may be room to...
-
-It looks like...
-```
-
-Avoid:
-
-``` text
-You need...
-
-Your website should...
-
-Your process is wrong...
-```
-
-Prefer:
-
-``` text
-There may be an opportunity...
-
-It looks like...
-
-I wonder whether...
-
-You could potentially...
-```
-
-Plant the idea instead of pushing it.
+Keep paragraphs short. One idea each. Simple English. Do not open with a biography.
 
 ------------------------------------------------------------------------
 
-# 5. Sample Insight (Give Them a Taste)
-
-Before asking for anything, provide one small, actionable suggestion.
-
-The goal is **not** to solve the entire problem.
-
-The goal is to make the recipient think:
-
-> "If this is what they give away for free, I wonder what a full
-> engagement would look like."
-
-Examples:
-
-``` text
-One thing I noticed is that your contact form doesn't preserve user input after validation errors. A small improvement like that can noticeably reduce abandoned submissions.
-```
-
-``` text
-I also noticed that several images on your homepage are much larger than necessary. Compressing them alone could improve page load times without changing the design.
-```
-
-``` text
-One quick idea: if your sales team is manually following up with every new lead, even a lightweight automation could save several hours each week.
-```
-
-Keep it:
-
--   Specific
--   Helpful
--   Easy to understand
--   Actionable
--   Something they could implement without hiring you
-
-Don't give away the entire solution.
-
-Think of it as **an appetizer, not the full meal**.
-
-------------------------------------------------------------------------
-
-# 6. Credibility
-
-Keep it brief.
-
-Provide just enough information to justify why they should listen.
-
-Structure:
-
-``` text
-I've helped companies...
-
-Most of my work involves...
-
-I've spent the last X years...
-```
-
-Avoid turning this into a résumé.
-
-------------------------------------------------------------------------
-
-# 7. Low-Friction CTA
-
-Don't ask for a major commitment.
-
-Avoid:
-
-``` text
-Can we schedule a one-hour meeting?
-```
-
-Prefer:
-
-``` text
-Would you be open to a quick conversation?
-
-Would you be interested in hearing the idea?
-
-Happy to share what I noticed if it would be helpful.
-
-If this isn't relevant, no worries at all.
-```
-
-The easier it is to respond, the more likely you'll receive a reply.
-
-------------------------------------------------------------------------
-
-# 8. Signature
-
-Keep it simple.
-
--   Name
--   Company name as a clickable link to the website
-
-Do not include LinkedIn, a separate title line, or a bare website URL.
-
-Example:
+# Signature
 
 ``` text
 Roger Pereira
 [Front Porch Creative](https://frontporchcreative.io)
 ```
 
-Always write the company name as `[Front Porch Creative](https://frontporchcreative.io)`.
-Do not write `frontporchcreative.io` as a separate signature line.
+Do not add LinkedIn, a title line, a phone number, or a bare website URL.
 
 ------------------------------------------------------------------------
 
-# Psychological Flow
+# Mental triggers
 
-``` text
-Greeting
-    ↓
-Who are you?
-    ↓
-Why me?
-    ↓
-Interesting observation
-    ↓
-Potential opportunity
-    ↓
-A small taste of value
-    ↓
-Why should I trust you?
-    ↓
-Easy next step
-```
+Use them with a light hand.
+
+Curiosity, specificity, reciprocity, local belonging, relief, a quiet cost of staying stuck — all fine when the tone stays calm.
+
+Cut flattery. Cut fake urgency, fake scarcity, shame, guarantees, and hype.
 
 ------------------------------------------------------------------------
 
-# Subtle Psychological Triggers
-
-## Curiosity
-
-> "It made me wonder..."
-
-Create curiosity instead of making claims.
-
-## Specificity
-
-Show that you've actually researched the company.
-
-Instead of:
-
-> I help businesses.
-
-Use:
-
-> While reviewing your scheduling process...
-
-## Quiet Authority
-
-Instead of:
-
-> I'm an expert.
-
-Use:
-
-> I've spent the last 12 years building software for...
-
-## Reciprocity
-
-Offer value before asking for anything.
-
-``` text
-I'm happy to share a few ideas, whether or not we end up working together.
-```
-
-## Low Commitment
-
-Ask only for permission to continue the conversation.
-
-Not for a lengthy meeting.
-
-## Reduced Pressure
-
-``` text
-If it's not a priority right now, no problem.
-```
-
-Reducing pressure often increases response rates.
-
-------------------------------------------------------------------------
-
-# Core Principle
-
-A cold email should not try to complete the entire sales process.
-
-Instead, it should follow this progression:
+# Core principle
 
 ``` text
 Email
@@ -352,5 +85,4 @@ Proposal
 Sale
 ```
 
-The email's job is simply to create enough interest that the recipient
-wants to continue the conversation.
+The email must sell the next step: a reply that starts the work you can do for them.
