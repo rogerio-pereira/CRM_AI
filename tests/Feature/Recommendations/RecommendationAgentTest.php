@@ -252,6 +252,9 @@ class RecommendationAgentTest extends TestCase
 
         $this->assertStringContainsString('Do not send emails, DMs, calls, proposals, or client-facing messages', $promptText);
         $this->assertStringContainsString('Recommendations are read-only until a user acts', $promptText);
+        $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $promptText);
+        $this->assertStringNotContainsString('[frontporchcreative.io](https://frontporchcreative.io)', $promptText);
+        $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $promptText);
     }
 
     public function test_agent_throws_when_prompt_file_is_empty(): void
