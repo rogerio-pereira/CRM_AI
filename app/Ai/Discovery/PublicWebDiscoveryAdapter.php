@@ -34,8 +34,9 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
 
         $userPrompt = $this->loadDiscoveryPrompt();
         $excludeCompanyNames = $options['exclude_company_names'] ?? [];
+        $totalExcluded = count($excludeCompanyNames);
 
-        if ($excludeCompanyNames !== []) {
+        if ($totalExcluded > 0) {
             $list = implode(', ', $excludeCompanyNames);
             $userPrompt = $userPrompt."\n\nDo not return these companies already in the CRM: ".$list.'.';
         }
