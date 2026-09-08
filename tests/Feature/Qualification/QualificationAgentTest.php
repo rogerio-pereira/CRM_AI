@@ -737,9 +737,9 @@ class QualificationAgentTest extends TestCase
         $this->assertStringContainsString('website_design_development` — primary', $promptText);
         $this->assertStringContainsString('custom_software_development` — skip or lowest as the opening', $promptText);
         $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
-        $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $promptText);
-        $this->assertStringNotContainsString('[frontporchcreative.io](https://frontporchcreative.io)', $promptText);
-        $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $promptText);
+        $this->assertStringContainsString('write_first_contact_email', $promptText);
+        $this->assertStringContainsString('line_of_business', $promptText);
+        $this->assertStringContainsString('Do not draft `contact_example` in this prompt', $promptText);
     }
 
     /**
