@@ -56,7 +56,7 @@ class ProspectingAgent implements AiAgent
                     $discovery['skipped'],
                 );
 
-                continue;
+                continue; // Goes back to while
             }
 
             $rawCompanyName = $lead['company_name'] ?? '';
@@ -77,7 +77,7 @@ class ProspectingAgent implements AiAgent
             if ($duplicate !== null) {
                 $excludeCompanyNames[] = $companyName;
 
-                continue;
+                continue; // Goes back to while
             }
 
             $created = $this->createLeadAndOpportunity($lead, $companyName);
