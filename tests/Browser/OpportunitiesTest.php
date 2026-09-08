@@ -2,12 +2,14 @@
 
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Jobs\RunQualificationAgentJob;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\RecommendationFake;
 
 it('displays the kanban board and creates an opportunity', function () {
@@ -229,7 +231,44 @@ it('renders qualification status chips on the kanban and failed error on detail'
         ->click('@kanban-card-open-'.$failed->id)
         ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="failed"]')
         ->assertPresent('[data-test="opportunities-detail-qualification-error"]')
-        ->assertSee('Qualification could not be completed. The team can try again later.');
+        ->assertSee('Qualification could not be completed. The team can try again later.')
+        ->assertPresent('[data-test="opportunities-detail-requalify"]');
+});
+
+it('requalifies a failed opportunity from the detail modal', function () {
+    $this->withoutExceptionHandling();
+
+    Queue::fake([
+        RunQualificationAgentJob::class,
+    ]);
+
+    $user = User::factory()
+                ->create();
+    $failed = Opportunity::factory()
+                    ->qualificationFailed()
+                    ->create([
+                        'title' => 'Requalify Browser Deal',
+                        'stage' => PipelineStage::Qualification,
+                    ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$failed->id)
+        ->assertPresent('[data-test="opportunities-detail-requalify"]')
+        ->click('@opportunities-detail-requalify')
+        ->assertNoJavaScriptErrors()
+        ->assertSee('Qualification queued.')
+        ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]')
+        ->assertNotPresent('[data-test="opportunities-detail-requalify"]');
+
+    $failed->refresh();
+
+    expect($failed->qualification_status)
+        ->toBe(QualificationStatus::Pending);
+    expect($failed->qualification_last_error)
+        ->toBeNull();
+    Queue::assertPushed(RunQualificationAgentJob::class, 1);
 });
 
 it('shows horizontal scroll on narrow viewports', function () {

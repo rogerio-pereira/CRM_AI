@@ -318,7 +318,8 @@ class OpportunityManagementTest extends TestCase
             ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
             ->assertSeeHtml('data-status="failed"')
             ->assertSeeHtml('data-test="opportunities-detail-qualification-error"')
-            ->assertSee('Qualification could not be completed. The team can try again later.');
+            ->assertSee('Qualification could not be completed. The team can try again later.')
+            ->assertSeeHtml('data-test="opportunities-detail-requalify"');
     }
 
     public function test_moving_to_lost_sets_terminal_status(): void
