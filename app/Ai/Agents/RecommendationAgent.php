@@ -4,9 +4,11 @@ namespace App\Ai\Agents;
 
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\RecommendationFailedException;
+use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
@@ -20,6 +22,7 @@ class RecommendationAgent implements AiAgent
 
     public function __construct(
         private readonly OpportunityService $opportunities,
+        private readonly AiOrchestrationService $orchestration,
     ) {}
 
     /**
@@ -49,6 +52,12 @@ class RecommendationAgent implements AiAgent
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulRecommendation($payload);
         $this->persistRecommendations($opportunity, $payload);
+        $this->orchestration
+                ->dispatch(AgentType::FirstContactEmail, [
+                    'trigger' => 'recommendation_completed',
+                    'opportunity_id' => $opportunity->id,
+                    'client_id' => $client->id,
+                ]);
 
         return [
                 'agent' => 'recommendation',

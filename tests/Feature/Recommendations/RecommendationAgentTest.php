@@ -6,12 +6,14 @@ use App\Ai\Agents\RecommendationAgent;
 use App\Ai\Agents\RecommendationAnalysisAgent;
 use App\Ai\Exceptions\RecommendationFailedException;
 use App\Enums\PipelineStage;
+use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Laravel\Ai\Responses\AgentResponse;
 use Mockery;
 use ReflectionClass;
@@ -28,6 +30,9 @@ class RecommendationAgentTest extends TestCase
     {
         Mail::fake();
         Notification::fake();
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
 
         $client = Client::factory()
                         ->create([
@@ -83,10 +88,29 @@ class RecommendationAgentTest extends TestCase
 
         Mail::assertNothingOutgoing();
         Notification::assertNothingSent();
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, function (RunFirstContactEmailAgentJob $job) use ($opportunity, $client): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+            $payloadClientId = $job->payload['client_id'] ?? null;
+            $trigger = $job->payload['trigger'] ?? null;
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $client->id) {
+                return false;
+            }
+
+            return $trigger === 'recommendation_completed';
+        });
     }
 
     public function test_unqualified_opportunity_skips_ai_and_does_not_persist_recommendations(): void
     {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
         $opportunity = Opportunity::factory()
                             ->qualificationPending()
                             ->create();
@@ -101,6 +125,7 @@ class RecommendationAgentTest extends TestCase
         $this->assertSame('skipped_not_qualified', $result['status']);
         $this->assertNull($opportunity->ai_recommendations);
         $this->assertSame(PipelineStage::Lead, $opportunity->stage);
+        Queue::assertNothingPushed();
     }
 
     public function test_incomplete_recommendation_output_throws(): void
@@ -160,6 +185,10 @@ class RecommendationAgentTest extends TestCase
 
     public function test_refresh_overwrites_existing_recommendations(): void
     {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
         $client = Client::factory()
                         ->create();
         $opportunity = Opportunity::factory()
@@ -196,6 +225,10 @@ class RecommendationAgentTest extends TestCase
 
     public function test_successful_recommendation_does_not_move_opportunity_already_past_contact(): void
     {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
         $client = Client::factory()
                         ->create();
         $opportunity = Opportunity::factory()
@@ -338,6 +371,10 @@ class RecommendationAgentTest extends TestCase
 
     public function test_persists_defaults_when_optional_fields_are_missing(): void
     {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
         $client = Client::factory()
                         ->create();
         $opportunity = Opportunity::factory()

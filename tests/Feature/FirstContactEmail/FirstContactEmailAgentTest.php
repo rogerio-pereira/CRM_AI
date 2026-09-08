@@ -6,12 +6,10 @@ use App\Ai\Agents\FirstContactEmailAgent;
 use App\Ai\Agents\WriteFirstContactEmailAgent;
 use App\Ai\Exceptions\FirstContactEmailFailedException;
 use App\Enums\PipelineStage;
-use App\Jobs\RunRecommendationAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Laravel\Ai\Responses\AgentResponse;
 use Mockery;
 use ReflectionClass;
@@ -23,12 +21,8 @@ class FirstContactEmailAgentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_writes_email_moves_to_contact_and_dispatches_recommendation(): void
+    public function test_writes_email_and_moves_to_contact(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
-        ]);
-
         $client = Client::factory()
                         ->create([
                             'contact_name' => 'Sarah',
@@ -57,21 +51,6 @@ class FirstContactEmailAgentTest extends TestCase
         $this->assertSame($copywriter['subject'], $insights['outreach_strategy']['contact_example']['subject']);
         $this->assertSame($copywriter['body'], $insights['outreach_strategy']['contact_example']['body']);
         $this->assertSame(PipelineStage::Contact, $opportunity->stage);
-        Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity, $client): bool {
-            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
-            $payloadClientId = $job->payload['client_id'] ?? null;
-            $trigger = $job->payload['trigger'] ?? null;
-
-            if ($payloadOpportunityId !== $opportunity->id) {
-                return false;
-            }
-
-            if ($payloadClientId !== $client->id) {
-                return false;
-            }
-
-            return $trigger === 'first_contact_email_completed';
-        });
         WriteFirstContactEmailAgent::assertPrompted(function ($prompt) use ($client): bool {
             $promptText = $prompt->prompt;
             $hasCompany = str_contains($promptText, $client->company_name);
@@ -92,10 +71,6 @@ class FirstContactEmailAgentTest extends TestCase
 
     public function test_skips_when_opportunity_is_not_qualified(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
-        ]);
-
         $opportunity = Opportunity::factory()
                             ->create([
                                 'stage' => PipelineStage::Qualification,
@@ -110,15 +85,10 @@ class FirstContactEmailAgentTest extends TestCase
 
         $this->assertSame('skipped_not_qualified', $result['status']);
         $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
-        Queue::assertNothingPushed();
     }
 
     public function test_does_not_move_opportunity_already_past_qualification(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
-        ]);
-
         $opportunity = Opportunity::factory()
                             ->qualificationQualified()
                             ->create([
@@ -136,7 +106,6 @@ class FirstContactEmailAgentTest extends TestCase
         $opportunity->refresh();
 
         $this->assertSame(PipelineStage::ProposalGeneration, $opportunity->stage);
-        Queue::assertPushed(RunRecommendationAgentJob::class);
     }
 
     public function test_empty_copywriter_email_is_incomplete(): void
@@ -166,10 +135,6 @@ class FirstContactEmailAgentTest extends TestCase
 
     public function test_copywriter_brief_uses_the_highest_priority_opportunity(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
-        ]);
-
         $client = Client::factory()
                         ->create([
                             'contact_name' => 'Daniel',
@@ -223,12 +188,80 @@ class FirstContactEmailAgentTest extends TestCase
         });
     }
 
-    public function test_copywriter_brief_falls_back_when_outreach_and_opportunities_are_not_arrays(): void
+    public function test_copywriter_brief_prefers_recommendation_opportunities(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
+        $client = Client::factory()
+                        ->create([
+                            'contact_name' => 'Daniel',
+                            'company_name' => 'Lakeland Lawn Co',
+                        ]);
+        $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];
+        $insights['opportunities'] = [
+                [
+                    'service' => 'website_design_development',
+                    'title' => 'Rebuild the public site',
+                    'why_it_matters' => 'A custom site is not the opening for this owner.',
+                    'priority' => 'high',
+                ],
+            ];
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => $insights,
+                                'ai_recommendations' => [
+                                    'summary' => 'Start with a steadier flow of local quote requests.',
+                                    'pain_points' => [
+                                        [
+                                            'title' => 'Referral-only growth',
+                                            'evidence' => 'New work still arrives mostly from neighbors.',
+                                            'business_impact' => 'Slow weeks leave the crew waiting.',
+                                        ],
+                                    ],
+                                    'opportunities' => [
+                                        [
+                                            'service' => 'lead_generation',
+                                            'title' => 'Create a steadier local lead flow',
+                                            'why_it_matters' => 'Less dependence on referrals for new work.',
+                                            'priority' => 'high',
+                                        ],
+                                    ],
+                                ],
+                            ]);
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $agent->handle([
+                            'opportunity_id' => $opportunity->id,
         ]);
 
+        WriteFirstContactEmailAgent::assertPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasLeadGeneration = str_contains($promptText, 'lead_generation');
+            $hasReferralGap = str_contains($promptText, 'Less dependence on referrals for new work.');
+            $hasRecommendationSummary = str_contains($promptText, 'Start with a steadier flow of local quote requests.');
+            $hasWebsiteRebuild = str_contains($promptText, 'A custom site is not the opening for this owner.');
+
+            if ($hasLeadGeneration === false) {
+                return false;
+            }
+
+            if ($hasReferralGap === false) {
+                return false;
+            }
+
+            if ($hasRecommendationSummary === false) {
+                return false;
+            }
+
+            return $hasWebsiteRebuild === false;
+        });
+    }
+
+    public function test_copywriter_brief_falls_back_when_outreach_and_opportunities_are_not_arrays(): void
+    {
         $client = Client::factory()
                         ->create([
                             'contact_name' => 'Maya',
@@ -274,10 +307,6 @@ class FirstContactEmailAgentTest extends TestCase
 
     public function test_copywriter_brief_falls_back_when_pain_points_are_malformed(): void
     {
-        Queue::fake([
-            RunRecommendationAgentJob::class,
-        ]);
-
         $client = Client::factory()
                         ->create([
                             'contact_name' => '',

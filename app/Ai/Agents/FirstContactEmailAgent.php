@@ -5,12 +5,10 @@ namespace App\Ai\Agents;
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\FirstContactEmailFailedException;
 use App\Ai\Tools\WriteFirstContactEmail;
-use App\Enums\AgentType;
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
-use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Laravel\Ai\Tools\Request;
 use RuntimeException;
@@ -19,7 +17,6 @@ class FirstContactEmailAgent implements AiAgent
 {
     public function __construct(
         private readonly OpportunityService $opportunities,
-        private readonly AiOrchestrationService $orchestration,
     ) {}
 
     /**
@@ -53,7 +50,8 @@ class FirstContactEmailAgent implements AiAgent
             throw new FirstContactEmailFailedException('First contact email output was incomplete.');
         }
 
-        $contactExample = $this->writeContactExample($client, $insights);
+        $briefInsights = $this->briefInsights($opportunity, $insights);
+        $contactExample = $this->writeContactExample($client, $briefInsights);
         $outreachStrategy = $insights['outreach_strategy'] ?? [];
 
         if (! is_array($outreachStrategy)) {
@@ -67,12 +65,6 @@ class FirstContactEmailAgent implements AiAgent
                                         'ai_insights' => $insights,
                                     ]);
         $updatedOpportunity = $this->moveToContactWhenReady($updatedOpportunity);
-        $this->orchestration
-                ->dispatch(AgentType::Recommendation, [
-                    'trigger' => 'first_contact_email_completed',
-                    'opportunity_id' => $updatedOpportunity->id,
-                    'client_id' => $client->id,
-                ]);
 
         return [
                 'agent' => 'first_contact_email',
@@ -80,6 +72,26 @@ class FirstContactEmailAgent implements AiAgent
                 'opportunity_id' => $updatedOpportunity->id,
                 'client_id' => $client->id,
             ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $insights
+     * @return array<string, mixed>
+     */
+    private function briefInsights(Opportunity $opportunity, array $insights): array
+    {
+        $recommendations = $opportunity->ai_recommendations;
+
+        if (! is_array($recommendations)) {
+            return $insights;
+        }
+
+        $brief = $insights;
+        $brief['pain_points'] = $recommendations['pain_points'] ?? $insights['pain_points'] ?? [];
+        $brief['opportunities'] = $recommendations['opportunities'] ?? $insights['opportunities'] ?? [];
+        $brief['summary'] = $recommendations['summary'] ?? $insights['summary'] ?? '';
+
+        return $brief;
     }
 
     /**
