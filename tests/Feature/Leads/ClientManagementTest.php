@@ -3,6 +3,7 @@
 namespace Tests\Feature\Leads;
 
 use App\Enums\ClientStatus;
+use App\Enums\PipelineStage;
 use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -302,6 +303,28 @@ class ClientManagementTest extends TestCase
         Opportunity::factory()
             ->for($client)
             ->won()
+            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDeleteModal', $client->id)
+            ->call('confirmDelete')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('clients', ['id' => $client->id]);
+    }
+
+    public function test_user_can_delete_client_when_opportunity_is_disqualified(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+
+        Opportunity::factory()
+            ->for($client)
+            ->stage(PipelineStage::Disqualified)
             ->create();
 
         $this->actingAs($user);

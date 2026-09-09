@@ -52,6 +52,10 @@ class OpportunityFactory extends Factory
                 $status = OpportunityStatus::Lost;
             }
 
+            if ($stage === PipelineStage::Disqualified) {
+                $status = OpportunityStatus::Lost;
+            }
+
             return [
                 'stage' => $stage,
                 'status' => $status,

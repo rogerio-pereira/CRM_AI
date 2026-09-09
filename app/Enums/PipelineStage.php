@@ -7,11 +7,14 @@ enum PipelineStage: string
     case Lead = 'lead';
     case Qualification = 'qualification';
     case Contact = 'contact';
+    case ContactSent = 'contact_sent';
+    case MeetingScheduled = 'meeting_scheduled';
     case ProposalGeneration = 'proposal_generation';
     case ProposalAnalysis = 'proposal_analysis';
     case ProposalSent = 'proposal_sent';
     case Won = 'won';
     case Lost = 'lost';
+    case Disqualified = 'disqualified';
 
     public function label(): string
     {
@@ -19,11 +22,14 @@ enum PipelineStage: string
             self::Lead => __('Lead'),
             self::Qualification => __('Qualification'),
             self::Contact => __('Contact'),
+            self::ContactSent => __('Contact Sent'),
+            self::MeetingScheduled => __('Meeting Scheduled'),
             self::ProposalGeneration => __('Proposal Generation'),
             self::ProposalAnalysis => __('Proposal Analysis'),
             self::ProposalSent => __('Proposal Sent'),
             self::Won => __('Won'),
             self::Lost => __('Lost'),
+            self::Disqualified => __('Disqualified'),
         };
     }
 
@@ -33,25 +39,28 @@ enum PipelineStage: string
             self::Lead => 'neutral',
             self::Qualification => 'ai',
             self::Contact => 'accent',
+            self::ContactSent => 'accent',
+            self::MeetingScheduled => 'accent',
             self::ProposalGeneration => 'ai',
             self::ProposalAnalysis => 'accent',
             self::ProposalSent => 'neutral',
             self::Won => 'success',
             self::Lost => 'danger',
+            self::Disqualified => 'danger',
         };
     }
 
     public function requiresUserAction(): bool
     {
-        if ($this === self::Contact) {
-            return true;
-        }
+        $userActionStages = [
+            self::Contact,
+            self::ContactSent,
+            self::MeetingScheduled,
+            self::ProposalAnalysis,
+        ];
 
-        if ($this === self::ProposalAnalysis) {
-            return true;
-        }
-
-        return false;
+        // If it belongs to the array this returns true; if not, false.
+        return in_array($this, $userActionStages, true);
     }
 
     public function columnClasses(): string
@@ -83,23 +92,20 @@ enum PipelineStage: string
 
     public function badgeClassesFromColorToken(): string
     {
-        if ($this->colorToken() === 'ai') {
-            return 'bg-ai/15 text-ai border-ai/30';
-        }
+        $colorToken = $this->colorToken();
 
-        if ($this->colorToken() === 'accent') {
-            return 'bg-accent/15 text-accent border-accent/30';
+        switch ($colorToken) {
+            case 'ai':
+                return 'bg-ai/15 text-ai border-ai/30';
+            case 'accent':
+                return 'bg-accent/15 text-accent border-accent/30';
+            case 'success':
+                return 'bg-status-success/15 text-status-success border-status-success/30';
+            case 'danger':
+                return 'bg-status-danger/15 text-status-danger border-status-danger/30';
+            default:
+                return 'bg-status-neutral/15 text-status-neutral border-status-neutral/30';
         }
-
-        if ($this->colorToken() === 'success') {
-            return 'bg-status-success/15 text-status-success border-status-success/30';
-        }
-
-        if ($this->colorToken() === 'danger') {
-            return 'bg-status-danger/15 text-status-danger border-status-danger/30';
-        }
-
-        return 'bg-status-neutral/15 text-status-neutral border-status-neutral/30';
     }
 
     public function slug(): string
@@ -109,15 +115,14 @@ enum PipelineStage: string
 
     public function isTerminal(): bool
     {
-        if ($this === self::Won) {
-            return true;
-        }
+        $terminalStages = [
+            self::Won,
+            self::Lost,
+            self::Disqualified,
+        ];
 
-        if ($this === self::Lost) {
-            return true;
-        }
-
-        return false;
+        // If it belongs to the array this returns true; if not, false.
+        return in_array($this, $terminalStages, true);
     }
 
     /**
@@ -129,11 +134,14 @@ enum PipelineStage: string
             self::Lead,
             self::Qualification,
             self::Contact,
+            self::ContactSent,
+            self::MeetingScheduled,
             self::ProposalGeneration,
             self::ProposalAnalysis,
             self::ProposalSent,
             self::Won,
             self::Lost,
+            self::Disqualified,
         ];
     }
 }

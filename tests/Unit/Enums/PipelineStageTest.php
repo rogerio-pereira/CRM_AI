@@ -22,6 +22,7 @@ class PipelineStageTest extends TestCase
         return [
             'won' => [PipelineStage::Won],
             'lost' => [PipelineStage::Lost],
+            'disqualified' => [PipelineStage::Disqualified],
         ];
     }
 
@@ -40,19 +41,26 @@ class PipelineStageTest extends TestCase
             'lead' => [PipelineStage::Lead],
             'qualification' => [PipelineStage::Qualification],
             'contact' => [PipelineStage::Contact],
+            'contact sent' => [PipelineStage::ContactSent],
+            'meeting scheduled' => [PipelineStage::MeetingScheduled],
             'proposal generation' => [PipelineStage::ProposalGeneration],
             'proposal analysis' => [PipelineStage::ProposalAnalysis],
             'proposal sent' => [PipelineStage::ProposalSent],
         ];
     }
 
-    public function test_ordered_returns_eight_stages_in_pipeline_order(): void
+    public function test_ordered_returns_stages_in_pipeline_order(): void
     {
         $ordered = PipelineStage::ordered();
 
-        $this->assertCount(8, $ordered);
+        $this->assertCount(11, $ordered);
         $this->assertSame(PipelineStage::Lead, $ordered[0]);
-        $this->assertSame(PipelineStage::Lost, $ordered[7]);
+        $this->assertSame(PipelineStage::Contact, $ordered[2]);
+        $this->assertSame(PipelineStage::ContactSent, $ordered[3]);
+        $this->assertSame(PipelineStage::MeetingScheduled, $ordered[4]);
+        $this->assertSame(PipelineStage::ProposalGeneration, $ordered[5]);
+        $this->assertSame(PipelineStage::Lost, $ordered[9]);
+        $this->assertSame(PipelineStage::Disqualified, $ordered[10]);
     }
 
     public function test_label_and_color_token_are_defined_for_each_stage(): void
@@ -84,6 +92,8 @@ class PipelineStageTest extends TestCase
     {
         return [
             'contact' => [PipelineStage::Contact],
+            'contact sent' => [PipelineStage::ContactSent],
+            'meeting scheduled' => [PipelineStage::MeetingScheduled],
             'proposal analysis' => [PipelineStage::ProposalAnalysis],
         ];
     }
@@ -105,11 +115,14 @@ class PipelineStageTest extends TestCase
             'lead' => [PipelineStage::Lead, 'status-neutral'],
             'qualification' => [PipelineStage::Qualification, 'text-ai'],
             'contact' => [PipelineStage::Contact, 'primary-focus'],
+            'contact sent' => [PipelineStage::ContactSent, 'primary-focus'],
+            'meeting scheduled' => [PipelineStage::MeetingScheduled, 'primary-focus'],
             'proposal generation' => [PipelineStage::ProposalGeneration, 'text-ai'],
             'proposal analysis' => [PipelineStage::ProposalAnalysis, 'primary-focus'],
             'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
             'won' => [PipelineStage::Won, 'status-success'],
             'lost' => [PipelineStage::Lost, 'status-danger'],
+            'disqualified' => [PipelineStage::Disqualified, 'status-danger'],
         ];
     }
 
@@ -130,11 +143,14 @@ class PipelineStageTest extends TestCase
             'lead' => [PipelineStage::Lead, 'status-neutral'],
             'qualification' => [PipelineStage::Qualification, 'text-ai'],
             'contact' => [PipelineStage::Contact, 'text-accent'],
+            'contact sent' => [PipelineStage::ContactSent, 'text-accent'],
+            'meeting scheduled' => [PipelineStage::MeetingScheduled, 'text-accent'],
             'proposal generation' => [PipelineStage::ProposalGeneration, 'text-ai'],
             'proposal analysis' => [PipelineStage::ProposalAnalysis, 'text-accent'],
             'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
             'won' => [PipelineStage::Won, 'status-success'],
             'lost' => [PipelineStage::Lost, 'status-danger'],
+            'disqualified' => [PipelineStage::Disqualified, 'status-danger'],
         ];
     }
 
@@ -169,6 +185,7 @@ class PipelineStageTest extends TestCase
             'proposal sent' => [PipelineStage::ProposalSent],
             'won' => [PipelineStage::Won],
             'lost' => [PipelineStage::Lost],
+            'disqualified' => [PipelineStage::Disqualified],
         ];
     }
 }

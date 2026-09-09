@@ -111,6 +111,56 @@ class OpportunityServiceTest extends TestCase
         Event::assertDispatched(OpportunityStageChanged::class);
     }
 
+    public function test_move_to_stage_sets_lost_status_for_disqualified(): void
+    {
+        Event::fake([OpportunityStageChanged::class]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->service->moveToStage(
+            $opportunity,
+            PipelineStage::Disqualified,
+            $user->id,
+        );
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::Disqualified->value,
+                                'status' => OpportunityStatus::Lost->value,
+        ]);
+
+        Event::assertDispatched(OpportunityStageChanged::class);
+    }
+
+    public function test_move_to_stage_keeps_open_status_for_contact_sent(): void
+    {
+        Event::fake([OpportunityStageChanged::class]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->service->moveToStage(
+            $opportunity,
+            PipelineStage::ContactSent,
+            $user->id,
+        );
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+                                'status' => OpportunityStatus::Open->value,
+        ]);
+
+        Event::assertDispatched(OpportunityStageChanged::class);
+    }
+
     public function test_move_to_stage_sets_won_status_and_dispatches_event(): void
     {
         Event::fake([OpportunityStageChanged::class]);
@@ -157,7 +207,10 @@ class OpportunityServiceTest extends TestCase
         $wonOpportunities = $grouped[PipelineStage::Won->value];
         $qualificationOpportunities = $grouped[PipelineStage::Qualification->value];
 
-        $this->assertCount(8, $grouped);
+        $this->assertCount(11, $grouped);
+        $this->assertArrayHasKey(PipelineStage::ContactSent->value, $grouped);
+        $this->assertArrayHasKey(PipelineStage::MeetingScheduled->value, $grouped);
+        $this->assertArrayHasKey(PipelineStage::Disqualified->value, $grouped);
         $this->assertTrue(
             $leadOpportunities->contains(
                 fn (Opportunity $item): bool => $item->is($lead),

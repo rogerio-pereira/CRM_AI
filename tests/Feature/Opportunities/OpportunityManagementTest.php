@@ -343,6 +343,48 @@ class OpportunityManagementTest extends TestCase
         ]);
     }
 
+    public function test_moving_to_disqualified_sets_lost_status(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::Disqualified->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::Disqualified->value,
+                                'status' => OpportunityStatus::Lost->value,
+        ]);
+    }
+
+    public function test_moving_to_contact_sent_keeps_open_status(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::ContactSent->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+                                'status' => OpportunityStatus::Open->value,
+        ]);
+    }
+
     public function test_follow_up_created_event_refreshes_kanban(): void
     {
         $user = User::factory()
