@@ -159,6 +159,26 @@ class OpportunityTest extends TestCase
         $this->assertSame('Second Author', $secondPayload['author']);
     }
 
+    public function test_notes_for_ai_context_uses_ai_author_when_user_is_missing(): void
+    {
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->create([
+                        'user_id' => null,
+                        'body' => 'Missing company name or valid public email.',
+                    ]);
+
+        $opportunity->unsetRelation('notes');
+        $payload = $opportunity->notesForAiContext();
+        $firstPayload = $payload[0];
+
+        $this->assertCount(1, $payload);
+        $this->assertSame($note->body, $firstPayload['body']);
+        $this->assertSame('AI', $firstPayload['author']);
+    }
+
     public function test_forget_contact_examples_removes_stored_email_drafts(): void
     {
         $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];

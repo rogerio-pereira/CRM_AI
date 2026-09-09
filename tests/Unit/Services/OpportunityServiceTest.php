@@ -47,6 +47,24 @@ class OpportunityServiceTest extends TestCase
         Event::assertDispatched(OpportunityCreated::class);
     }
 
+    public function test_create_disqualified_sets_stage_and_does_not_dispatch_created(): void
+    {
+        Event::fake([OpportunityCreated::class]);
+
+        $client = Client::factory()
+                        ->create();
+
+        $opportunity = $this->service->createDisqualified([
+            'client_id' => $client->id,
+            'title' => 'Skipped during prospecting',
+        ]);
+
+        $this->assertSame(PipelineStage::Disqualified, $opportunity->stage);
+        $this->assertSame(OpportunityStatus::Lost, $opportunity->status);
+        $this->assertSame('Skipped during prospecting', $opportunity->title);
+        Event::assertNotDispatched(OpportunityCreated::class);
+    }
+
     public function test_update_persists_attributes_and_refreshes_client(): void
     {
         $opportunity = Opportunity::factory()
@@ -242,6 +260,30 @@ class OpportunityServiceTest extends TestCase
             $this->service->create([
                                 'client_id' => $client->id,
                                 'title' => 'Vanishing deal',
+            ]);
+        } finally {
+            Opportunity::flushEventListeners();
+        }
+    }
+
+    public function test_create_disqualified_throws_when_opportunity_cannot_be_reloaded(): void
+    {
+        Event::fake([OpportunityCreated::class]);
+
+        Opportunity::created(function (Opportunity $opportunity): void {
+            $opportunity->exists = false;
+        });
+
+        $client = Client::factory()
+                        ->create();
+
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Created opportunity could not be reloaded.');
+
+            $this->service->createDisqualified([
+                                'client_id' => $client->id,
+                                'title' => 'Vanishing skipped deal',
             ]);
         } finally {
             Opportunity::flushEventListeners();
