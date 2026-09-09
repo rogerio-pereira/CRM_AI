@@ -129,6 +129,7 @@
 
             <livewire:opportunities.notes-timeline
                 :opportunity-id="$opportunity->id"
+                :parent-component-id="$indexComponentId"
                 :key="'opportunity-notes-'.$opportunity->id"
             />
 

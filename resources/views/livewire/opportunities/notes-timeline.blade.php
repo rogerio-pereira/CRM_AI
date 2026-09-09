@@ -16,9 +16,22 @@
                         <span data-test="opportunities-detail-note-author-{{ $note->id }}">
                             {{ $note->user->name }}
                         </span>
-                        <span data-test="opportunities-detail-note-created-at-{{ $note->id }}">
-                            {{ $note->created_at->format('M j, Y g:i A') }}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span data-test="opportunities-detail-note-created-at-{{ $note->id }}">
+                                {{ $note->created_at->format('M j, Y g:i A') }}
+                            </span>
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-md p-1 text-text-muted hover:bg-elevated hover:text-status-danger"
+                                data-test="opportunities-detail-note-delete-{{ $note->id }}"
+                                data-index-component-id="{{ $this->parentComponentId }}"
+                                data-note-id="{{ $note->id }}"
+                                x-on:click.stop="Livewire.find($event.currentTarget.dataset.indexComponentId).deleteNote(Number($event.currentTarget.dataset.noteId))"
+                            >
+                                <flux:icon.trash variant="outline" class="size-4" />
+                                <span class="sr-only">{{ __('Delete note') }}</span>
+                            </button>
+                        </div>
                     </div>
                     <flux:text class="mt-2 whitespace-pre-wrap text-text-secondary" data-test="opportunities-detail-note-body-{{ $note->id }}">
                         {{ $note->body }}

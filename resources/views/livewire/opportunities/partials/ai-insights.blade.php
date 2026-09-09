@@ -237,17 +237,6 @@
             <div class="flex items-start justify-between gap-2">
                 <flux:subheading>{{ __('Example first contact email') }}</flux:subheading>
                 <div class="flex items-center gap-2">
-                    <flux:button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        icon="arrow-path"
-                        wire:click="regenerateEmail"
-                        wire:loading.attr="disabled"
-                        data-test="opportunities-detail-ai-regenerate-email"
-                    >
-                        {{ __('Regenerate email') }}
-                    </flux:button>
                     @if ($hasContactExample)
                         <flux:button
                             type="button"
@@ -261,6 +250,17 @@
                             <span x-cloak x-show="copied">{{ __('Copied') }}</span>
                         </flux:button>
                     @endif
+                    <flux:button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        icon="arrow-path"
+                        wire:click="regenerateEmail"
+                        wire:loading.attr="disabled"
+                        data-test="opportunities-detail-ai-regenerate-email"
+                    >
+                        {{ __('Regenerate email') }}
+                    </flux:button>
                 </div>
             </div>
             <pre class="hidden" x-ref="contactEmail">{{ $copyText }}</pre>
