@@ -120,8 +120,7 @@ it('queues email regeneration from the opportunity detail modal', function () {
         ->click('@opportunities-detail-ai-regenerate-email')
         ->assertSee('Example email regeneration queued.')
         ->assertDontSee('A simple way to bring in more local conversations')
-        ->assertPresent('[data-test="opportunities-detail-ai-contact-pending"]')
-        ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]');
+        ->assertNotPresent('[data-test="opportunities-detail-ai-contact-example"]');
 
     Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
 });

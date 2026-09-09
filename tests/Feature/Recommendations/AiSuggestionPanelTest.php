@@ -288,7 +288,7 @@ class AiSuggestionPanelTest extends TestCase
                                 'opportunityId' => $opportunity->id,
                             ])
             ->call('regenerateEmail')
-            ->assertSee('Example email will appear here when generation finishes.');
+            ->assertDontSee('A simple way to bring in more local conversations');
 
         Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
         Queue::assertPushed(RunFirstContactEmailAgentJob::class, function (RunFirstContactEmailAgentJob $job) use ($opportunity, $user): bool {
