@@ -1,7 +1,7 @@
 # Internal AI-Assisted CRM — Feature List
 
-**Version:** 1.1
-**Date:** 2026-08-14
+**Version:** 1.2
+**Date:** 2026-09-08
 **References:** [PRD](01%20PRD.md), [HLD](02%20HLD.md), [Branding Manual](03%20-%20Branding%20Manual.md), [Design System](04%20-%20Design%20System.md), [ADRs](ADRs/)
 
 **Convention:** Every cross-reference to a feature in this file uses `[NN Short title](#fNN-slug)`.
@@ -267,7 +267,7 @@
 
 **ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-007](ADRs/ADR-007-scheduled-prospecting.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted** — AI-led discovery on public/free sources; see [FDR-010](FDRs/Done/FDR-010-automated-prospecting.md))
 
-**Implementation note:** Discovery per ADR-015: compliant in-repo scraping on public/free sources allowed; **approved prospecting prompt** required before production; no paid data APIs; no external unmanaged discovery code.
+**Implementation note:** Discovery per ADR-015: compliant in-repo scraping on public/free sources allowed; **approved prospecting prompt** required before production; no paid data APIs; no external unmanaged discovery code. Early-stage opening is website-first; see [Pending: revert website-first](#revert-later-website-first).
 
 ---
 
@@ -290,9 +290,9 @@
 - Updated opportunity records with qualification notes and AI insights
 - Stage moves after qualification (per pipeline rules) for **that** opportunity
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, amended 2026-08-13 and 2026-08-14 — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md))
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-006](ADRs/ADR-006-queue-async-processing.md), [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) (**Accepted**, via prospecting), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) (**Accepted**, website-first restored 2026-09-08 — see [FDR-011](FDRs/Done/FDR-011-automated-lead-qualification.md) and [Pending: revert website-first](#revert-later-website-first))
 
-**Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created **opportunities** are qualified automatically. Prospecting creates **one** opportunity and that initial job scores every file in `docs/services/` (no extra opportunities per service). Successful qualification advances **that** opportunity to **Contact**. A later deal on the same client is qualified again as that opportunity only.
+**Implementation note:** Per [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), all created **opportunities** are qualified automatically. Prospecting creates **one** opportunity and that initial job scores every file in `docs/services/` (no extra opportunities per service). Rank `website_design_development` first whenever a site opening exists. Successful qualification stays in Qualification until recommendation and the first-contact email finish, then **that** opportunity moves to **Contact**. A later deal on the same client is qualified again as that opportunity only.
 
 ---
 
@@ -313,7 +313,9 @@
 
 - AI-generated summaries, pain points, strategies (human-reviewed)
 
-**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), [ADR-013](ADRs/ADR-013-dark-mode-design-system.md)
+**ADRs:** [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md), [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), [ADR-013](ADRs/ADR-013-dark-mode-design-system.md)
+
+**Implementation note:** Follow the qualification opening. When a website opening exists, recommendation and the first-contact email stay on the website. Recurring work is follow-on until [Pending: revert website-first](#revert-later-website-first) is closed.
 
 ---
 
@@ -541,6 +543,24 @@ At most **three** features per wave. Order respects dependencies (no feature app
 
 ---
 
+<a id="revert-later-website-first"></a>
+
+## Pending: revert website-first when the agency can take heavier work
+
+**Search key:** `revert-later-website-first`
+
+**Status:** Open (early-stage agency)
+
+**Now:** [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), and [12 AI recommendations and insights](#f12-ai-recommendations) use website work as the commercial opening. Prefer companies with a missing, outdated, unclear, or merely “fine” site. Lead generation, content, email, automation, and custom software are cross-sell. See [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md).
+
+**Why:** Lower delivery complexity, a result the owner can see, and a platform for later upsell. A full-catalog ranking without a website-first filter pulled higher-standard companies whose first job was heavier.
+
+**Revert when:** Cash flow and delivery capacity can absorb recurring or higher-complexity first jobs (ads, content retainers, automation, custom software). Then restore evidence-based ranking without treating website as the required opening.
+
+**How to revert:** Find the PR titled `revert-later: restore website-first as the early-stage commercial opening` and revert it, or rewrite the prompts and this section in a later PR.
+
+---
+
 ## ADR index
 
 | ADR | Status | Title |
@@ -561,7 +581,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | [ADR-014](ADRs/ADR-014-dashboard-observability-scope.md) | Accepted | Dashboard and observability scope |
 | [ADR-015](ADRs/ADR-015-prospecting-discovery-undefined-mvp.md) | Accepted | AI-led prospecting on public/free sources (no paid data APIs) |
 | [ADR-016](ADRs/ADR-016-proposal-generation-undefined-mvp.md) | Superseded by ADR-018 | Proposal generation format undefined in MVP |
-| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted (service wording partially superseded by ADR-020) | Wave 4 AI qualification flow and insight schema |
+| [ADR-017](ADRs/ADR-017-wave-4-ai-qualification-schema.md) | Accepted (service wording partially superseded by ADR-020; website-first restored 2026-09-08, see [Pending: revert website-first](#revert-later-website-first)) | Wave 4 AI qualification flow and insight schema |
 | [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md) | Accepted (2026-08-14) | Proposal domain, generation, and artifacts |
 | [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md) | Accepted (2026-08-14) | Human-controlled proposal delivery |
 | [ADR-020](ADRs/ADR-020-commercial-service-catalog-boundary.md) | Accepted (2026-08-14) | Commercial service catalog boundary |

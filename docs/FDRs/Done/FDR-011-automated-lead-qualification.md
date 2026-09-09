@@ -26,6 +26,7 @@
 | 6 | AI insight schema | ☑ Schema version 1 per ADR-017, stored on the **opportunity**. |
 | 7 | Repeat qualification on the same client | ☑ A client that already has a qualified opportunity must **not** skip analysis of a new opportunity. |
 | 8 | Initial qualification catalog (prospecting) | ☑ When the lead comes from `app/Ai/Agents/ProspectingAgent.php`, qualify **all** services in `docs/services/`. Do **not** create one opportunity per service for a new client. One opportunity (the one prospecting already creates) holds the full catalog analysis. Later opportunities on that client are qualified as that deal only. |
+| 9 | Early-stage commercial opening | ☑ Website-first whenever a site opening exists. Recurring or heavier work is cross-sell. **Pending revert:** when the agency can take heavier first jobs. Search `revert-later-website-first` in [05 - Feature List](../../05%20-%20Feature%20List.md#revert-later-website-first). |
 
 Core qualification job, AI enrichment, and retries can proceed with **mocked** AI. Prompt is versioned at `docs/prompts/qualification-agent.md`. Service catalog is the markdown files in `docs/services/` (read each file in full; do not parse headings). The prompt must cover: (a) **initial** prospecting qualification against **every** service file, stored on the single new opportunity; (b) **later** opportunities, analyzed as that deal only.
 
