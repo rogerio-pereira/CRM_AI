@@ -62,6 +62,14 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         $this->assertSame('https://greensprout.example', $firstLead['website']);
         $this->assertSame('prospecting', $firstLead['lead_source']);
 
+        $skipped = $result['skipped'];
+        $firstSkipped = $skipped[0];
+
+        $this->assertCount(1, $skipped);
+        $this->assertSame('No Email Biz', $firstSkipped['name']);
+        $this->assertSame('https://no-email.example', $firstSkipped['website']);
+        $this->assertSame('Missing company name or valid public email.', $firstSkipped['reason']);
+
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
 
@@ -69,6 +77,7 @@ class PublicWebDiscoveryAdapterTest extends TestCase
             $hasExpectedScope = str_contains($promptText, 'Rank website work first');
             $hasExpectedRanking = str_contains($promptText, 'Treat other services as cross-sell');
             $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
+            $hasExpectedSkippedDetails = str_contains($promptText, 'When a company is skipped');
 
             if ($hasExpectedLimit === false) {
                 return false;
@@ -82,7 +91,11 @@ class PublicWebDiscoveryAdapterTest extends TestCase
                 return false;
             }
 
-            return $hasExpectedEmail;
+            if ($hasExpectedEmail === false) {
+                return false;
+            }
+
+            return $hasExpectedSkippedDetails;
         });
     }
 
@@ -125,6 +138,10 @@ class PublicWebDiscoveryAdapterTest extends TestCase
                     [
                         'name' => 'Skipped Co',
                         'reason' => 'No public email',
+                        'website' => 'skippedco.example',
+                        'contact_name' => 'Pat Owner',
+                        'email' => 'hello@skippedco.example',
+                        'phone' => '813-555-0199',
                     ],
                 ],
             ],
@@ -150,6 +167,10 @@ class PublicWebDiscoveryAdapterTest extends TestCase
         $this->assertSame([], $firstLead['observed_signals']);
         $this->assertSame('Skipped Co', $firstSkipped['name']);
         $this->assertSame('No public email', $firstSkipped['reason']);
+        $this->assertSame('https://skippedco.example', $firstSkipped['website']);
+        $this->assertSame('Pat Owner', $firstSkipped['contact_name']);
+        $this->assertSame('hello@skippedco.example', $firstSkipped['email']);
+        $this->assertSame('813-555-0199', $firstSkipped['phone']);
         $this->assertSame('Unknown', $unknownSkipped['name']);
 
         ProspectingDiscoveryAgent::assertPrompted(function ($prompt): bool {

@@ -231,6 +231,10 @@ class ProspectingAgentTest extends TestCase
                         [
                             'name' => 'Strong Site Co',
                             'reason' => 'Website already looks strong.',
+                            'website' => 'https://strongsite.example',
+                            'contact_name' => 'Alex Owner',
+                            'email' => 'hello@strongsite.example',
+                            'phone' => '813-555-0144',
                         ],
                     ],
                 ],
@@ -254,6 +258,10 @@ class ProspectingAgentTest extends TestCase
                             ->first();
 
         $this->assertNotNull($skippedClient);
+        $this->assertSame('https://strongsite.example', $skippedClient->website);
+        $this->assertSame('Alex Owner', $skippedClient->contact_name);
+        $this->assertSame('hello@strongsite.example', $skippedClient->contact_email);
+        $this->assertSame('813-555-0144', $skippedClient->contact_phone);
         $this->assertNotNull($contactableClient);
 
         $skippedOpportunity = Opportunity::query()
@@ -336,6 +344,51 @@ class ProspectingAgentTest extends TestCase
         $this->assertDatabaseMissing('opportunities', [
             'title' => 'Unknown',
         ]);
+    }
+
+    public function test_agent_does_not_persist_skipped_company_when_website_already_exists(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        Client::factory()
+            ->create([
+                'company_name' => 'Existing Site Co',
+                'website' => 'https://strongsite.example',
+            ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn([
+                'leads' => [
+                    [
+                        'company_name' => 'Contactable Co',
+                        'email' => 'hello@contactable.example',
+                    ],
+                ],
+                'skipped' => [
+                    [
+                        'name' => 'Strong Site Co',
+                        'reason' => 'Website already looks strong.',
+                        'website' => 'https://strongsite.example',
+                    ],
+                ],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $this->assertDatabaseMissing('clients', [
+            'company_name' => 'Strong Site Co',
+        ]);
+        $this->assertDatabaseCount('clients', 2);
     }
 
     public function test_agent_uses_a_fallback_reason_when_skipped_reason_is_empty(): void
@@ -720,6 +773,7 @@ class ProspectingAgentTest extends TestCase
         $this->assertStringContainsString('Website design and development', $promptText);
         $this->assertStringContainsString('Custom software development', $promptText);
         $this->assertStringContainsString('put `website_design_development` first whenever a site opening exists', $promptText);
+        $this->assertStringContainsString('"website": "https://example.com"', $promptText);
         $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
     }
 }
