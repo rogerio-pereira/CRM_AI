@@ -58,8 +58,10 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
             ->assertSee('Refresh AI insights')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-copy-email"')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-regenerate-email"')
+            ->assertSeeInOrder([
+                'opportunities-detail-ai-regenerate-email',
+                'opportunities-detail-ai-copy-email',
+            ])
             ->assertSee('Regenerate email');
     }
 

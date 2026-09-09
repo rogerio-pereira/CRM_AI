@@ -93,8 +93,8 @@ it('opens the opportunity detail modal with structured AI insights', function ()
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSee('A simple way to bring in more local conversations')
         ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.')
-        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
         ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
         ->assertSee('Regenerate email');
 });
 
