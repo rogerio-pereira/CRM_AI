@@ -113,6 +113,7 @@
 
             <livewire:opportunities.ai-suggestion-panel
                 :opportunity-id="$opportunity->id"
+                :parent-component-id="$this->getId()"
                 :key="'opportunity-ai-suggestion-'.$opportunity->id"
             />
 

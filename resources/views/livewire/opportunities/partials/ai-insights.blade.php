@@ -269,7 +269,19 @@
                         class="btn-primary"
                         data-test="opportunities-detail-ai-send-email"
                         data-panel-component-id="{{ $panelComponentId }}"
-                        x-on:click="Livewire.find($event.currentTarget.dataset.panelComponentId).sendEmail()"
+                        data-parent-component-id="{{ $parentComponentId }}"
+                        x-on:click="
+                            const button = $event.currentTarget;
+                            const panelId = button.dataset.panelComponentId;
+                            const parentId = button.dataset.parentComponentId;
+                            Livewire.find(panelId).sendEmail().then(() => {
+                                if (! parentId) {
+                                    return;
+                                }
+
+                                Livewire.find(parentId).closeDetailAfterFirstContactEmail();
+                            })
+                        "
                     >
                         {{ __('Send') }}
                     </flux:button>

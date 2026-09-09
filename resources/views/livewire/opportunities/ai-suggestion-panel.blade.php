@@ -49,6 +49,7 @@
                 'showRefresh' => $isQualified,
                 'opportunityId' => $opportunity->id,
                 'panelComponentId' => $this->getId(),
+                'parentComponentId' => $this->parentComponentId,
             ])
         @else
             <div class="rounded-lg border border-ai/30 p-4">

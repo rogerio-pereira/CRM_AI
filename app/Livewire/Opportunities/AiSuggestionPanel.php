@@ -21,6 +21,8 @@ class AiSuggestionPanel extends Component
 
     public int $opportunityId;
 
+    public ?string $parentComponentId = null;
+
     public bool $refreshQueued = false;
 
     public function refreshInsights(): void
