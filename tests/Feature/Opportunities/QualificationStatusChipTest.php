@@ -90,7 +90,8 @@ class QualificationStatusChipTest extends TestCase
             ->assertSee('Qualification could not be completed. The team can try again later.')
             ->assertSeeHtml('data-test="opportunities-detail-requalify"')
             ->assertSeeHtml('data-index-component-id=')
-            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
+            ->assertSeeHtml('btn-primary')
+            ->assertSeeHtml('Livewire.find(indexId).requalifyOpportunity(opportunityId)')
             ->assertSee('Requalify');
     }
 
