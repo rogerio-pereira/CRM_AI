@@ -57,8 +57,8 @@ The 2026-07-31 decisions below that placed qualification status, errors, timesta
    - Store the canonical qualification payload in `opportunities` (schema version 1 JSON; `ai_insights` on the opportunity).
    - Store later opportunity-specific recommendations in `opportunities.ai_recommendations` when the recommendation depends on that opportunity ([12 AI recommendations and insights](../05%20-%20Feature%20List.md#f12-ai-recommendations)).
    - Schema versioning allows later extension without breaking old records.
-   - Every successful qualification must include an email `contact_example` inside `outreach_strategy`.
-   - The email example is required for internal guidance only; it is never sent automatically.
+   - The finished email `contact_example` is written by the first-contact email job into `ai_insights.outreach_strategy`. Qualification and recommendation may omit that field or leave it empty.
+   - The email example is required on the opportunity after that job finishes, for internal guidance only; it is never sent automatically.
 
 6. **Initial prospecting qualification uses the full `docs/services/` catalog on one opportunity.**
    - When the lead is created by the Prospecting Agent, the first opportunity is qualified against **every** service markdown file in `docs/services/` (read each file in full).
@@ -134,7 +134,7 @@ These examples guide AI recommendations and internal sales notes. They are tone 
 | `business_automation` | Position automation as removing repeated manual work so the owner has more time for customers and sales. |
 | `custom_software_development` | Use only when there is a clear operational need. Frame as a tailored tool after simpler options are considered, not as the first pitch. |
 
-Qualification analysis does **not** write the finished `contact_example`. After qualification succeeds, recommendation runs next. A dedicated first-contact email job then calls `write_first_contact_email`, stores `contact_example`, and moves the opportunity to `Contact`. Gemini rejects mixing built-in `WebSearch` / `WebFetch` with a custom function on the same request, so the qualification analysis agent keeps only those provider tools. Recommendation analysis has no built-in tools, so it still calls `write_first_contact_email` itself. Both email paths must pass `line_of_business` (what the client does, not a Front Porch service name). The subject uses one emoji that belongs to that email. The body names the client's trade in plain language.
+Qualification analysis and recommendation analysis do **not** write the finished `contact_example`. After qualification succeeds, recommendation runs next. A dedicated first-contact email job then prompts the copywriter with a JSON dossier (`client`, `opportunity`, `ai_insights`, and `ai_recommendations`), stores `contact_example` on `ai_insights.outreach_strategy`, and moves the opportunity to `Contact`. Gemini rejects mixing built-in `WebSearch` / `WebFetch` with a custom function on the same request, so the qualification analysis agent keeps only those provider tools. Recommendation analysis has no email tool. The subject uses one emoji that belongs to that email. The body names the client's trade in plain language.
 
 ## Prompt assets
 
