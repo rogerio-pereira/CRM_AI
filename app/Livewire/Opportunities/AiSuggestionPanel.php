@@ -4,6 +4,7 @@ namespace App\Livewire\Opportunities;
 
 use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
+use App\Events\ContactWithFollowUp;
 use App\Mail\FirstContactOutreachMail;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
@@ -153,6 +154,15 @@ class AiSuggestionPanel extends Component
 
         Mail::to($recipient)
             ->send($mail);
+
+        $userId = auth()->id();
+
+        /**
+         * @calls app/Listeners/HandleFirstContactOutreachSent
+         */
+        ContactWithFollowUp::dispatch($opportunity, $userId);
+
+        $this->dispatch('opportunity-ai-updated');
 
         Toast::show(
             variant: 'success',
