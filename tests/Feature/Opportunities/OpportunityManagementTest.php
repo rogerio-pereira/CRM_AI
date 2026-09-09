@@ -401,6 +401,43 @@ class OpportunityManagementTest extends TestCase
             ->assertSee('Follow-up refresh deal');
     }
 
+    public function test_opportunity_ai_updated_event_reloads_kanban_stages(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Pipeline refresh deal',
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class);
+        $groupedBefore = $component->instance()->opportunitiesByStage;
+        $contactBefore = $groupedBefore[PipelineStage::Contact->value];
+
+        $this->assertTrue(
+            $contactBefore->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
+
+        $opportunity->stage = PipelineStage::ContactSent;
+        $opportunity->save();
+
+        $component->dispatch('opportunity-ai-updated');
+
+        $groupedAfter = $component->instance()->opportunitiesByStage;
+        $contactSentAfter = $groupedAfter[PipelineStage::ContactSent->value];
+
+        $this->assertTrue(
+            $contactSentAfter->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
+    }
+
     public function test_task_created_event_refreshes_kanban(): void
     {
         $user = User::factory()

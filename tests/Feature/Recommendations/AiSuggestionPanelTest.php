@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Recommendations;
 
+use App\Enums\FollowUpPriority;
+use App\Enums\FollowUpReminderStatus;
+use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Events\ContactWithFollowUp;
 use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunQualificationAgentJob;
 use App\Livewire\Leads\Index as LeadsIndex;
@@ -10,10 +14,13 @@ use App\Livewire\Opportunities\AiSuggestionPanel;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
+use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
@@ -502,5 +509,89 @@ class AiSuggestionPanelTest extends TestCase
 
             return $hasBody;
         });
+    }
+
+    public function test_send_email_moves_opportunity_to_contact_sent_and_creates_follow_up(): void
+    {
+        Mail::fake();
+        Carbon::setTestNow('2026-09-09 13:05:00');
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail')
+            ->assertDispatched('opportunity-ai-updated');
+
+        $expectedDueAt = Carbon::parse('2026-09-12 09:00:00');
+        $followUp = FollowUp::where('opportunity_id', $opportunity->id)
+                        ->first();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+        ]);
+        $this->assertNotNull($followUp);
+        $this->assertSame($client->id, $followUp->client_id);
+        $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
+        $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
+        $this->assertSame('Follow up after first-contact email.', $followUp->notes);
+        $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_send_email_dispatches_contact_with_follow_up(): void
+    {
+        Mail::fake();
+        Event::fake([ContactWithFollowUp::class]);
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail');
+
+        Event::assertDispatched(
+            ContactWithFollowUp::class,
+            function (ContactWithFollowUp $event) use ($opportunity, $user): bool {
+                $sameOpportunity = $event->opportunity->is($opportunity);
+                $sameUser = $event->userId === $user->id;
+
+                if (! $sameOpportunity) {
+                    return false;
+                }
+
+                return $sameUser;
+            },
+        );
     }
 }

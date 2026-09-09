@@ -155,7 +155,8 @@ it('sends the example email to the lead from the opportunity detail modal', func
         ->click('@kanban-card-open-'.$opportunity->id)
         ->assertPresent('[data-test="opportunities-detail-ai-send-email"]')
         ->click('@opportunities-detail-ai-send-email')
-        ->assertSee('Email sent.');
+        ->assertSee('Email sent.')
+        ->assertPresent('[data-test="kanban-column-contact-sent"] [data-test="kanban-card-'.$opportunity->id.'"]');
 
     Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client): bool {
         $hasRecipient = $mail->hasTo($client->contact_email);
@@ -173,6 +174,16 @@ it('sends the example email to the lead from the opportunity detail modal', func
 
         return $hasBody;
     });
+
+    $opportunity->refresh();
+    $followUp = FollowUp::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+    expect($opportunity->stage)
+        ->toBe(PipelineStage::ContactSent);
+    expect($followUp)
+        ->not
+        ->toBeNull();
 });
 
 it('opens the opportunity detail modal with AI recommendations and a refresh action', function () {
