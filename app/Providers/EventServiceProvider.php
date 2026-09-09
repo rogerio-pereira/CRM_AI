@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Events\ContactWithFollowUp;
 use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
 use App\Events\OpportunityCreated;
@@ -12,6 +13,7 @@ use App\Listeners\DispatchAiOnOpportunityCreated;
 use App\Listeners\DispatchAiOnOpportunityStageChanged;
 use App\Listeners\EvaluateSlackRulesForFollowUp;
 use App\Listeners\EvaluateSlackRulesForTask;
+use App\Listeners\HandleContactWithFollowUp;
 use App\Listeners\QueueCalendarEventForFollowUp;
 use App\Listeners\QueueCalendarEventForTask;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -27,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OpportunityCreated::class => [
             DispatchAiOnOpportunityCreated::class,
+        ],
+        ContactWithFollowUp::class => [
+            HandleContactWithFollowUp::class,
         ],
         FollowUpCreated::class => [
             QueueCalendarEventForFollowUp::class,

@@ -4,11 +4,14 @@ namespace App\Livewire\Opportunities;
 
 use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
+use App\Events\ContactWithFollowUp;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use App\Support\Toast;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
@@ -17,6 +20,8 @@ class AiSuggestionPanel extends Component
     public const REFRESH_RATE_LIMIT_SECONDS = 60;
 
     public int $opportunityId;
+
+    public ?string $parentComponentId = null;
 
     public bool $refreshQueued = false;
 
@@ -129,6 +134,44 @@ class AiSuggestionPanel extends Component
         Toast::show(
             variant: 'success',
             text: __('Example email regeneration queued.'),
+        );
+    }
+
+    public function sendEmail(): void
+    {
+        $opportunity = Opportunity::with('client')
+                        ->findOrFail($this->opportunityId);
+
+        $contactExample = $opportunity->ai_insights['outreach_strategy']['contact_example'];
+        $subject = $contactExample['subject'];
+        $body = $contactExample['body'];
+
+        $client = $opportunity->client;
+        $recipient = $client->contact_email;
+
+        $mail = new FirstContactOutreachMail(
+            $subject,
+            $body,
+        );
+
+        Mail::to($recipient)
+            ->send($mail);
+
+        $userId = auth()->id();
+
+        /**
+         * @calls app/Listeners/HandleContactWithFollowUp
+         */
+        ContactWithFollowUp::dispatch($opportunity, $userId);
+
+        /**
+         * Livewire event so parent Index components refresh and the frontend updates.
+         */
+        $this->dispatch('opportunity-ai-updated');
+
+        Toast::show(
+            variant: 'success',
+            text: __('Email sent.'),
         );
     }
 

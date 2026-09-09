@@ -99,6 +99,12 @@ class Index extends Component
         unset($this->detailClient);
     }
 
+    #[On('opportunity-ai-updated')]
+    public function refreshDetailAfterAiUpdate(): void
+    {
+        unset($this->detailClient);
+    }
+
     #[Computed]
     public function deleteClient(): ?Client
     {
@@ -136,6 +142,13 @@ class Index extends Component
     {
         $this->detailClientId = $clientId;
         $this->showDetailModal = true;
+        unset($this->detailClient);
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailClientId = null;
         unset($this->detailClient);
     }
 

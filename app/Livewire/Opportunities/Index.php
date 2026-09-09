@@ -112,6 +112,13 @@ class Index extends Component
         unset($this->detailOpportunity);
     }
 
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailOpportunityId = null;
+        unset($this->opportunitiesByStage, $this->detailOpportunity);
+    }
+
     public function saveOpportunity(OpportunityService $opportunityService): void
     {
         $validated = $this->validate(self::formRules());

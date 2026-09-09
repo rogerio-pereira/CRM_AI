@@ -87,6 +87,7 @@
                                 @if ($showSuggestionPanel)
                                     <livewire:opportunities.ai-suggestion-panel
                                         :opportunity-id="$opportunity->id"
+                                        :parent-component-id="$this->getId()"
                                         :key="'lead-ai-suggestion-'.$opportunity->id"
                                     />
                                 @endif

@@ -30,6 +30,26 @@ class OpportunityManagementTest extends TestCase
             ->assertOk();
     }
 
+    public function test_kanban_uses_a_move_select_and_top_scrollbar(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Move select deal',
+                                'stage' => PipelineStage::Lead,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-test="kanban-top-scrollbar"')
+            ->assertSeeHtml('data-test="kanban-autoscroller"')
+            ->assertSeeHtml('data-test="kanban-card-move-'.$opportunity->id.'"')
+            ->assertDontSee('Move to Qualification')
+            ->assertSee('Move to');
+    }
+
     public function test_user_can_create_an_opportunity_in_lead_stage(): void
     {
         Queue::fake();
@@ -262,6 +282,39 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
+    public function test_close_detail_modal_closes_modal_and_refreshes_board(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Close after send deal',
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSet('showDetailModal', true);
+
+        $opportunity->stage = PipelineStage::ContactSent;
+        $opportunity->save();
+
+        $component->call('closeDetailModal')
+            ->assertSet('showDetailModal', false)
+            ->assertSet('detailOpportunityId', null);
+
+        $grouped = $component->instance()->opportunitiesByStage;
+        $contactSent = $grouped[PipelineStage::ContactSent->value];
+
+        $this->assertTrue(
+            $contactSent->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
+    }
+
     public function test_opportunity_detail_renders_client_contact_summary(): void
     {
         $user = User::factory()
@@ -319,7 +372,8 @@ class OpportunityManagementTest extends TestCase
             ->assertSeeHtml('data-status="failed"')
             ->assertSeeHtml('data-test="opportunities-detail-qualification-error"')
             ->assertSee('Qualification could not be completed. The team can try again later.')
-            ->assertSeeHtml('data-test="opportunities-detail-requalify"');
+            ->assertSeeHtml('data-test="opportunities-detail-requalify"')
+            ->assertSeeHtml('btn-primary');
     }
 
     public function test_moving_to_lost_sets_terminal_status(): void
@@ -343,6 +397,48 @@ class OpportunityManagementTest extends TestCase
         ]);
     }
 
+    public function test_moving_to_disqualified_sets_lost_status(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::Disqualified->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::Disqualified->value,
+                                'status' => OpportunityStatus::Lost->value,
+        ]);
+    }
+
+    public function test_moving_to_contact_sent_keeps_open_status(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::ContactSent->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+                                'status' => OpportunityStatus::Open->value,
+        ]);
+    }
+
     public function test_follow_up_created_event_refreshes_kanban(): void
     {
         $user = User::factory()
@@ -357,6 +453,43 @@ class OpportunityManagementTest extends TestCase
             ->assertSee('Follow-up refresh deal')
             ->dispatch('follow-up-created')
             ->assertSee('Follow-up refresh deal');
+    }
+
+    public function test_opportunity_ai_updated_event_reloads_kanban_stages(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Pipeline refresh deal',
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class);
+        $groupedBefore = $component->instance()->opportunitiesByStage;
+        $contactBefore = $groupedBefore[PipelineStage::Contact->value];
+
+        $this->assertTrue(
+            $contactBefore->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
+
+        $opportunity->stage = PipelineStage::ContactSent;
+        $opportunity->save();
+
+        $component->dispatch('opportunity-ai-updated');
+
+        $groupedAfter = $component->instance()->opportunitiesByStage;
+        $contactSentAfter = $groupedAfter[PipelineStage::ContactSent->value];
+
+        $this->assertTrue(
+            $contactSentAfter->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
     }
 
     public function test_task_created_event_refreshes_kanban(): void

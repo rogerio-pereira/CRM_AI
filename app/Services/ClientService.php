@@ -50,6 +50,7 @@ class ClientService
             ->whereNotIn('stage', [
                 PipelineStage::Won->value,
                 PipelineStage::Lost->value,
+                PipelineStage::Disqualified->value,
             ])
             ->exists();
     }

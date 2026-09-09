@@ -11,32 +11,57 @@
         </flux:button>
     </div>
 
-    <div class="overflow-x-auto pb-4" data-test="kanban-board">
-        <div class="flex min-w-max gap-4">
-            @foreach ($this->orderedStages as $stage)
-                @php($stageOpportunities = $this->opportunitiesByStage[$stage->value] ?? collect())
+    <div
+        class="space-y-2"
+        wire:key="kanban-board-scroller"
+        x-data="kanbanScroller()"
+        @mousemove.window="onWindowMouseMove($event)"
+        @mouseup.window="onWindowMouseUp($event)"
+        @auxclick.window="onWindowAuxClick($event)"
+        @keydown.window="onWindowKeydown($event)"
+    >
+        <div
+            x-ref="topScrollbar"
+            class="kanban-scrollbar overflow-x-auto overflow-y-hidden"
+            data-test="kanban-top-scrollbar"
+            @scroll="syncBoardFromTop()"
+        >
+            <div x-ref="topSpacer" class="h-px"></div>
+        </div>
 
-                <div
-                    class="flex min-w-[280px] max-w-[280px] flex-col gap-4 rounded-lg border p-3 transition-colors {{ $stage->columnClasses() }}"
-                    data-test="kanban-column-{{ $stage->slug() }}"
-                    @if ($stage->requiresUserAction())
-                        data-user-action-column="true"
-                    @endif
-                    x-data="{ draggingOver: false }"
-                    @dragover.prevent="draggingOver = true"
-                    @dragleave.prevent="draggingOver = false"
-                    @drop.prevent="
-                        draggingOver = false;
-                        const opportunityId = event.dataTransfer.getData('opportunity-id');
-                        if (opportunityId) {
-                            $wire.moveToStage(Number(opportunityId), '{{ $stage->value }}');
-                        }
-                    "
-                    :class="{
-                        'border-border-strong': draggingOver && !{{ $stage->requiresUserAction() ? 'true' : 'false' }},
-                        'kanban-column-user-action--dragging': draggingOver && {{ $stage->requiresUserAction() ? 'true' : 'false' }},
-                    }"
-                >
+        <div
+            x-ref="board"
+            class="kanban-scrollbar overflow-x-auto pb-4"
+            data-test="kanban-board"
+            @scroll="syncTopFromBoard()"
+            @mousedown="onBoardMouseDown($event)"
+            :class="{ 'cursor-all-scroll': autoscroll }"
+        >
+            <div x-ref="track" class="flex min-w-max gap-4">
+                @foreach ($this->orderedStages as $stage)
+                    @php($stageOpportunities = $this->opportunitiesByStage[$stage->value] ?? collect())
+
+                    <div
+                        class="flex min-w-[280px] max-w-[280px] flex-col gap-4 rounded-lg border p-3 transition-colors {{ $stage->columnClasses() }}"
+                        data-test="kanban-column-{{ $stage->slug() }}"
+                        @if ($stage->requiresUserAction())
+                            data-user-action-column="true"
+                        @endif
+                        x-data="{ draggingOver: false }"
+                        @dragover.prevent="draggingOver = true"
+                        @dragleave.prevent="draggingOver = false"
+                        @drop.prevent="
+                            draggingOver = false;
+                            const opportunityId = event.dataTransfer.getData('opportunity-id');
+                            if (opportunityId) {
+                                $wire.moveToStage(Number(opportunityId), '{{ $stage->value }}');
+                            }
+                        "
+                        :class="{
+                            'border-border-strong': draggingOver && !{{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                            'kanban-column-user-action--dragging': draggingOver && {{ $stage->requiresUserAction() ? 'true' : 'false' }},
+                        }"
+                    >
                     <div class="flex items-center justify-between gap-2">
                         @if ($stage->requiresUserAction())
                             <span class="{{ $stage->columnHeadingClasses() }}">{{ $stage->label() }}</span>
@@ -90,16 +115,28 @@
                                                     {{ __('Edit') }}
                                                 </flux:menu.item>
 
-                                                @foreach ($this->orderedStages as $moveStage)
-                                                    @if ($moveStage !== $opportunity->stage)
-                                                        <flux:menu.item
-                                                            wire:click="moveToStage({{ $opportunity->id }}, '{{ $moveStage->value }}')"
-                                                            data-test="kanban-card-move-{{ $opportunity->id }}-{{ $moveStage->slug() }}"
-                                                        >
-                                                            {{ __('Move to :stage', ['stage' => $moveStage->label()]) }}
-                                                        </flux:menu.item>
-                                                    @endif
-                                                @endforeach
+                                                <div class="px-2 py-1" @click.stop @mousedown.stop>
+                                                    <flux:select
+                                                        size="xs"
+                                                        :placeholder="__('Move to')"
+                                                        data-test="kanban-card-move-{{ $opportunity->id }}"
+                                                        x-on:change="
+                                                            const stage = $event.target.value;
+                                                            if (!stage) {
+                                                                return;
+                                                            }
+                                                            $wire.moveToStage({{ $opportunity->id }}, stage);
+                                                        "
+                                                    >
+                                                        @foreach ($this->orderedStages as $moveStage)
+                                                            @if ($moveStage !== $opportunity->stage)
+                                                                <flux:select.option value="{{ $moveStage->value }}">
+                                                                    {{ $moveStage->label() }}
+                                                                </flux:select.option>
+                                                            @endif
+                                                        @endforeach
+                                                    </flux:select>
+                                                </div>
                                             </flux:menu>
                                         </flux:dropdown>
                                     </div>
@@ -173,6 +210,17 @@
                     </div>
                 </div>
             @endforeach
+            </div>
+        </div>
+
+        <div
+            x-show="autoscroll"
+            x-cloak
+            class="kanban-autoscroller"
+            data-test="kanban-autoscroller"
+            :style="scrollerStyle()"
+        >
+            <span class="kanban-autoscroller-mark">✚</span>
         </div>
     </div>
 

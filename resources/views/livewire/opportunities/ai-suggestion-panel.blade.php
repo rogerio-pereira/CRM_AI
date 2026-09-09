@@ -48,6 +48,8 @@
                 'nextSteps' => $nextSteps,
                 'showRefresh' => $isQualified,
                 'opportunityId' => $opportunity->id,
+                'panelComponentId' => $this->getId(),
+                'parentComponentId' => $this->parentComponentId,
             ])
         @else
             <div class="rounded-lg border border-ai/30 p-4">
@@ -59,11 +61,12 @@
                     <flux:button
                         type="button"
                         size="sm"
-                        variant="ghost"
+                        variant="filled"
                         icon="arrow-path"
-                        wire:click="refreshInsights"
-                        wire:loading.attr="disabled"
+                        class="btn-danger"
                         data-test="ai-suggestion-refresh"
+                        data-panel-component-id="{{ $this->getId() }}"
+                        x-on:click="Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()"
                     >
                         {{ __('Refresh AI insights') }}
                     </flux:button>

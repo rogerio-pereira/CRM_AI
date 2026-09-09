@@ -90,7 +90,8 @@ class QualificationStatusChipTest extends TestCase
             ->assertSee('Qualification could not be completed. The team can try again later.')
             ->assertSeeHtml('data-test="opportunities-detail-requalify"')
             ->assertSeeHtml('data-index-component-id=')
-            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
+            ->assertSeeHtml('btn-primary')
+            ->assertSeeHtml('Livewire.find(indexId).requalifyOpportunity(opportunityId)')
             ->assertSee('Requalify');
     }
 
@@ -186,6 +187,7 @@ class QualificationStatusChipTest extends TestCase
             ->assertSee('Ready for a first conversation.')
             ->assertSee('AI Insight')
             ->assertSee('Refresh AI insights')
+            ->assertSeeHtml('btn-danger')
             ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 
@@ -221,8 +223,11 @@ class QualificationStatusChipTest extends TestCase
             ->assertSee('A simple way to bring in more local conversations')
             ->assertSeeHtml('data-test="opportunities-detail-ai-contact-body"')
             ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-copy-email"')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-regenerate-email"')
-            ->assertSee('Regenerate email');
+            ->assertSeeInOrder([
+                'opportunities-detail-ai-regenerate-email',
+                'opportunities-detail-ai-copy-email',
+                'opportunities-detail-ai-send-email',
+            ])
+            ->assertSee('Regenerate');
     }
 }

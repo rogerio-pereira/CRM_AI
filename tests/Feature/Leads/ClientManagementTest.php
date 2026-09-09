@@ -3,6 +3,7 @@
 namespace Tests\Feature\Leads;
 
 use App\Enums\ClientStatus;
+use App\Enums\PipelineStage;
 use App\Livewire\Leads\Index;
 use App\Models\Client;
 use App\Models\Opportunity;
@@ -314,6 +315,28 @@ class ClientManagementTest extends TestCase
         $this->assertDatabaseMissing('clients', ['id' => $client->id]);
     }
 
+    public function test_user_can_delete_client_when_opportunity_is_disqualified(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+
+        Opportunity::factory()
+            ->for($client)
+            ->stage(PipelineStage::Disqualified)
+            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDeleteModal', $client->id)
+            ->call('confirmDelete')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('clients', ['id' => $client->id]);
+    }
+
     public function test_user_can_delete_client_without_opportunities(): void
     {
         $user = User::factory()
@@ -383,6 +406,23 @@ class ClientManagementTest extends TestCase
         $this->assertTrue($component->get('showDetailModal'));
         $this->assertSame('Detail Co', $detailClient?->company_name);
         $this->assertCount(1, $detailClient?->opportunities ?? []);
+    }
+
+    public function test_close_detail_modal_closes_lead_modal(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                        ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $client->id)
+            ->assertSet('showDetailModal', true)
+            ->call('closeDetailModal')
+            ->assertSet('showDetailModal', false)
+            ->assertSet('detailClientId', null);
     }
 
     public function test_detail_modal_renders_website_as_a_link(): void

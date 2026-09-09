@@ -37,8 +37,9 @@ it('opens the lead detail modal with a first-contact email example', function ()
         ->assertPresent('[data-test="leads-detail-opportunity-'.$opportunity->id.'"]')
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSee('A simple way to bring in more local conversations')
-        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
         ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-send-email"]')
         ->assertNotPresent('[data-test="opportunities-detail-notes"]');
 });
 

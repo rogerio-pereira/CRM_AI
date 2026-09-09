@@ -2,17 +2,26 @@
 
 namespace Tests\Feature\Recommendations;
 
+use App\Enums\FollowUpPriority;
+use App\Enums\FollowUpReminderStatus;
+use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Events\ContactWithFollowUp;
 use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunQualificationAgentJob;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\AiSuggestionPanel;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
+use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\Support\RecommendationFake;
@@ -57,10 +66,22 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI Insight')
             ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('data-panel-component-id=')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).regenerateEmail()')
+            ->assertSeeHtml('data-parent-component-id=')
+            ->assertSeeHtml('.sendEmail()')
+            ->assertSeeHtml('closeDetailModal()')
+            ->assertSeeHtml('btn-danger')
             ->assertSee('Refresh AI insights')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-copy-email"')
-            ->assertSeeHtml('data-test="opportunities-detail-ai-regenerate-email"')
-            ->assertSee('Regenerate email');
+            ->assertSeeInOrder([
+                'opportunities-detail-ai-regenerate-email',
+                'opportunities-detail-ai-copy-email',
+                'opportunities-detail-ai-send-email',
+            ])
+            ->assertSeeHtml('btn-primary')
+            ->assertSee('Regenerate')
+            ->assertSee('Send');
     }
 
     public function test_lead_detail_renders_related_opportunity_recommendations(): void
@@ -250,7 +271,10 @@ class AiSuggestionPanelTest extends TestCase
                             ])
             ->assertSeeHtml('data-test="ai-suggestion-empty"')
             ->assertSee('AI recommendations will appear here after the recommendation job finishes.')
-            ->assertSeeHtml('data-test="ai-suggestion-refresh"');
+            ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('data-panel-component-id=')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()')
+            ->assertSeeHtml('btn-danger');
     }
 
     public function test_unqualified_opportunity_does_not_render_the_panel(): void
@@ -446,5 +470,137 @@ class AiSuggestionPanelTest extends TestCase
             ->call('regenerateEmail');
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_send_email_sends_the_example_markdown_to_the_lead(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail');
+
+        Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client): bool {
+            $hasRecipient = $mail->hasTo($client->contact_email);
+            $hasSubject = $mail->emailSubject === 'A simple way to bring in more local conversations';
+            $expectedBody = "Hi there,\n\nI noticed a practical opportunity to turn more local demand into conversations.";
+            $hasBody = $mail->markdownBody === $expectedBody;
+
+            if (! $hasRecipient) {
+                return false;
+            }
+
+            if (! $hasSubject) {
+                return false;
+            }
+
+            return $hasBody;
+        });
+    }
+
+    public function test_send_email_moves_opportunity_to_contact_sent_and_creates_follow_up(): void
+    {
+        Mail::fake();
+        Carbon::setTestNow('2026-09-09 13:05:00');
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail')
+            ->assertDispatched('opportunity-ai-updated');
+
+        $expectedDueAt = Carbon::parse('2026-09-12 09:00:00');
+        $followUp = FollowUp::where('opportunity_id', $opportunity->id)
+                        ->first();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+        ]);
+        $this->assertNotNull($followUp);
+        $this->assertSame($client->id, $followUp->client_id);
+        $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
+        $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
+        $this->assertSame('Follow up after first-contact email.', $followUp->notes);
+        $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
+
+        $note = OpportunityNote::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+        $this->assertNotNull($note);
+        $this->assertSame($user->id, $note->user_id);
+        $this->assertSame('First Email sent', $note->body);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_send_email_dispatches_contact_with_follow_up(): void
+    {
+        Mail::fake();
+        Event::fake([ContactWithFollowUp::class]);
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail');
+
+        Event::assertDispatched(
+            ContactWithFollowUp::class,
+            function (ContactWithFollowUp $event) use ($opportunity, $user): bool {
+                $sameOpportunity = $event->opportunity->is($opportunity);
+                $sameUser = $event->userId === $user->id;
+
+                if (! $sameOpportunity) {
+                    return false;
+                }
+
+                return $sameUser;
+            },
+        );
     }
 }

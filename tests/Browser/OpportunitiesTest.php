@@ -4,6 +4,7 @@ use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunQualificationAgentJob;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -11,6 +12,7 @@ use App\Models\OpportunityNote;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\RecommendationFake;
 
@@ -26,10 +28,15 @@ it('displays the kanban board and creates an opportunity', function () {
         ->assertNoSmoke()
         ->assertPresent('[data-test="opportunities-page"]')
         ->assertPresent('[data-test="kanban-board"]')
+        ->assertPresent('[data-test="kanban-top-scrollbar"]')
         ->assertPresent('[data-test="kanban-column-lead"]')
         ->assertPresent('[data-test="kanban-column-contact"][data-user-action-column="true"]')
+        ->assertPresent('[data-test="kanban-column-contact-sent"][data-user-action-column="true"]')
+        ->assertPresent('[data-test="kanban-column-meeting-scheduled"][data-user-action-column="true"]')
         ->assertPresent('[data-test="kanban-column-proposal-analysis"][data-user-action-column="true"]')
+        ->assertPresent('[data-test="kanban-column-disqualified"]')
         ->assertNotPresent('[data-test="kanban-column-lead"][data-user-action-column="true"]')
+        ->assertNotPresent('[data-test="kanban-column-disqualified"][data-user-action-column="true"]')
         ->click('@opportunities-create-button')
         ->fill('@opportunities-form-title', 'Browser Kanban Deal')
         ->select('@opportunities-form-client', (string) $client->id)
@@ -59,13 +66,63 @@ it('moves an opportunity via the action menu', function () {
     visit('/opportunities')
         ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]')
         ->click('@kanban-card-actions-'.$opportunity->id)
-        ->click('@kanban-card-move-'.$opportunity->id.'-qualification')
+        ->select('@kanban-card-move-'.$opportunity->id, PipelineStage::Qualification->value)
         ->assertPresent('[data-test="kanban-column-qualification"] [data-test="kanban-card-'.$opportunity->id.'"]');
 
     $opportunity->refresh();
 
     expect($opportunity->stage)
         ->toBe(PipelineStage::Qualification);
+});
+
+it('keeps the kanban horizontal scroll after moving a card', function () {
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationProcessing()
+                        ->create([
+                            'title' => 'Keep Scroll Deal',
+                            'stage' => PipelineStage::ProposalGeneration,
+                        ]);
+
+    $this->actingAs($user);
+
+    $page = visit('/opportunities');
+
+    $page->assertPresent('[data-test="kanban-board"]')
+        ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]');
+
+    $scrollBoardScript = <<<'JS'
+() => {
+    const board = document.querySelector('[data-test="kanban-board"]');
+    board.scrollLeft = 480;
+
+    return board.scrollLeft;
+}
+JS;
+
+    $scrolledLeft = $page->script($scrollBoardScript);
+
+    expect($scrolledLeft)
+        ->toBeGreaterThan(0);
+
+    $page->click('@kanban-card-actions-'.$opportunity->id)
+        ->select('@kanban-card-move-'.$opportunity->id, PipelineStage::ProposalAnalysis->value)
+        ->assertPresent('[data-test="kanban-column-proposal-analysis"] [data-test="kanban-card-'.$opportunity->id.'"]')
+        ->wait(0.2);
+
+    $readScrollScript = <<<'JS'
+() => {
+    const board = document.querySelector('[data-test="kanban-board"]');
+
+    return board.scrollLeft;
+}
+JS;
+
+    $leftAfterMove = $page->script($readScrollScript);
+
+    expect($leftAfterMove)
+        ->toBeGreaterThan(300);
 });
 
 it('opens the opportunity detail modal with structured AI insights', function () {
@@ -93,9 +150,10 @@ it('opens the opportunity detail modal with structured AI insights', function ()
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSee('A simple way to bring in more local conversations')
         ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.')
-        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
         ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
-        ->assertSee('Regenerate email');
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-send-email"]')
+        ->assertSee('Regenerate');
 });
 
 it('queues email regeneration from the opportunity detail modal', function () {
@@ -123,6 +181,61 @@ it('queues email regeneration from the opportunity detail modal', function () {
         ->assertNotPresent('[data-test="opportunities-detail-ai-contact-example"]');
 
     Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
+});
+
+it('sends the example email to the lead from the opportunity detail modal', function () {
+    Mail::fake();
+
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+    $opportunity = Opportunity::factory()
+                        ->for($client)
+                        ->qualificationQualified()
+                        ->withAiInsights()
+                        ->create([
+                            'title' => 'Send Email Deal',
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-ai-send-email"]')
+        ->click('@opportunities-detail-ai-send-email')
+        ->assertSee('Email sent.')
+        ->assertPresent('[data-test="kanban-column-contact-sent"] [data-test="kanban-card-'.$opportunity->id.'"]')
+        ->assertNotPresent('[data-test="opportunities-detail-ai-send-email"]');
+
+    Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client): bool {
+        $hasRecipient = $mail->hasTo($client->contact_email);
+        $hasSubject = $mail->emailSubject === 'A simple way to bring in more local conversations';
+        $expectedBody = "Hi there,\n\nI noticed a practical opportunity to turn more local demand into conversations.";
+        $hasBody = $mail->markdownBody === $expectedBody;
+
+        if (! $hasRecipient) {
+            return false;
+        }
+
+        if (! $hasSubject) {
+            return false;
+        }
+
+        return $hasBody;
+    });
+
+    $opportunity->refresh();
+    $followUp = FollowUp::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+    expect($opportunity->stage)
+        ->toBe(PipelineStage::ContactSent);
+    expect($followUp)
+        ->not
+        ->toBeNull();
 });
 
 it('opens the opportunity detail modal with AI recommendations and a refresh action', function () {
