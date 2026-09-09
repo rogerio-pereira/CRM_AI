@@ -74,8 +74,8 @@ class RecommendationAgentTest extends TestCase
             $recommendations['opportunities'][0]['title'],
         );
         $this->assertSame(
-            'Helping more visitors feel ready to call',
-            $recommendations['outreach_strategy']['contact_example']['subject'],
+            'Helpful local growth conversation.',
+            $recommendations['outreach_strategy']['positioning'],
         );
         $this->assertSame(
             'Review the example email before any outreach',
@@ -203,7 +203,7 @@ class RecommendationAgentTest extends TestCase
         $clientId = (string) $client->id;
         $updatedPayload = RecommendationFake::successfulPayload($opportunityId, $clientId);
         $updatedPayload['ai_recommendations']['summary'] = 'Updated recommendation after refresh.';
-        $updatedPayload['ai_recommendations']['conversation_strategy']['contact_example']['subject'] = 'Updated subject';
+        $updatedPayload['ai_recommendations']['conversation_strategy']['positioning'] = 'Updated positioning';
 
         RecommendationAnalysisAgent::fake([
             $updatedPayload,
@@ -219,7 +219,7 @@ class RecommendationAgentTest extends TestCase
         $recommendations = $opportunity->ai_recommendations;
 
         $this->assertSame('Updated recommendation after refresh.', $recommendations['summary']);
-        $this->assertSame('Updated subject', $recommendations['outreach_strategy']['contact_example']['subject']);
+        $this->assertSame('Updated positioning', $recommendations['outreach_strategy']['positioning']);
         $this->assertSame(PipelineStage::Contact, $opportunity->stage);
     }
 
@@ -285,9 +285,7 @@ class RecommendationAgentTest extends TestCase
 
         $this->assertStringContainsString('Do not send emails, DMs, calls, proposals, or client-facing messages', $promptText);
         $this->assertStringContainsString('Recommendations are read-only until a user acts', $promptText);
-        $this->assertStringContainsString('write_first_contact_email', $promptText);
-        $this->assertStringContainsString('line_of_business', $promptText);
-        $this->assertStringContainsString('Do not write the email example yourself', $promptText);
+        $this->assertStringContainsString('You may omit `conversation_strategy.contact_example`', $promptText);
         $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
         $this->assertStringNotContainsString('Lead with website design and development', $promptText);

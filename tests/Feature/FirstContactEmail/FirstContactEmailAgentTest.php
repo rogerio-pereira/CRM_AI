@@ -54,10 +54,15 @@ class FirstContactEmailAgentTest extends TestCase
         WriteFirstContactEmailAgent::assertPrompted(function ($prompt) use ($client): bool {
             $promptText = $prompt->prompt;
             $hasCompany = str_contains($promptText, $client->company_name);
+            $hasInsights = str_contains($promptText, 'ai_insights');
             $hasSummary = str_contains($promptText, 'A local service business that could use a steadier flow of leads.');
             $hasHook = str_contains($promptText, 'The public site looks dated and the next step is hard to find.');
 
             if ($hasCompany === false) {
+                return false;
+            }
+
+            if ($hasInsights === false) {
                 return false;
             }
 
@@ -184,7 +189,7 @@ class FirstContactEmailAgentTest extends TestCase
                 return false;
             }
 
-            return $hasWebsiteRebuild === false;
+            return $hasWebsiteRebuild;
         });
     }
 
@@ -242,6 +247,7 @@ class FirstContactEmailAgentTest extends TestCase
             $hasLeadGeneration = str_contains($promptText, 'lead_generation');
             $hasReferralGap = str_contains($promptText, 'Less dependence on referrals for new work.');
             $hasRecommendationSummary = str_contains($promptText, 'Start with a steadier flow of local quote requests.');
+            $hasRecommendations = str_contains($promptText, 'ai_recommendations');
             $hasWebsiteRebuild = str_contains($promptText, 'A custom site is not the opening for this owner.');
 
             if ($hasLeadGeneration === false) {
@@ -256,7 +262,11 @@ class FirstContactEmailAgentTest extends TestCase
                 return false;
             }
 
-            return $hasWebsiteRebuild === false;
+            if ($hasRecommendations === false) {
+                return false;
+            }
+
+            return $hasWebsiteRebuild;
         });
     }
 
@@ -295,13 +305,13 @@ class FirstContactEmailAgentTest extends TestCase
         WriteFirstContactEmailAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
             $hasCompany = str_contains($promptText, 'Plant City Pools');
-            $hasDefaultService = str_contains($promptText, 'lead_generation');
+            $hasInsights = str_contains($promptText, 'ai_insights');
 
             if ($hasCompany === false) {
                 return false;
             }
 
-            return $hasDefaultService;
+            return $hasInsights;
         });
     }
 

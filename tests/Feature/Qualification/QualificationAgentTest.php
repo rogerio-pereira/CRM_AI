@@ -80,8 +80,8 @@ class QualificationAgentTest extends TestCase
         $this->assertSame(1, $insights['schema_version']);
         $this->assertSame('qualification', $insights['source_agent']);
         $this->assertSame(
-            'A simple way to bring in more local conversations',
-            $insights['outreach_strategy']['contact_example']['subject'],
+            'Helpful local growth conversation.',
+            $insights['outreach_strategy']['positioning'],
         );
 
         $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
@@ -679,9 +679,8 @@ class QualificationAgentTest extends TestCase
         $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
         $this->assertStringContainsString('Do not treat website work as the required commercial opening', $promptText);
         $this->assertStringContainsString('later as an upsell', $promptText);
-        $this->assertStringContainsString('write_first_contact_email', $promptText);
-        $this->assertStringContainsString('line_of_business', $promptText);
-        $this->assertStringContainsString('A follow-up job rewrites `ai_insights.outreach_strategy.contact_example`', $promptText);
+        $this->assertStringContainsString('You may omit `outreach_strategy.contact_example`', $promptText);
+        $this->assertStringContainsString('A later first-contact email job writes the example after recommendation finishes', $promptText);
         $this->assertStringNotContainsString('website_design_development` — primary', $promptText);
         $this->assertStringNotContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
     }
