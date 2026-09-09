@@ -57,6 +57,7 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI Insight')
             ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('btn-danger')
             ->assertSee('Refresh AI insights')
             ->assertSeeInOrder([
                 'opportunities-detail-ai-regenerate-email',
@@ -252,7 +253,8 @@ class AiSuggestionPanelTest extends TestCase
                             ])
             ->assertSeeHtml('data-test="ai-suggestion-empty"')
             ->assertSee('AI recommendations will appear here after the recommendation job finishes.')
-            ->assertSeeHtml('data-test="ai-suggestion-refresh"');
+            ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('btn-danger');
     }
 
     public function test_unqualified_opportunity_does_not_render_the_panel(): void
