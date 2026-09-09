@@ -36,7 +36,7 @@
 | 16 | [16 Google Calendar integration](#f16-google-calendar) | [FDR-016](FDRs/ToDo/FDR-016-google-calendar.md) |
 | 17 | [17 Integration settings](#f17-integration-settings) **Closed** | [FDR-017](FDRs/Closed/FDR-017-integration-settings.md) |
 | 18 | [18 Commercial service catalog](#f18-commercial-service-catalog) | [FDR-018](FDRs/ToDo/FDR-018-commercial-service-catalog.md) |
-| 19 | [19 Opportunity notes](#f19-opportunity-notes) | [FDR-019](FDRs/ToDo/FDR-019-opportunity-notes.md) |
+| 19 | [19 Opportunity notes](#f19-opportunity-notes) | [FDR-019](FDRs/Done/FDR-019-opportunity-notes.md) |
 | 20 | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [FDR-020](FDRs/ToDo/FDR-020-proposal-artifacts-and-delivery.md) |
 
 ---
@@ -308,6 +308,7 @@
 
 - [11 Automated lead qualification](#f11-automated-lead-qualification) — qualification context
 - [04 Lead and client management](#f04-lead-client-management) — display on lead/opportunity UI
+- [19 Opportunity notes](#f19-opportunity-notes) — human notes included on Refresh AI insights
 
 **Produces:**
 
@@ -460,7 +461,7 @@
 
 **Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline)
 
-**Related to:** [13 Proposal assistance](#f13-proposal-assistance)
+**Related to:** [12 AI recommendations and insights](#f12-ai-recommendations), [13 Proposal assistance](#f13-proposal-assistance)
 
 **Consumes:**
 
@@ -468,7 +469,7 @@
 
 **Produces:**
 
-- Notes timeline consumed by [13 Proposal assistance](#f13-proposal-assistance)
+- Notes timeline consumed by [12 AI recommendations and insights](#f12-ai-recommendations) and [13 Proposal assistance](#f13-proposal-assistance)
 
 **ADRs:** [ADR-018](ADRs/ADR-018-proposal-artifact-rendering-and-delivery.md)
 
@@ -513,9 +514,9 @@ Cross-feature only; vendor/infra (PostgreSQL, Redis, OpenAI, etc.) stay in featu
 | [09 AI provider layer and orchestration](#f09-ai-orchestration) | — | — | [10 Automated prospecting](#f10-automated-prospecting), [11 Automated lead qualification](#f11-automated-lead-qualification), [12 AI recommendations and insights](#f12-ai-recommendations), [13 Proposal assistance](#f13-proposal-assistance), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) |
 | [10 Automated prospecting](#f10-automated-prospecting) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [11 Automated lead qualification](#f11-automated-lead-qualification) |
 | [11 Automated lead qualification](#f11-automated-lead-qualification) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [04 Lead and client management](#f04-lead-client-management), [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration) | [12 AI recommendations and insights](#f12-ai-recommendations) |
-| [12 AI recommendations and insights](#f12-ai-recommendations) | [11 Automated lead qualification](#f11-automated-lead-qualification) | [11 Automated lead qualification](#f11-automated-lead-qualification), [04 Lead and client management](#f04-lead-client-management) | — |
+| [12 AI recommendations and insights](#f12-ai-recommendations) | [11 Automated lead qualification](#f11-automated-lead-qualification) | [11 Automated lead qualification](#f11-automated-lead-qualification), [04 Lead and client management](#f04-lead-client-management), [19 Opportunity notes](#f19-opportunity-notes) | — |
 | [18 Commercial service catalog](#f18-commercial-service-catalog) | — | — | [13 Proposal assistance](#f13-proposal-assistance) |
-| [19 Opportunity notes](#f19-opportunity-notes) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [13 Proposal assistance](#f13-proposal-assistance) |
+| [19 Opportunity notes](#f19-opportunity-notes) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline) | [12 AI recommendations and insights](#f12-ai-recommendations), [13 Proposal assistance](#f13-proposal-assistance) |
 | [13 Proposal assistance](#f13-proposal-assistance) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [09 AI provider layer and orchestration](#f09-ai-orchestration), [11 Automated lead qualification](#f11-automated-lead-qualification), [18 Commercial service catalog](#f18-commercial-service-catalog), [19 Opportunity notes](#f19-opportunity-notes) | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) |
 | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [13 Proposal assistance](#f13-proposal-assistance) | [13 Proposal assistance](#f13-proposal-assistance) | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation), [15 Slack notifications](#f15-slack-notifications) |
 | [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [13 Proposal assistance](#f13-proposal-assistance), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [07 Task management](#f07-task-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [13 Proposal assistance](#f13-proposal-assistance), [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [15 Slack notifications](#f15-slack-notifications) |
