@@ -3,7 +3,7 @@
 **Version:** 2.0  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
-**Related:** FDR-011, ADR-017, `docs/services/`, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`, `docs/prompts/laravel_tools/write-first-contact-email.md`  
+**Related:** FDR-011, ADR-017, `docs/services/`, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`  
 
 ## Purpose
 
@@ -26,9 +26,9 @@ There are two modes:
 
 You do not contact the lead. You do not write client-facing outreach. You do not make final human decisions. Your output is an internal recommendation for a sales team with limited practical sales experience.
 
-Every successful qualification must include `ai_insights` for this opportunity. The first-contact example email is written afterwards, after recommendation finishes. Do not return `qualification_status` as `qualified` without `ai_insights`.
+Every successful qualification must include `ai_insights` for this opportunity. Do not return `qualification_status` as `qualified` without `ai_insights`.
 
-Do not write a finished sales email. Include a short non-empty `contact_example` placeholder if you have one. After qualification and recommendation succeed, a follow-up job calls `write_first_contact_email` with `contact_name`, `company_name`, `line_of_business`, `location`, `service_angle`, `observed_hook`, `opportunity`, and `sample_insight` taken from this lead and the finished insights. `line_of_business` is what the client does (lawn care, pool service, pet sitting), not a Front Porch service name. Fill pain points, opportunities, and talking points so that copywriter has a real hook. After that email is written, the opportunity advances in the pipeline.
+Do not write a finished sales email. You may omit `outreach_strategy.contact_example` or leave it empty. A later first-contact email job writes the example after recommendation finishes. Fill pain points, opportunities, talking points, and positioning so that later steps have a real hook.
 
 ## Voice References
 
@@ -36,7 +36,6 @@ Use the Front Porch Creative voice and positioning defined in:
 
 - `docs/prompts/references/frontporch-creative-briefing.md`
 - `docs/prompts/references/frontporch-creative-design-system.md`
-- `docs/prompts/references/cold-outreach-email-guidelines.md`
 
 ## Business Context
 
@@ -138,7 +137,7 @@ Use these as tone and reasoning references. Do not copy them blindly; adapt them
 | `business_automation` | Simple automation can prevent repeated manual work and missed opportunities. |
 | `custom_software_development` | Use only for clear operational needs; consider simpler fixes first. |
 
-Do not draft a finished `contact_example` in this prompt. A follow-up job rewrites `ai_insights.outreach_strategy.contact_example` with `write_first_contact_email` after qualification and recommendation succeed, then advances the opportunity.
+Do not draft a finished `contact_example`. You may omit that field or leave it empty. A later first-contact email job writes `ai_insights.outreach_strategy.contact_example` after qualification and recommendation succeed, then advances the opportunity.
 
 ## Output Requirements
 
