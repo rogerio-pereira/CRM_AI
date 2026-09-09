@@ -480,21 +480,21 @@ class ProspectingAgentTest extends TestCase
         ]);
     }
 
-    public function test_approved_prompt_analyzes_the_full_catalog_without_a_fixed_ranking(): void
+    public function test_approved_prompt_ranks_website_work_first(): void
     {
         $promptPath = base_path('docs/prompts/prospecting-agent.md');
         $prompt = File::get($promptPath);
         $promptText = (string) $prompt;
 
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
-        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringContainsString('Website design and development — primary entry', $promptText);
         $this->assertStringContainsString('Lead generation', $promptText);
         $this->assertStringContainsString('Content creation', $promptText);
         $this->assertStringContainsString('Email marketing', $promptText);
         $this->assertStringContainsString('Business automations', $promptText);
         $this->assertStringContainsString('Website design and development', $promptText);
         $this->assertStringContainsString('Custom software development', $promptText);
-        $this->assertStringContainsString('later upsell', $promptText);
-        $this->assertStringNotContainsString('Website design and development — primary entry', $promptText);
+        $this->assertStringContainsString('put `website_design_development` first whenever a site opening exists', $promptText);
+        $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
     }
 }

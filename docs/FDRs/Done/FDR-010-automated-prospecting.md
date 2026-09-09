@@ -20,6 +20,7 @@
 | 1 | Discovery mechanism | AI-led active prospecting; **compliant scraping** on public/free sources allowed; **all code in this repo** (no external scripts/services); approved system prompt required; subtle–moderate sales tone; LGPD/GDPR compliance |
 | 2 | Deduplication | Company name + website domain (primary); email + phone when present (secondary) |
 | 3 | MVP data sources | Public/free only: Google, Maps, websites, social networks, directories — **no paid data APIs** |
+| 4 | Early-stage commercial opening | Website-first. Prefer missing, outdated, unclear, or merely “fine” sites. Do not fill the list with strong-site companies whose remaining work is ads, content, email, or custom software. **Pending revert:** when cash flow and delivery capacity allow heavier first jobs. Search `revert-later-website-first` in [05 - Feature List](../../05%20-%20Feature%20List.md#revert-later-website-first). |
 
 ### Stakeholder deliverable
 

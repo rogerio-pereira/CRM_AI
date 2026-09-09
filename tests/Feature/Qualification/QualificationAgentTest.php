@@ -669,20 +669,19 @@ class QualificationAgentTest extends TestCase
         ]);
     }
 
-    public function test_approved_prompt_analyzes_the_full_catalog_without_a_fixed_ranking(): void
+    public function test_approved_prompt_ranks_website_work_first(): void
     {
         $promptPath = base_path('docs/prompts/qualification-agent.md');
         $prompt = File::get($promptPath);
         $promptText = (string) $prompt;
 
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
-        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
-        $this->assertStringContainsString('Do not treat website work as the required commercial opening', $promptText);
-        $this->assertStringContainsString('later as an upsell', $promptText);
+        $this->assertStringContainsString('website_design_development` — primary', $promptText);
+        $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
         $this->assertStringContainsString('You may omit `outreach_strategy.contact_example`', $promptText);
         $this->assertStringContainsString('A later first-contact email job writes the example after recommendation finishes', $promptText);
-        $this->assertStringNotContainsString('website_design_development` — primary', $promptText);
-        $this->assertStringNotContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
+        $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringNotContainsString('Do not treat website work as the required commercial opening', $promptText);
     }
 
     /**

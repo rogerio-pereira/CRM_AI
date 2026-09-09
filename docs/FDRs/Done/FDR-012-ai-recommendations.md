@@ -8,7 +8,7 @@
 
 ## How it works
 
-1. **Recommendation Agent** generates: company summary, pain points, opportunity analysis, and general outreach strategy.
+1. **Recommendation Agent** generates: company summary, pain points, opportunity analysis, and general outreach strategy. When a website opening exists, lead with website work; treat lead generation, content, email, and automation as follow-on until `revert-later-website-first` is closed.
 2. Persist on the **opportunity** AI fields using schema version 1 from ADR-017; render **AI Suggestion Panel** in opportunity detail (and lead detail via related opportunities). Border `ai`, badge “AI Insight”.
 3. Suggestions are **read-only recommendations** until user acts ([ADR-011](../../ADRs/ADR-011-human-approval-commercial-actions.md)).
 4. Triggered after successful qualification of **that opportunity** (and on demand button “Refresh AI insights” optional).
