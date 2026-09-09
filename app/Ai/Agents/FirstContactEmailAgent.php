@@ -47,7 +47,10 @@ class FirstContactEmailAgent implements AiAgent
         $insights = $opportunity->ai_insights;
         $recommendations = $opportunity->ai_recommendations;
 
-        if (! is_array($insights)) {
+        if (
+            ! is_array($insights) ||
+            $insights === []
+        ) {
             throw new FirstContactEmailFailedException('First contact email output was incomplete.');
         }
 

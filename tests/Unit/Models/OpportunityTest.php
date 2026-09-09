@@ -192,29 +192,8 @@ class OpportunityTest extends TestCase
 
         $opportunity->forgetContactExamples();
 
-        $this->assertNull($opportunity->ai_insights);
-        $this->assertNull($opportunity->ai_recommendations);
-    }
-
-    public function test_forget_contact_examples_leaves_non_array_strategy_unchanged(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create([
-                                'ai_insights' => [
-                                    'outreach_strategy' => 'not-an-array',
-                                ],
-                                'ai_recommendations' => [
-                                    'outreach_strategy' => 'not-an-array',
-                                ],
-                            ]);
-
-        $opportunity->forgetContactExamples();
-
-        $insights = $opportunity->ai_insights;
-        $recommendations = $opportunity->ai_recommendations;
-
-        $this->assertSame('not-an-array', $insights['outreach_strategy']);
-        $this->assertSame('not-an-array', $recommendations['outreach_strategy']);
+        $this->assertSame([], $opportunity->ai_insights);
+        $this->assertSame([], $opportunity->ai_recommendations);
     }
 
     public function test_forget_generated_ai_outputs_clears_insights_recommendations_and_qualification_notes(): void

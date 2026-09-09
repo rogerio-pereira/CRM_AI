@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
 
 class Opportunity extends Model
 {
@@ -91,10 +92,10 @@ class Opportunity extends Model
      */
     public function notesForAiContext(): array
     {
-        $this->loadMissing('notes.user');
-
-        $notes = $this->notes
-                    ->sortBy('created_at');
+        $notes = $this->notes()
+                    ->with('user')
+                    ->orderBy('created_at')
+                    ->get();
         $payload = [];
 
         foreach ($notes as $note) {
@@ -119,26 +120,14 @@ class Opportunity extends Model
 
     public function forgetContactExamples(): void
     {
-        $insights = $this->ai_insights;
+        $insights = $this->ai_insights ?? [];
+        Arr::forget($insights, 'outreach_strategy.contact_example');
+        $this->ai_insights = $insights;
 
-        if (is_array($insights) && is_array($insights['outreach_strategy'] ?? null)) {
-            unset($insights['outreach_strategy']['contact_example']);
-            $this->ai_insights = $insights;
-        }
-
-        $recommendations = $this->ai_recommendations;
-
-        if (is_array($recommendations)) {
-            if (is_array($recommendations['outreach_strategy'] ?? null)) {
-                unset($recommendations['outreach_strategy']['contact_example']);
-            }
-
-            if (is_array($recommendations['conversation_strategy'] ?? null)) {
-                unset($recommendations['conversation_strategy']['contact_example']);
-            }
-
-            $this->ai_recommendations = $recommendations;
-        }
+        $recommendations = $this->ai_recommendations ?? [];
+        Arr::forget($recommendations, 'outreach_strategy.contact_example');
+        Arr::forget($recommendations, 'conversation_strategy.contact_example');
+        $this->ai_recommendations = $recommendations;
     }
 
     /**
