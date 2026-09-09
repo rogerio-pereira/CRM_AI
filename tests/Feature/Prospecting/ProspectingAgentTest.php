@@ -5,6 +5,7 @@ namespace Tests\Feature\Prospecting;
 use App\Ai\Agents\ProspectingAgent;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
+use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
 use App\Jobs\RunProspectingAgentJob;
 use App\Jobs\RunQualificationAgentJob;
@@ -184,10 +185,214 @@ class ProspectingAgentTest extends TestCase
             'company_name' => 'Contactable Co',
             'lead_source' => 'prospecting',
         ]);
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'No Email Biz',
+            'lead_source' => 'prospecting',
+        ]);
+
+        $skippedClient = Client::query()
+                            ->where('company_name', 'No Email Biz')
+                            ->first();
+
+        $this->assertNotNull($skippedClient);
+
+        $skippedOpportunity = Opportunity::query()
+                                ->where('client_id', $skippedClient->id)
+                                ->first();
+
+        $this->assertNotNull($skippedOpportunity);
+        $this->assertSame(PipelineStage::Disqualified, $skippedOpportunity->stage);
+        $this->assertDatabaseHas('opportunity_notes', [
+            'opportunity_id' => $skippedOpportunity->id,
+            'user_id' => null,
+            'body' => 'Missing company name or valid public email.',
+        ]);
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+    }
+
+    public function test_agent_persists_skipped_companies_as_disqualified_with_a_note(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn(
+                [
+                    'leads' => [
+                        [
+                            'company_name' => 'Contactable Co',
+                            'email' => 'hello@contactable.example',
+                        ],
+                    ],
+                    'skipped' => [
+                        [
+                            'name' => 'Strong Site Co',
+                            'reason' => 'Website already looks strong.',
+                        ],
+                    ],
+                ],
+            );
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $result = $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $this->assertSame(1, $result['created_count']);
+
+        $skippedClient = Client::query()
+                            ->where('company_name', 'Strong Site Co')
+                            ->first();
+        $contactableClient = Client::query()
+                            ->where('company_name', 'Contactable Co')
+                            ->first();
+
+        $this->assertNotNull($skippedClient);
+        $this->assertNotNull($contactableClient);
+
+        $skippedOpportunity = Opportunity::query()
+                                ->where('client_id', $skippedClient->id)
+                                ->first();
+        $contactableOpportunity = Opportunity::query()
+                                    ->where('client_id', $contactableClient->id)
+                                    ->first();
+
+        $this->assertNotNull($skippedOpportunity);
+        $this->assertNotNull($contactableOpportunity);
+        $this->assertSame(PipelineStage::Disqualified, $skippedOpportunity->stage);
+        $this->assertSame(OpportunityStatus::Lost, $skippedOpportunity->status);
+        $this->assertSame(PipelineStage::Lead, $contactableOpportunity->stage);
+        $this->assertDatabaseHas('opportunity_notes', [
+            'opportunity_id' => $skippedOpportunity->id,
+            'user_id' => null,
+            'body' => 'Website already looks strong.',
+        ]);
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($contactableOpportunity): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+
+            return $payloadOpportunityId === $contactableOpportunity->id;
+        });
+    }
+
+    public function test_agent_does_not_persist_unknown_or_duplicate_skipped_companies(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        Client::factory()
+            ->create([
+                'company_name' => 'Already In Crm',
+            ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn([
+                'leads' => [
+                    [
+                        'company_name' => 'Contactable Co',
+                        'email' => 'hello@contactable.example',
+                    ],
+                ],
+                'skipped' => [
+                    [
+                        'name' => 'Unknown',
+                        'reason' => 'Missing company name or valid public email.',
+                    ],
+                    [
+                        'name' => '',
+                        'reason' => 'Empty name.',
+                    ],
+                    [
+                        'name' => 'Already In Crm',
+                        'reason' => 'Franchise.',
+                    ],
+                ],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $this->assertDatabaseCount('clients', 2);
+        $this->assertDatabaseHas('clients', [
+            'company_name' => 'Contactable Co',
+        ]);
+        $this->assertDatabaseMissing('opportunities', [
+            'title' => 'Already In Crm',
+        ]);
+        $this->assertDatabaseMissing('opportunities', [
+            'title' => 'Unknown',
+        ]);
+    }
+
+    public function test_agent_uses_a_fallback_reason_when_skipped_reason_is_empty(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $discovery = Mockery::mock(DiscoveryAdapter::class);
+        $discovery->shouldReceive('discover')
+            ->once()
+            ->andReturn([
+                'leads' => [
+                    [
+                        'company_name' => 'Contactable Co',
+                        'email' => 'hello@contactable.example',
+                    ],
+                ],
+                'skipped' => [
+                    [
+                        'name' => 'Quiet Co',
+                        'reason' => '   ',
+                    ],
+                ],
+            ]);
+
+        $this->app->instance(DiscoveryAdapter::class, $discovery);
+
+        $agent = app(ProspectingAgent::class);
+
+        $agent->handle([
+            'limit' => 1,
+        ]);
+
+        $skippedClient = Client::query()
+                            ->where('company_name', 'Quiet Co')
+                            ->first();
+
+        $this->assertNotNull($skippedClient);
+
+        $skippedOpportunity = Opportunity::query()
+                                ->where('client_id', $skippedClient->id)
+                                ->first();
+
+        $this->assertNotNull($skippedOpportunity);
+        $this->assertDatabaseHas('opportunity_notes', [
+            'opportunity_id' => $skippedOpportunity->id,
+            'body' => 'Skipped during prospecting.',
+        ]);
     }
 
     public function test_agent_throws_when_no_unique_contactable_lead_is_found(): void
     {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
         $discovery = Mockery::mock(DiscoveryAdapter::class);
         $discovery->shouldReceive('discover')
             ->times(5)
@@ -205,12 +410,32 @@ class ProspectingAgentTest extends TestCase
 
         $agent = app(ProspectingAgent::class);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Prospecting could not find a unique contactable lead.');
+        try {
+            $agent->handle([
+                'limit' => 1,
+            ]);
+            $this->fail('Expected RuntimeException was not thrown.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame(
+                'Prospecting could not find a unique contactable lead.',
+                $exception->getMessage(),
+            );
+        }
 
-        $agent->handle([
-            'limit' => 1,
-        ]);
+        $skippedClient = Client::query()
+                            ->where('company_name', 'No Email Biz')
+                            ->first();
+
+        $this->assertNotNull($skippedClient);
+
+        $skippedOpportunity = Opportunity::query()
+                                ->where('client_id', $skippedClient->id)
+                                ->first();
+
+        $this->assertNotNull($skippedOpportunity);
+        $this->assertSame(PipelineStage::Disqualified, $skippedOpportunity->stage);
+        $this->assertDatabaseCount('clients', 1);
+        Queue::assertNotPushed(RunQualificationAgentJob::class);
     }
 
     public function test_command_job_persists_leads_with_mocked_discovery(): void
