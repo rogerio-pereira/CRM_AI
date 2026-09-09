@@ -45,4 +45,3 @@ Project default is configured in `config/livewire.php` (`make_command.type` => `
 
 - `.cursor/skills/frontend-livewire-flux/SKILL.md`
 - `.cursor/skills/laravel-livewire-crud/SKILL.md`
-- `.cursor/rules/livewire-flux-modal-actions.mdc` — clicks inside `flux:modal` / nested Livewire

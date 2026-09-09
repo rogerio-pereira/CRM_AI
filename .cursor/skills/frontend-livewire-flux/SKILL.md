@@ -68,7 +68,6 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 - Tables: prefer Flux table patterns from the Design System.
 - Modals: `flux:modal` for confirmations (e.g. delete).
 - Navigation: `flux:sidebar`, `flux:navlist`, existing app layout patterns.
-- **Nested Livewire inside `flux:modal`:** do **not** use `wire:click` on nested/child methods. Teleport sends the click to the page that owns the modal (`MethodNotFoundException`). Put the action on the owner and call `Livewire.find(...)` from a native `<button>`. Tests must go through that owner and the Browser click path. See `.cursor/rules/livewire-flux-modal-actions.mdc`.
 
 ---
 
@@ -78,7 +77,6 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 - Reference: [Pest browser testing](https://pestphp.com/docs/browser-testing)
 - Cover: page load, key assertions (`assertSee`), navigation, form submit, validation errors.
 - Add or update smoke route tests when introducing new authenticated routes.
-- Clicks inside `flux:modal` (especially nested Livewire): `assertNoJavaScriptErrors()`, assert the Livewire overlay text `Unable to call component method` is absent, then assert the outcome. `Livewire::test(Child::class)->call(...)` does **not** catch parent-targeted `wire:click`. See `.cursor/rules/livewire-flux-modal-actions.mdc`.
 
 ---
 
@@ -99,7 +97,6 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 - [ ] Livewire + Flux (no raw HTML where a Flux component exists)?
 - [ ] Matches Design System (theme, density, tokens)?
 - [ ] Toasts/modals via Flux (no native dialogs)?
-- [ ] Nested actions inside `flux:modal` target the **modal owner** (`Livewire.find`), not `wire:click` on a child (`.cursor/rules/livewire-flux-modal-actions.mdc`)?
 - [ ] `data-test` on elements used in tests?
 - [ ] Pest Browser / Feature tests updated?
 - [ ] No Dusk?

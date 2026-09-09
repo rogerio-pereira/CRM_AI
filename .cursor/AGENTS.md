@@ -70,14 +70,12 @@ Typical stack across repositories using this setup:
 
 - Follow `docs/04 - Design System.md` and `docs/03 - Branding Manual.md` (theme, tokens, layout patterns).
 - Feedback via toasts (check stack).
-- Livewire + Flux: clicks inside `flux:modal` (including nested Livewire children) must target the **modal-owning** component. Do not use `wire:click` on a child method. See `.cursor/rules/livewire-flux-modal-actions.mdc`.
 
 ### Tests
 
 - **Pest Browser** for E2E; **do not** use Laravel Dusk.
 - Stable selectors: `data-test="..."` (Pest maps `@name` to `[data-test="name"]`) and/or form `name` attributes.
 - Each new screen: dedicated browser tests; add routes to smoke coverage (e.g. `tests/Browser/WebRoutesTest.php`).
-- Modal / nested Livewire clicks: Feature tests through the **page that owns the modal**; Browser tests must `assertNoJavaScriptErrors()` and reject `Unable to call component method`. Child-only `Livewire::test(Child::class)->call(...)` is not enough. See `.cursor/rules/livewire-flux-modal-actions.mdc`.
 - Translation tests when the app is localized.
 - At least one E2E or Feature test per critical journey—for example: create a record → validate → submit → assert persistence or redirect (e.g. lead → opportunity → pipeline stage).
 

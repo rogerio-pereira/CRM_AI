@@ -252,10 +252,7 @@ provided by the test stack.
 - CRUD pages should integrate with this shared modal instead of implementing
   one-off confirmation UIs.
 - Confirm/delete **actions must live on the Livewire component that owns the
-  `flux:modal`**. Nested child `wire:click` inside a teleported modal hits the
-  parent and throws `MethodNotFoundException`. Use `Livewire.find(...)` on a
-  native button and test through the owner page. See
-  `.cursor/rules/livewire-flux-modal-actions.mdc`.
+  `flux:modal`**. Do not nest a Livewire child inside the modal.
 
 ### 6. Sidebar/menu integration
 
