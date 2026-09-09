@@ -4,11 +4,13 @@ namespace App\Livewire\Opportunities;
 
 use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use App\Support\Toast;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
@@ -129,6 +131,32 @@ class AiSuggestionPanel extends Component
         Toast::show(
             variant: 'success',
             text: __('Example email regeneration queued.'),
+        );
+    }
+
+    public function sendEmail(): void
+    {
+        $opportunity = Opportunity::with('client')
+                        ->findOrFail($this->opportunityId);
+
+        $contactExample = $opportunity->ai_insights['outreach_strategy']['contact_example'];
+        $subject = $contactExample['subject'];
+        $body = $contactExample['body'];
+
+        $client = $opportunity->client;
+        $recipient = $client->contact_email;
+
+        $mail = new FirstContactOutreachMail(
+            $subject,
+            $body,
+        );
+
+        Mail::to($recipient)
+            ->send($mail);
+
+        Toast::show(
+            variant: 'success',
+            text: __('Email sent.'),
         );
     }
 
