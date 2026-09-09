@@ -58,7 +58,7 @@ Frontend:
 2. Define **routes** (`Route::livewire` or controller + Livewire views).
 3. Create **Index** Livewire page.
 4. Create **Create/Update** Livewire page (single component when possible).
-5. Implement **feedback** with `Flux::toast` (or project toast pattern).
+5. Implement **feedback** with `Toast::show()` (`App\Support\Toast`; create the class if missing — see 4.1).
 6. Implement **shared delete modal** (single reusable Flux modal).
 7. Update **sidebar/menu** to link to the Index page.
 8. Keep Livewire components focused: UI in the component, domain logic in services.
@@ -227,18 +227,45 @@ provided by the test stack.
   - Each field must show validation errors:
     - Bind `$errors` / Livewire validation messages to fields.
   - After create/update/error:
-    - Show **`Flux::toast`** (success or error variant).
+    - Show **`Toast::show()`** (success or error variant).
 
 ### 4.1 Shared toast feedback
 
-- Use a **consistent toast pattern** across the application:
-  - Prefer `Flux::toast(variant: 'success' | 'danger', text: '...')` after mutations.
-  - Keep messages short and actionable.
-- Usage pattern:
+- Use a **consistent toast pattern** across the application.
+- Always use `Toast::show()` from `App\Support\Toast` after mutations.
+- Do not call `Flux::toast()` directly.
+- If `app/Support/Toast.php` does not exist, create it:
+
+```php
+<?php
+
+namespace App\Support;
+
+use Flux\Flux;
+
+class Toast
+{
+    public static function show(string $variant, string $text, int $duration = 5000): void
+    {
+        Flux::toast(
+            variant: $variant,
+            text: $text,
+            duration: $duration,
+        );
+    }
+}
+```
+
+- `variant` and `text` are required.
+- `duration` is optional (default `5000` ms).
+- Keep messages short and actionable.
+- Usage:
   - After successful create/update:
-    - `Flux::toast(variant: 'success', text: __('Resource created successfully.'))`.
+    - `Toast::show(variant: 'success', text: __('Resource created successfully.'))`.
   - After error:
-    - `Flux::toast(variant: 'danger', text: __('Failed to save resource.'))`.
+    - `Toast::show(variant: 'danger', text: __('Failed to save resource.'))`.
+  - Custom duration:
+    - `Toast::show(variant: 'warning', text: __('Please wait.'), duration: 10000)`.
 
 ### 5. Shared delete modal
 

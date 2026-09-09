@@ -53,12 +53,61 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
    - Use Livewire layouts under `resources/views/layouts/`.
 
 5. **Feedback**
-   - Success/error: `Flux::toast()` or Flux callouts/alerts.
+   - Success/error: `Toast::show()` (`App\Support\Toast`) or Flux callouts/alerts.
+   - Do not call `Flux::toast()` directly.
    - Do not use browser `alert()` / `confirm()` / `prompt()`.
+   - If `app/Support/Toast.php` does not exist, create it (see **Toast helper** below).
 
 6. **Selectors for tests**
    - Add **`data-test="..."`** on interactive elements targeted by E2E tests.
    - Use explicit `name` on form fields where helpful.
+
+---
+
+## Toast helper (`App\Support\Toast`)
+
+Use one static wrapper for all toasts. Do not call `Flux::toast()` from Livewire components, controllers, or other app code.
+
+If `app/Support/Toast.php` is missing, create it:
+
+```php
+<?php
+
+namespace App\Support;
+
+use Flux\Flux;
+
+class Toast
+{
+    public static function show(string $variant, string $text, int $duration = 5000): void
+    {
+        Flux::toast(
+            variant: $variant,
+            text: $text,
+            duration: $duration,
+        );
+    }
+}
+```
+
+Usage:
+
+```php
+use App\Support\Toast;
+
+Toast::show(variant: 'success', text: __('Resource created successfully.'));
+Toast::show(variant: 'danger', text: __('Failed to save resource.'));
+Toast::show(
+    variant: 'warning',
+    text: __('Please wait.'),
+    duration: 10000,
+);
+```
+
+- `variant` and `text` are required.
+- `duration` is optional (default `5000` ms, Flux’s 5-second default).
+- Keep toast messages short and actionable.
+- Layouts still need `<flux:toast />` (usually inside `@persist('toast')`).
 
 ---
 
@@ -96,7 +145,7 @@ If the task touches UI/UX, Livewire, Flux, or navigation, follow these instructi
 - [ ] Class-based Livewire (PHP class in `app/Livewire/`, view in `resources/views/livewire/`)?
 - [ ] Livewire + Flux (no raw HTML where a Flux component exists)?
 - [ ] Matches Design System (theme, density, tokens)?
-- [ ] Toasts/modals via Flux (no native dialogs)?
+- [ ] Toasts via `Toast::show()` (`App\Support\Toast`); modals via Flux (no native dialogs)?
 - [ ] `data-test` on elements used in tests?
 - [ ] Pest Browser / Feature tests updated?
 - [ ] No Dusk?
