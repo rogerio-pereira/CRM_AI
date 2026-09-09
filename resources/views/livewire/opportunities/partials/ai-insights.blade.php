@@ -81,9 +81,9 @@
                 variant="filled"
                 icon="arrow-path"
                 class="btn-danger"
-                wire:click="refreshInsights"
-                wire:loading.attr="disabled"
                 data-test="ai-suggestion-refresh"
+                data-panel-component-id="{{ $panelComponentId }}"
+                x-on:click="Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()"
             >
                 {{ __('Refresh AI insights') }}
             </flux:button>
@@ -244,22 +244,34 @@
                         variant="filled"
                         icon="arrow-path"
                         class="btn-danger"
-                        wire:click="regenerateEmail"
-                        wire:loading.attr="disabled"
                         data-test="opportunities-detail-ai-regenerate-email"
+                        data-panel-component-id="{{ $panelComponentId }}"
+                        x-on:click="Livewire.find($event.currentTarget.dataset.panelComponentId).regenerateEmail()"
                     >
-                        {{ __('Regenerate email') }}
+                        {{ __('Regenerate') }}
                     </flux:button>
                     <flux:button
                         type="button"
                         size="sm"
-                        variant="ghost"
+                        variant="filled"
                         icon="document-duplicate"
                         x-on:click="copy()"
                         data-test="opportunities-detail-ai-copy-email"
                     >
                         <span x-show="!copied">{{ __('Copy') }}</span>
                         <span x-cloak x-show="copied">{{ __('Copied') }}</span>
+                    </flux:button>
+                    <flux:button
+                        type="button"
+                        size="sm"
+                        variant="filled"
+                        icon="paper-airplane"
+                        class="btn-primary"
+                        data-test="opportunities-detail-ai-send-email"
+                        data-panel-component-id="{{ $panelComponentId }}"
+                        x-on:click="Livewire.find($event.currentTarget.dataset.panelComponentId).sendEmail()"
+                    >
+                        {{ __('Send') }}
                     </flux:button>
                 </div>
             </div>
