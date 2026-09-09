@@ -66,10 +66,15 @@ class PublicWebDiscoveryAdapterTest extends TestCase
             $promptText = $prompt->prompt;
 
             $hasExpectedLimit = str_contains($promptText, 'Discover 1 lead candidate with a public email.');
-            $hasExpectedRanking = str_contains($promptText, 'Rank website work first');
+            $hasExpectedScope = str_contains($promptText, 'Analyze the full business');
+            $hasExpectedRanking = str_contains($promptText, 'Do not apply a global service ranking');
             $hasExpectedEmail = str_contains($promptText, 'Never invent an email');
 
             if ($hasExpectedLimit === false) {
+                return false;
+            }
+
+            if ($hasExpectedScope === false) {
                 return false;
             }
 

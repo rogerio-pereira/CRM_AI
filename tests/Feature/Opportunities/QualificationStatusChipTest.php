@@ -4,10 +4,12 @@ namespace Tests\Feature\Opportunities;
 
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Jobs\RunQualificationAgentJob;
 use App\Livewire\Opportunities\Index;
 use App\Models\Opportunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -85,7 +87,84 @@ class QualificationStatusChipTest extends TestCase
             ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
             ->assertSeeHtml('data-status="'.QualificationStatus::Failed->value.'"')
             ->assertSeeHtml('data-test="opportunities-detail-qualification-error"')
-            ->assertSee('Qualification could not be completed. The team can try again later.');
+            ->assertSee('Qualification could not be completed. The team can try again later.')
+            ->assertSeeHtml('data-test="opportunities-detail-requalify"')
+            ->assertSeeHtml('data-index-component-id=')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
+            ->assertSee('Requalify');
+    }
+
+    public function test_requalify_queues_qualification_job_for_failed_opportunity(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationFailed()
+                            ->create(['title' => 'Retry Failed Deal']);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->call('requalifyOpportunity', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
+            ->assertSeeHtml('data-status="'.QualificationStatus::Pending->value.'"')
+            ->assertDontSeeHtml('data-test="opportunities-detail-requalify"');
+
+        $opportunity->refresh();
+
+        $this->assertSame(QualificationStatus::Pending, $opportunity->qualification_status);
+        $this->assertNull($opportunity->qualification_last_error);
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity, $user): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+            $payloadClientId = $job->payload['client_id'] ?? null;
+            $trigger = $job->payload['trigger'] ?? null;
+            $payloadUserId = $job->payload['user_id'] ?? null;
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $opportunity->client_id) {
+                return false;
+            }
+
+            if ($payloadUserId !== $user->id) {
+                return false;
+            }
+
+            return $trigger === 'manual_requalify';
+        });
+    }
+
+    public function test_requalify_is_ignored_when_qualification_did_not_fail(): void
+    {
+        Queue::fake([
+            RunQualificationAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create(['title' => 'Already Qualified Deal']);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->call('requalifyOpportunity', $opportunity->id)
+            ->assertDontSeeHtml('data-test="opportunities-detail-requalify"');
+
+        $opportunity->refresh();
+
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
+        Queue::assertNothingPushed();
     }
 
     public function test_opportunity_detail_renders_ai_insight_summary_when_qualified(): void
@@ -102,6 +181,7 @@ class QualificationStatusChipTest extends TestCase
             ->call('openDetailModal', $opportunity->id)
             ->assertSeeHtml('data-test="opportunities-detail-qualification-badge"')
             ->assertSeeHtml('data-status="'.QualificationStatus::Qualified->value.'"')
+            ->assertDontSeeHtml('data-test="opportunities-detail-requalify"')
             ->assertSeeHtml('data-test="opportunities-detail-ai-insights-summary"')
             ->assertSee('Ready for a first conversation.')
             ->assertSee('AI Insight')

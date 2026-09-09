@@ -103,8 +103,7 @@ class QualificationAnalysisAgent implements Agent, HasStructuredOutput, HasTools
                 'positioning' => $schema->string()
                                         ->required(),
                 'talking_points' => $talkingPoints,
-                'contact_example' => $contactExample
-                                        ->required(),
+                'contact_example' => $contactExample,
                 'avoid' => $avoid,
             ]);
 

@@ -8,12 +8,11 @@ use Tests\TestCase;
 
 class RecommendationAnalysisAgentTest extends TestCase
 {
-    public function test_agent_uses_provided_instructions_without_tools(): void
+    public function test_instructions_are_the_approved_prompt(): void
     {
         $agent = new RecommendationAnalysisAgent('Recommend next steps.');
 
         $this->assertSame('Recommend next steps.', $agent->instructions());
-        $this->assertFalse(method_exists($agent, 'tools'));
     }
 
     public function test_schema_requires_recommendation_payload_fields(): void

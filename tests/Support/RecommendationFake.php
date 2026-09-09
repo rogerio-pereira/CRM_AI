@@ -94,8 +94,6 @@ class RecommendationFake
     {
         $payload = self::successfulPayload();
         $payload['ai_recommendations']['summary'] = '';
-        $payload['ai_recommendations']['conversation_strategy']['contact_example']['subject'] = '';
-        $payload['ai_recommendations']['conversation_strategy']['contact_example']['body'] = '';
 
         return $payload;
     }

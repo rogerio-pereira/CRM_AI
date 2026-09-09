@@ -2,6 +2,7 @@
     @if ($this->detailOpportunity)
         @php($opportunity = $this->detailOpportunity)
         @php($websiteUrl = \App\Support\UrlNormalizer::normalize($opportunity->client->website))
+        @php($indexComponentId = $this->getId())
 
         <div class="space-y-6">
             <flux:heading size="lg">{{ $opportunity->title }}</flux:heading>
@@ -46,6 +47,19 @@
                         <flux:text class="mt-2 text-status-danger" data-test="opportunities-detail-qualification-error">
                             {{ $opportunity->qualification_last_error }}
                         </flux:text>
+                        <div class="mt-2">
+                            <flux:button
+                                type="button"
+                                size="sm"
+                                variant="primary"
+                                data-test="opportunities-detail-requalify"
+                                data-index-component-id="{{ $indexComponentId }}"
+                                data-opportunity-id="{{ $opportunity->id }}"
+                                x-on:click="Livewire.find($event.currentTarget.dataset.indexComponentId).requalifyOpportunity(Number($event.currentTarget.dataset.opportunityId))"
+                            >
+                                {{ __('Requalify') }}
+                            </flux:button>
+                        </div>
                     @endif
                 </div>
                 <div>

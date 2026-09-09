@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Fortify\Features;
 use Tests\Support\QualificationFake;
@@ -15,6 +16,13 @@ abstract class TestCase extends BaseTestCase
 
         QualificationFake::fakeSuccessful();
         RecommendationFake::fakeSuccessful();
+        QualificationFake::fakeCopywriter();
+        ProspectingDiscoveryAgent::fake([
+            [
+                'leads' => [],
+                'skipped' => [],
+            ],
+        ]);
     }
 
     protected function skipUnlessFortifyHas(string $feature, ?string $message = null): void

@@ -80,8 +80,8 @@ class QualificationAgentTest extends TestCase
         $this->assertSame(1, $insights['schema_version']);
         $this->assertSame('qualification', $insights['source_agent']);
         $this->assertSame(
-            'A simple way to bring in more local conversations',
-            $insights['outreach_strategy']['contact_example']['subject'],
+            'Helpful local growth conversation.',
+            $insights['outreach_strategy']['positioning'],
         );
 
         $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
@@ -333,30 +333,12 @@ class QualificationAgentTest extends TestCase
         $this->assertStringNotContainsString('OpenAI', (string) $opportunity->qualification_last_error);
     }
 
-    public function test_missing_contact_example_is_treated_as_incomplete_output(): void
+    public function test_missing_outreach_strategy_still_qualifies_and_dispatches_recommendation(): void
     {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example']['body'] = '';
-
-        QualificationAnalysisAgent::fake([
-            $payload,
+        Queue::fake([
+            RunRecommendationAgentJob::class,
         ]);
 
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
-    }
-
-    public function test_missing_outreach_strategy_is_incomplete(): void
-    {
         $opportunity = Opportunity::factory()
                             ->create();
         $opportunityId = (string) $opportunity->id;
@@ -368,57 +350,16 @@ class QualificationAgentTest extends TestCase
         ]);
 
         $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
         $agent->handle([
                             'opportunity_id' => $opportunity->id,
         ]);
-    }
 
-    public function test_missing_contact_example_object_is_incomplete(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example'] = null;
+        $opportunity->refresh();
+        $insights = $opportunity->ai_insights;
 
-        QualificationAnalysisAgent::fake([
-            $payload,
-        ]);
-
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
-    }
-
-    public function test_empty_contact_subject_is_incomplete(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $opportunityId = (string) $opportunity->id;
-        $payload = QualificationFake::successfulPayload($opportunityId);
-        $payload['ai_insights']['outreach_strategy']['contact_example']['subject'] = '  ';
-
-        QualificationAnalysisAgent::fake([
-            $payload,
-        ]);
-
-        $agent = app(QualificationAgent::class);
-
-        $this->expectException(QualificationFailedException::class);
-        $this->expectExceptionMessage('Qualification output was incomplete.');
-
-        $agent->handle([
-                            'opportunity_id' => $opportunity->id,
-        ]);
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
+        $this->assertNull($insights['outreach_strategy']);
+        Queue::assertPushed(RunRecommendationAgentJob::class);
     }
 
     public function test_agent_throws_when_opportunity_id_is_missing(): void
@@ -728,18 +669,20 @@ class QualificationAgentTest extends TestCase
         ]);
     }
 
-    public function test_approved_prompt_ranks_website_ahead_of_software_and_email(): void
+    public function test_approved_prompt_analyzes_the_full_catalog_without_a_fixed_ranking(): void
     {
         $promptPath = base_path('docs/prompts/qualification-agent.md');
         $prompt = File::get($promptPath);
         $promptText = (string) $prompt;
 
-        $this->assertStringContainsString('website_design_development` — primary', $promptText);
-        $this->assertStringContainsString('custom_software_development` — skip or lowest as the opening', $promptText);
-        $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
-        $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $promptText);
-        $this->assertStringNotContainsString('[frontporchcreative.io](https://frontporchcreative.io)', $promptText);
-        $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $promptText);
+        $this->assertStringContainsString('independent outbound salesperson', $promptText);
+        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringContainsString('Do not treat website work as the required commercial opening', $promptText);
+        $this->assertStringContainsString('later as an upsell', $promptText);
+        $this->assertStringContainsString('You may omit `outreach_strategy.contact_example`', $promptText);
+        $this->assertStringContainsString('A later first-contact email job writes the example after recommendation finishes', $promptText);
+        $this->assertStringNotContainsString('website_design_development` — primary', $promptText);
+        $this->assertStringNotContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
     }
 
     /**

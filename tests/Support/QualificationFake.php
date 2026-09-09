@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use App\Ai\Agents\QualificationAnalysisAgent;
+use App\Ai\Agents\WriteFirstContactEmailAgent;
 
 class QualificationFake
 {
@@ -111,6 +112,30 @@ class QualificationFake
         QualificationAnalysisAgent::fake([
             $payload,
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     */
+    public static function fakeCopywriter(?array $payload = null): void
+    {
+        $email = $payload ?? self::copywriterPayload();
+
+        WriteFirstContactEmailAgent::fake([
+            $email,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function copywriterPayload(): array
+    {
+        return [
+            'channel' => 'email',
+            'subject' => '🌱 Sarah, quotes walking past the lawn',
+            'body' => "Hi Sarah,\n\nRoger Pereira\n[Front Porch Creative](https://frontporchcreative.io)",
+        ];
     }
 
     public static function fakeFailed(string $error = 'Not enough public information to qualify this lead.'): void

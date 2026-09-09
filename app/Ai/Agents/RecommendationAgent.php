@@ -4,10 +4,11 @@ namespace App\Ai\Agents;
 
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\RecommendationFailedException;
-use App\Enums\PipelineStage;
+use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
@@ -21,6 +22,7 @@ class RecommendationAgent implements AiAgent
 
     public function __construct(
         private readonly OpportunityService $opportunities,
+        private readonly AiOrchestrationService $orchestration,
     ) {}
 
     /**
@@ -49,8 +51,13 @@ class RecommendationAgent implements AiAgent
 
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulRecommendation($payload);
-        $updatedOpportunity = $this->persistRecommendations($opportunity, $payload);
-        $this->moveToContactWhenReady($updatedOpportunity);
+        $this->persistRecommendations($opportunity, $payload);
+        $this->orchestration
+                ->dispatch(AgentType::FirstContactEmail, [
+                    'trigger' => 'recommendation_completed',
+                    'opportunity_id' => $opportunity->id,
+                    'client_id' => $client->id,
+                ]);
 
         return [
                 'agent' => 'recommendation',
@@ -88,23 +95,13 @@ class RecommendationAgent implements AiAgent
     {
         $recommendations = $payload['ai_recommendations'] ?? [];
         $summary = $recommendations['summary'] ?? '';
-        $conversationStrategy = $recommendations['conversation_strategy'] ?? [];
-        $contactExample = $conversationStrategy['contact_example'] ?? [];
-        $subject = $contactExample['subject'] ?? '';
-        $body = $contactExample['body'] ?? '';
 
-        if (
-            $summary === '' ||
-            $subject === '' ||
-            $body === ''
-        ) {
+        if ($summary === '') {
             $payloadKeys = array_keys($payload);
 
             Log::warning('ai.recommendation.incomplete', [
                 'has_recommendations' => $recommendations !== [],
                 'summary_length' => strlen($summary),
-                'subject_length' => strlen($subject),
-                'body_length' => strlen($body),
                 'payload_keys' => $payloadKeys,
             ]);
 
@@ -152,16 +149,6 @@ class RecommendationAgent implements AiAgent
                                     ]);
 
         return $updatedOpportunity;
-    }
-
-    private function moveToContactWhenReady(Opportunity $opportunity): void
-    {
-        if ($opportunity->stage !== PipelineStage::Qualification) {
-            return;
-        }
-
-        $this->opportunities
-                ->moveToStage($opportunity, PipelineStage::Contact);
     }
 
     private function buildUserPrompt(Opportunity $opportunity, Client $client): string

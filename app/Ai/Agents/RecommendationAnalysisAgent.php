@@ -9,7 +9,7 @@ use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Promptable;
 
-#[MaxSteps(6)]
+#[MaxSteps(8)]
 #[Timeout(120)]
 class RecommendationAnalysisAgent implements Agent, HasStructuredOutput
 {
@@ -85,8 +85,7 @@ class RecommendationAnalysisAgent implements Agent, HasStructuredOutput
                 'positioning' => $schema->string()
                                         ->required(),
                 'talking_points' => $talkingPoints,
-                'contact_example' => $contactExample
-                                        ->required(),
+                'contact_example' => $contactExample,
                 'questions_to_ask' => $questionsToAsk,
                 'avoid' => $avoid,
             ]);

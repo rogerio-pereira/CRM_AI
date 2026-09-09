@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\AgentType;
+use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunProposalAssistantAgentJob;
 use App\Jobs\RunProspectingAgentJob;
 use App\Jobs\RunQualificationAgentJob;
@@ -13,7 +14,7 @@ use InvalidArgumentException;
  * Central entry point for enqueueing AI agent work (ADR-003).
  *
  * Dispatches responsibility-specific queue jobs. Prospecting, qualification,
- * and recommendation agents use the Laravel AI SDK; proposal assistance stays
+ * recommendation, and first-contact email agents use the Laravel AI SDK; proposal assistance stays
  * stubbed until FDR-013. No provider failover (ADR-002).
  */
 class AiOrchestrationService
@@ -45,6 +46,7 @@ class AiOrchestrationService
             AgentType::Prospecting->value => RunProspectingAgentJob::class,
             AgentType::Qualification->value => RunQualificationAgentJob::class,
             AgentType::Recommendation->value => RunRecommendationAgentJob::class,
+            AgentType::FirstContactEmail->value => RunFirstContactEmailAgentJob::class,
             AgentType::ProposalAssistant->value => RunProposalAssistantAgentJob::class,
         ];
 

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\AgentType;
+use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunProposalAssistantAgentJob;
 use App\Jobs\RunProspectingAgentJob;
 use App\Jobs\RunQualificationAgentJob;
@@ -34,11 +35,13 @@ class AiOrchestrationServiceTest extends TestCase
         $prospectingJobClass = $service->jobClassFor(AgentType::Prospecting);
         $qualificationJobClass = $service->jobClassFor(AgentType::Qualification);
         $recommendationJobClass = $service->jobClassFor(AgentType::Recommendation);
+        $firstContactEmailJobClass = $service->jobClassFor(AgentType::FirstContactEmail);
         $proposalAssistantJobClass = $service->jobClassFor(AgentType::ProposalAssistant);
 
         $this->assertSame(RunProspectingAgentJob::class, $prospectingJobClass);
         $this->assertSame(RunQualificationAgentJob::class, $qualificationJobClass);
         $this->assertSame(RunRecommendationAgentJob::class, $recommendationJobClass);
+        $this->assertSame(RunFirstContactEmailAgentJob::class, $firstContactEmailJobClass);
         $this->assertSame(RunProposalAssistantAgentJob::class, $proposalAssistantJobClass);
     }
 
@@ -61,10 +64,12 @@ class AiOrchestrationServiceTest extends TestCase
 
         $this->service->dispatch(AgentType::Prospecting, ['trigger' => 'manual']);
         $this->service->dispatch(AgentType::Recommendation, ['opportunity_id' => 2]);
+        $this->service->dispatch(AgentType::FirstContactEmail, ['opportunity_id' => 4]);
         $this->service->dispatch(AgentType::ProposalAssistant, ['opportunity_id' => 3]);
 
         Queue::assertPushed(RunProspectingAgentJob::class);
         Queue::assertPushed(RunRecommendationAgentJob::class);
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class);
         Queue::assertPushed(RunProposalAssistantAgentJob::class);
     }
 
