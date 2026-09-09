@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Enums\FollowUpPriority;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
+use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Services\FollowUpService;
 use App\Services\OpportunityService;
@@ -23,15 +24,27 @@ class HandleContactWithFollowUp
     public function handle(ContactWithFollowUp $event): void
     {
         $opportunity = $event->opportunity;
+        $userId = $event->userId;
+
+        $this->moveToContactSent($opportunity, $userId);
+        $this->createFollowUp($opportunity);
+        $this->recordFirstEmailNote($opportunity, $userId);
+    }
+
+    private function moveToContactSent(Opportunity $opportunity, ?int $userId): void
+    {
         $targetStage = PipelineStage::ContactSent;
 
         $this->opportunities
             ->moveToStage(
                 $opportunity,
                 $targetStage,
-                $event->userId,
+                $userId,
             );
+    }
 
+    private function createFollowUp(Opportunity $opportunity): void
+    {
         $dueAt = Carbon::now()
                     ->addDays(3)
                     ->setTime(9, 0);
@@ -46,11 +59,14 @@ class HandleContactWithFollowUp
                 'priority' => $priority,
                 'notes' => $notes,
             ]);
+    }
 
+    private function recordFirstEmailNote(Opportunity $opportunity, ?int $userId): void
+    {
         $noteBody = __('First Email sent');
         $noteAttributes = [
             'opportunity_id' => $opportunity->id,
-            'user_id' => $event->userId,
+            'user_id' => $userId,
             'body' => $noteBody,
         ];
         OpportunityNote::create($noteAttributes);
