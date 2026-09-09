@@ -58,14 +58,17 @@ class OpportunityService
 
         $opportunity->stage = $targetStage;
 
-        if ($targetStage === PipelineStage::Won) {
-            $opportunity->status = OpportunityStatus::Won;
-        } elseif ($targetStage === PipelineStage::Lost) {
-            $opportunity->status = OpportunityStatus::Lost;
-        } elseif ($targetStage === PipelineStage::Disqualified) {
-            $opportunity->status = OpportunityStatus::Lost;
-        } else {
-            $opportunity->status = OpportunityStatus::Open;
+        switch ($targetStage) {
+            case PipelineStage::Won:
+                $opportunity->status = OpportunityStatus::Won;
+                break;
+            case PipelineStage::Lost:
+            case PipelineStage::Disqualified:
+                $opportunity->status = OpportunityStatus::Lost;
+                break;
+            default:
+                $opportunity->status = OpportunityStatus::Open;
+                break;
         }
 
         $opportunity->save();
