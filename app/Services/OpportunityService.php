@@ -58,40 +58,15 @@ class OpportunityService
 
         $opportunity->stage = $targetStage;
 
-        switch ($targetStage) {
-            case PipelineStage::Lead:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::Qualification:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::Contact:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::ContactSent:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::MeetingScheduled:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::ProposalGeneration:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::ProposalAnalysis:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::ProposalSent:
-                $opportunity->status = OpportunityStatus::Open;
-                break;
-            case PipelineStage::Won:
-                $opportunity->status = OpportunityStatus::Won;
-                break;
-            case PipelineStage::Lost:
-                $opportunity->status = OpportunityStatus::Lost;
-                break;
-            case PipelineStage::Disqualified:
-                $opportunity->status = OpportunityStatus::Lost;
-                break;
+        if ($targetStage === PipelineStage::Won) {
+            $opportunity->status = OpportunityStatus::Won;
+        } elseif (
+            $targetStage === PipelineStage::Lost
+            || $targetStage === PipelineStage::Disqualified
+        ) {
+            $opportunity->status = OpportunityStatus::Lost;
+        } else {
+            $opportunity->status = OpportunityStatus::Open;
         }
 
         $opportunity->save();
