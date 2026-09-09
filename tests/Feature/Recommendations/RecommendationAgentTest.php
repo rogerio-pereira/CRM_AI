@@ -286,9 +286,9 @@ class RecommendationAgentTest extends TestCase
         $this->assertStringContainsString('Do not send emails, DMs, calls, proposals, or client-facing messages', $promptText);
         $this->assertStringContainsString('Recommendations are read-only until a user acts', $promptText);
         $this->assertStringContainsString('You may omit `conversation_strategy.contact_example`', $promptText);
-        $this->assertStringContainsString('Do not apply a global service ranking', $promptText);
+        $this->assertStringContainsString('Lead with website design and development', $promptText);
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
-        $this->assertStringNotContainsString('Lead with website design and development', $promptText);
+        $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
     }
 
     public function test_agent_throws_when_prompt_file_is_empty(): void
