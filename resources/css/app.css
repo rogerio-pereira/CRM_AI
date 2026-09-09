@@ -176,6 +176,17 @@
         border-color: var(--color-status-danger) !important;
         color: var(--color-status-danger) !important;
     }
+
+    .btn-primary {
+        color: var(--color-primary) !important;
+        border-color: var(--color-primary) !important;
+    }
+
+    .btn-primary:hover {
+        background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+        border-color: var(--color-primary) !important;
+        color: var(--color-primary) !important;
+    }
 }
 
 @source inline("bg-status-danger/15");
