@@ -225,7 +225,8 @@ class QualificationStatusChipTest extends TestCase
             ->assertSeeInOrder([
                 'opportunities-detail-ai-regenerate-email',
                 'opportunities-detail-ai-copy-email',
+                'opportunities-detail-ai-send-email',
             ])
-            ->assertSee('Regenerate email');
+            ->assertSee('Regenerate');
     }
 }

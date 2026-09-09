@@ -8,11 +8,13 @@ use App\Jobs\RunQualificationAgentJob;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\AiSuggestionPanel;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\Support\RecommendationFake;
@@ -57,13 +59,20 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI Insight')
             ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('data-panel-component-id=')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).regenerateEmail()')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).sendEmail()')
             ->assertSeeHtml('btn-danger')
             ->assertSee('Refresh AI insights')
             ->assertSeeInOrder([
                 'opportunities-detail-ai-regenerate-email',
                 'opportunities-detail-ai-copy-email',
+                'opportunities-detail-ai-send-email',
             ])
-            ->assertSee('Regenerate email');
+            ->assertSeeHtml('btn-primary')
+            ->assertSee('Regenerate')
+            ->assertSee('Send');
     }
 
     public function test_lead_detail_renders_related_opportunity_recommendations(): void
@@ -254,6 +263,8 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSeeHtml('data-test="ai-suggestion-empty"')
             ->assertSee('AI recommendations will appear here after the recommendation job finishes.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
+            ->assertSeeHtml('data-panel-component-id=')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).refreshInsights()')
             ->assertSeeHtml('btn-danger');
     }
 
@@ -450,5 +461,46 @@ class AiSuggestionPanelTest extends TestCase
             ->call('regenerateEmail');
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_send_email_sends_the_example_markdown_to_the_lead(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()
+                    ->create();
+        $client = Client::factory()
+                    ->create([
+                        'contact_email' => 'bill@bkturf.test',
+                    ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('sendEmail');
+
+        Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client): bool {
+            $hasRecipient = $mail->hasTo($client->contact_email);
+            $hasSubject = $mail->emailSubject === 'A simple way to bring in more local conversations';
+            $expectedBody = "Hi there,\n\nI noticed a practical opportunity to turn more local demand into conversations.";
+            $hasBody = $mail->markdownBody === $expectedBody;
+
+            if (! $hasRecipient) {
+                return false;
+            }
+
+            if (! $hasSubject) {
+                return false;
+            }
+
+            return $hasBody;
+        });
     }
 }
