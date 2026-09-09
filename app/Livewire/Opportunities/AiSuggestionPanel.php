@@ -66,6 +66,7 @@ class AiSuggestionPanel extends Component
         $orchestration->dispatch(AgentType::Qualification, $payload);
 
         $this->refreshQueued = true;
+        $this->dispatch('opportunity-ai-updated');
 
         Flux::toast(
             variant: 'success',
@@ -122,6 +123,8 @@ class AiSuggestionPanel extends Component
                 'user_id' => $userId,
             ];
         $orchestration->dispatch(AgentType::FirstContactEmail, $payload);
+
+        $this->dispatch('opportunity-ai-updated');
 
         Flux::toast(
             variant: 'success',
