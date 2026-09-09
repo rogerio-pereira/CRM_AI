@@ -37,7 +37,7 @@ class OpportunityNotesTest extends TestCase
             ->assertSeeHtml('data-test="opportunities-detail-notes"')
             ->assertSeeHtml('data-test="opportunities-detail-notes-list"')
             ->assertSeeHtml('data-test="opportunities-detail-note-delete-')
-            ->assertSeeHtml('wire:click="deleteNote')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
             ->assertSee('Taylor Closer')
             ->assertSee('Owner asked for a brochure site.');
     }

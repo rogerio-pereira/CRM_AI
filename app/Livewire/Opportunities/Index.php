@@ -67,23 +67,8 @@ class Index extends Component
             return null;
         }
 
-        return Opportunity::with('client')->find($this->detailOpportunityId);
-    }
-
-    /**
-     * @return Collection<int, OpportunityNote>
-     */
-    #[Computed]
-    public function timelineNotes(): Collection
-    {
-        if ($this->detailOpportunityId === null) {
-            return collect();
-        }
-
-        return OpportunityNote::with('user')
-                            ->where('opportunity_id', $this->detailOpportunityId)
-                            ->orderByDesc('created_at')
-                            ->get();
+        return Opportunity::with(['client', 'notes.user'])
+                    ->find($this->detailOpportunityId);
     }
 
     /**
@@ -124,7 +109,7 @@ class Index extends Component
         $this->detailOpportunityId = $opportunityId;
         $this->showDetailModal = true;
         $this->body = '';
-        unset($this->detailOpportunity, $this->timelineNotes);
+        unset($this->detailOpportunity);
     }
 
     public function saveOpportunity(OpportunityService $opportunityService): void
@@ -237,7 +222,7 @@ class Index extends Component
         OpportunityNote::create($attributes);
 
         $this->body = '';
-        unset($this->timelineNotes);
+        unset($this->detailOpportunity);
 
         Flux::toast(
             variant: 'success',
@@ -254,7 +239,7 @@ class Index extends Component
         $note = OpportunityNote::where('opportunity_id', $this->detailOpportunityId)
                             ->findOrFail($noteId);
         $note->delete();
-        unset($this->timelineNotes);
+        unset($this->detailOpportunity);
 
         Flux::toast(
             variant: 'success',

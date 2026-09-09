@@ -130,13 +130,15 @@
             <div class="space-y-4" data-test="opportunities-detail-notes">
                 <flux:subheading>{{ __('Notes') }}</flux:subheading>
 
-                @if ($this->timelineNotes->isEmpty())
+                @php($notes = $opportunity->notes->sortByDesc('created_at'))
+
+                @if ($notes->isEmpty())
                     <flux:text class="text-text-muted" data-test="opportunities-detail-notes-empty">
                         {{ __('No notes yet.') }}
                     </flux:text>
                 @else
                     <ul class="space-y-3" data-test="opportunities-detail-notes-list">
-                        @foreach ($this->timelineNotes as $note)
+                        @foreach ($notes as $note)
                             <li
                                 class="rounded-lg border border-border bg-elevated p-3"
                                 data-test="opportunities-detail-note-{{ $note->id }}"
@@ -153,7 +155,9 @@
                                             type="button"
                                             class="inline-flex items-center justify-center rounded-md p-1 text-text-muted hover:bg-elevated hover:text-status-danger"
                                             data-test="opportunities-detail-note-delete-{{ $note->id }}"
-                                            wire:click="deleteNote({{ $note->id }})"
+                                            data-index-component-id="{{ $indexComponentId }}"
+                                            data-note-id="{{ $note->id }}"
+                                            x-on:click.stop="Livewire.find($event.currentTarget.dataset.indexComponentId).deleteNote(Number($event.currentTarget.dataset.noteId))"
                                         >
                                             <flux:icon.trash variant="outline" class="size-4" />
                                             <span class="sr-only">{{ __('Delete note') }}</span>
