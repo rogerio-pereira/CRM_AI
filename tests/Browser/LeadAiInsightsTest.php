@@ -42,6 +42,31 @@ it('opens the lead detail modal with a first-contact email example', function ()
         ->assertNotPresent('[data-test="opportunities-detail-notes"]');
 });
 
+it('does not show the AI panel on lead detail for an unqualified opportunity', function () {
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create([
+                        'company_name' => 'Lead Unqualified Co',
+                    ]);
+    $opportunity = Opportunity::factory()
+                        ->for($client)
+                        ->qualificationPending()
+                        ->create([
+                            'title' => 'Lead Unqualified Deal',
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/leads')
+        ->click('@leads-actions-'.$client->id)
+        ->click('@leads-view-'.$client->id)
+        ->assertPresent('[data-test="leads-detail-opportunity-'.$opportunity->id.'"]')
+        ->assertSee('Lead Unqualified Deal')
+        ->assertNotPresent('[data-test="ai-suggestion-panel"]')
+        ->assertNotPresent('[data-test="ai-suggestion-refresh"]');
+});
+
 it('hides the first-contact email panel on lead detail when no example exists', function () {
     $user = User::factory()
                 ->create();

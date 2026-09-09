@@ -161,6 +161,44 @@ it('copies the example email without raising JavaScript errors', function () {
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]');
 });
 
+it('does not render the AI panel for a processing opportunity', function () {
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationProcessing()
+                        ->create([
+                            'title' => 'Processing Panel Deal',
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-notes"]')
+        ->assertNotPresent('[data-test="ai-suggestion-panel"]')
+        ->assertNotPresent('[data-test="ai-suggestion-refresh"]')
+        ->assertNotPresent('[data-test="opportunities-detail-ai-regenerate-email"]');
+});
+
+it('does not render the AI panel for a failed opportunity', function () {
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationFailed()
+                        ->create([
+                            'title' => 'Failed Panel Deal',
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-requalify"]')
+        ->assertNotPresent('[data-test="ai-suggestion-panel"]')
+        ->assertNotPresent('[data-test="ai-suggestion-refresh"]')
+        ->assertNotPresent('[data-test="opportunities-detail-ai-regenerate-email"]');
+});
+
 it('does not render the AI panel for an unqualified opportunity', function () {
     $user = User::factory()
                 ->create();
@@ -264,6 +302,33 @@ it('clears previous insights and email when refreshing AI insights', function ()
 
     Queue::assertPushed(RunQualificationAgentJob::class, 1);
     Queue::assertNotPushed(RunFirstContactEmailAgentJob::class);
+});
+
+it('queues a refresh from the empty qualified panel', function () {
+    Queue::fake([
+        RunQualificationAgentJob::class,
+    ]);
+
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationQualified()
+                        ->create([
+                            'title' => 'Empty Refresh Deal',
+                            'ai_insights' => null,
+                            'ai_recommendations' => null,
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="ai-suggestion-empty"]')
+        ->click('@ai-suggestion-refresh')
+        ->waitForText('AI insights refresh queued.')
+        ->assertPresent('[data-test="ai-suggestion-refresh-queued"]');
+
+    Queue::assertPushed(RunQualificationAgentJob::class, 1);
 });
 
 it('rate limits a second AI insights refresh from the empty panel', function () {
