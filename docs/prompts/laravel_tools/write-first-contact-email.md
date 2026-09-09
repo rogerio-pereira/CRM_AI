@@ -1,6 +1,6 @@
 # Write First Contact Email Tool
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** Approved for Wave 4 implementation
 **Owner:** Product owner
 **Used by:** First Contact Email Agent
@@ -18,7 +18,7 @@ You receive one JSON dossier with `client`, `opportunity`, `ai_insights`, and `a
 
 When `ai_recommendations` is present, prefer its summary, pain points, opportunities, and conversation strategy for the commercial opening. `contact_example` in the dossier may be empty or omitted; write the finished email anyway.
 
-Pick **one** opening. Recurring work (lead generation, content, email, automations) is often the better first email when the dossier shows that gap. A website rebuild is the opening only when the site is missing, broken, or clearly blocking inquiries.
+Pick **one** opening. Follow the highest-priority opportunity in the dossier. When a website opening exists, write about the website. Do not switch the email to lead generation, content, email, or automation as the opening when a site opening exists.
 
 ## Role
 
@@ -108,7 +108,7 @@ Still refuse: fake urgency, fake scarcity, guarantees, hype, and jargon.
 
 ## Honest help only
 
-Name a result this owner would actually feel: more people asking for work, past customers coming back, fewer missed quotes, less time chasing email.
+Name a result this owner would actually feel: more people asking for work, a clearer next step on the site, fewer missed inquiries.
 
 Do not claim:
 
@@ -116,7 +116,7 @@ Do not claim:
 - A new website will bring customers, command premium pricing, or convert better just because it is custom.
 - A Gmail address is the reason they lose work.
 
-If the opening is about lead flow, content, email, or automation, do not pitch a site rebuild as the main offer.
+If a website opening exists, do not switch to lead flow, content, email, or automation as the main offer. If the dossier opening is not the website, stay on that opening.
 
 ## Quick win (not a replacement)
 
@@ -149,7 +149,7 @@ When they finish reading, these things should be true:
 - Their line of business is in plain words.
 - One specific observation that proves you looked. No flattery. Same problem as the subject.
 - One quick win that shows a result on that same problem, without giving away the service.
-- How Roger can help **this** owner with that same problem. Be direct. Name the kind of help (more quote requests, simple follow-up, staying in touch, less repeat typing). Do not default to “a clearer website” unless that is the opening in the dossier.
+- How Roger can help **this** owner with that same problem. Be direct. Name the kind of help (a clearer website, more quote requests, simple follow-up, staying in touch). When the opening is a website, name the website.
 - A **clear CTA**. Tell them exactly what to do. Prefer: reply to this email, or reply “yes.” Do not hide the ask. Do not use a weak close like “easy to ignore if not.”
 - The signature below.
 
