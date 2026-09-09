@@ -7,7 +7,7 @@ trait OpportunityNoteValidationRules
     /**
      * @return array<string, mixed>
      */
-    public static function formRules(): array
+    public static function noteRules(): array
     {
         return [
             'body' => ['required', 'string', 'max:5000'],

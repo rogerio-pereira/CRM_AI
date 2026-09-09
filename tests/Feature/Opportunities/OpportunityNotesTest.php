@@ -4,7 +4,6 @@ namespace Tests\Feature\Opportunities;
 
 use App\Enums\PipelineStage;
 use App\Livewire\Opportunities\Index;
-use App\Livewire\Opportunities\NotesTimeline;
 use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Models\User;
@@ -18,7 +17,7 @@ class OpportunityNotesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_opportunity_detail_renders_notes_timeline(): void
+    public function test_opportunity_detail_renders_notes(): void
     {
         $user = User::factory()
                     ->create(['name' => 'Taylor Closer']);
@@ -33,23 +32,17 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        $page = Livewire::test(Index::class)
-                    ->call('openDetailModal', $opportunity->id);
-        $ownerComponentId = $page->instance()
-                                ->getId();
-
-        $page->assertSeeHtml('data-test="opportunities-detail-notes"')
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSeeHtml('data-test="opportunities-detail-notes"')
             ->assertSeeHtml('data-test="opportunities-detail-notes-list"')
             ->assertSeeHtml('data-test="opportunities-detail-note-delete-')
-            ->assertSeeHtml('data-index-component-id="'.$ownerComponentId.'"')
-            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
-            ->assertSeeHtml('.deleteNote(')
-            ->assertDontSeeHtml('wire:click="deleteNote')
+            ->assertSeeHtml('wire:click="deleteNote')
             ->assertSee('Taylor Closer')
             ->assertSee('Owner asked for a brochure site.');
     }
 
-    public function test_notes_timeline_renders_after_ai_insights(): void
+    public function test_notes_render_after_ai_insights(): void
     {
         $user = User::factory()
                     ->create(['name' => 'Taylor Closer']);
@@ -77,7 +70,7 @@ class OpportunityNotesTest extends TestCase
         $this->assertGreaterThan($insightsPosition, $notesPosition);
     }
 
-    public function test_empty_timeline_shows_empty_state(): void
+    public function test_empty_notes_show_empty_state(): void
     {
         $user = User::factory()
                     ->create();
@@ -86,9 +79,8 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ])
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
             ->assertSeeHtml('data-test="opportunities-detail-notes-empty"')
             ->assertSee('No notes yet.');
     }
@@ -104,9 +96,8 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ])
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
             ->set('body', 'Called the owner this morning.')
             ->call('addNote')
             ->assertHasNoErrors()
@@ -148,9 +139,8 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ])
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
             ->assertSeeInOrder([
                 'Newer note.',
                 'Older note.',
@@ -166,9 +156,8 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ])
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
             ->set('body', '   ')
             ->call('addNote')
             ->assertHasErrors(['body']);
@@ -195,32 +184,6 @@ class OpportunityNotesTest extends TestCase
             ->call('openDetailModal', $opportunity->id)
             ->call('deleteNote', $note->id)
             ->assertDontSee('Note to remove.');
-
-        $this->assertDatabaseMissing('opportunity_notes', [
-            'id' => $note->id,
-        ]);
-    }
-
-    public function test_notes_timeline_can_delete_a_note(): void
-    {
-        $user = User::factory()
-                    ->create();
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $note = OpportunityNote::factory()
-                    ->for($opportunity)
-                    ->for($user)
-                    ->create([
-                        'body' => 'Note to remove from the nested timeline.',
-                    ]);
-
-        $this->actingAs($user);
-
-        Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ])
-            ->call('deleteNote', $note->id)
-            ->assertDontSee('Note to remove from the nested timeline.');
 
         $this->assertDatabaseMissing('opportunity_notes', [
             'id' => $note->id,
@@ -254,32 +217,5 @@ class OpportunityNotesTest extends TestCase
                 'id' => $otherNote->id,
             ]);
         }
-    }
-
-    public function test_notes_timeline_refreshes_when_a_note_is_deleted(): void
-    {
-        $user = User::factory()
-                    ->create();
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $note = OpportunityNote::factory()
-                    ->for($opportunity)
-                    ->for($user)
-                    ->create([
-                        'body' => 'Note to remove.',
-                    ]);
-
-        $this->actingAs($user);
-
-        $component = Livewire::test(NotesTimeline::class, [
-                                'opportunityId' => $opportunity->id,
-                            ]);
-        $component->assertSee('Note to remove.');
-
-        $note->delete();
-
-        $component->call('refreshNotes')
-            ->assertDontSee('Note to remove.')
-            ->assertSeeHtml('data-test="opportunities-detail-notes-empty"');
     }
 }

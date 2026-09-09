@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Opportunities;
 
+use App\Concerns\OpportunityNoteValidationRules;
 use App\Concerns\OpportunityValidationRules;
 use App\Enums\AgentType;
 use App\Enums\PipelineStage;
@@ -22,6 +23,7 @@ use Livewire\Component;
 #[Title('Opportunities')]
 class Index extends Component
 {
+    use OpportunityNoteValidationRules;
     use OpportunityValidationRules;
 
     public bool $showFormModal = false;
@@ -37,6 +39,8 @@ class Index extends Component
     public ?int $client_id = null;
 
     public string $estimated_value = '';
+
+    public string $body = '';
 
     /**
      * @return array<string, Collection<int, Opportunity>>
@@ -64,6 +68,22 @@ class Index extends Component
         }
 
         return Opportunity::with('client')->find($this->detailOpportunityId);
+    }
+
+    /**
+     * @return Collection<int, OpportunityNote>
+     */
+    #[Computed]
+    public function timelineNotes(): Collection
+    {
+        if ($this->detailOpportunityId === null) {
+            return collect();
+        }
+
+        return OpportunityNote::with('user')
+                            ->where('opportunity_id', $this->detailOpportunityId)
+                            ->orderByDesc('created_at')
+                            ->get();
     }
 
     /**
@@ -103,7 +123,8 @@ class Index extends Component
     {
         $this->detailOpportunityId = $opportunityId;
         $this->showDetailModal = true;
-        unset($this->detailOpportunity);
+        $this->body = '';
+        unset($this->detailOpportunity, $this->timelineNotes);
     }
 
     public function saveOpportunity(OpportunityService $opportunityService): void
@@ -198,6 +219,32 @@ class Index extends Component
         unset($this->opportunitiesByStage, $this->detailOpportunity);
     }
 
+    public function addNote(): void
+    {
+        if ($this->detailOpportunityId === null) {
+            return;
+        }
+
+        $this->body = trim($this->body);
+        $validated = $this->validate(self::noteRules());
+        $opportunity = Opportunity::findOrFail($this->detailOpportunityId);
+        $attributes = [
+            'opportunity_id' => $opportunity->id,
+            'user_id' => auth()->id(),
+            'body' => $validated['body'],
+        ];
+
+        OpportunityNote::create($attributes);
+
+        $this->body = '';
+        unset($this->timelineNotes);
+
+        Flux::toast(
+            variant: 'success',
+            text: __('Note added.'),
+        );
+    }
+
     public function deleteNote(int $noteId): void
     {
         if ($this->detailOpportunityId === null) {
@@ -207,8 +254,7 @@ class Index extends Component
         $note = OpportunityNote::where('opportunity_id', $this->detailOpportunityId)
                             ->findOrFail($noteId);
         $note->delete();
-
-        $this->dispatch('opportunity-note-deleted');
+        unset($this->timelineNotes);
 
         Flux::toast(
             variant: 'success',
