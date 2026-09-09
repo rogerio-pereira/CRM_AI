@@ -218,4 +218,42 @@ class OpportunityNotesTest extends TestCase
             ]);
         }
     }
+
+    public function test_add_note_does_nothing_when_detail_modal_is_closed(): void
+    {
+        $user = User::factory()
+                    ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->set('body', 'Should not be saved.')
+            ->call('addNote')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseCount('opportunity_notes', 0);
+    }
+
+    public function test_delete_note_does_nothing_when_detail_modal_is_closed(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->for($user)
+                    ->create([
+                        'body' => 'Should remain.',
+                    ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('deleteNote', $note->id);
+
+        $this->assertDatabaseHas('opportunity_notes', [
+            'id' => $note->id,
+        ]);
+    }
 }
