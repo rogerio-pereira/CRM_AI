@@ -8,8 +8,8 @@ use App\Livewire\FollowUps\QuickCreateModal as FollowUpQuickCreateModal;
 use App\Livewire\Tasks\QuickCreateModal;
 use App\Models\Client;
 use App\Services\ClientService;
+use App\Support\Toast;
 use App\Support\UrlNormalizer;
-use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -188,11 +188,11 @@ class Index extends Component
         if ($this->editingClientId === null) {
             $attributes['status'] = ClientStatus::Active;
             $clientService->create($attributes);
-            Flux::toast(variant: 'success', text: __('Lead created.'));
+            Toast::show(variant: 'success', text: __('Lead created.'));
         } else {
             $client = Client::findOrFail($this->editingClientId);
             $clientService->update($client, $attributes);
-            Flux::toast(variant: 'success', text: __('Lead updated.'));
+            Toast::show(variant: 'success', text: __('Lead updated.'));
         }
 
         $this->showFormModal = false;
@@ -203,28 +203,28 @@ class Index extends Component
     {
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::ContactIntent);
-        Flux::toast(variant: 'success', text: __('Marked as contact intent.'));
+        Toast::show(variant: 'success', text: __('Marked as contact intent.'));
     }
 
     public function setIgnored(int $clientId, ClientService $clientService): void
     {
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Ignored);
-        Flux::toast(variant: 'success', text: __('Lead ignored.'));
+        Toast::show(variant: 'success', text: __('Lead ignored.'));
     }
 
     public function setArchived(int $clientId, ClientService $clientService): void
     {
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Archived);
-        Flux::toast(variant: 'success', text: __('Lead archived.'));
+        Toast::show(variant: 'success', text: __('Lead archived.'));
     }
 
     public function setActive(int $clientId, ClientService $clientService): void
     {
         $client = Client::findOrFail($clientId);
         $clientService->setStatus($client, ClientStatus::Active);
-        Flux::toast(variant: 'success', text: __('Lead marked as active.'));
+        Toast::show(variant: 'success', text: __('Lead marked as active.'));
     }
 
     public function confirmDelete(ClientService $clientService): void
@@ -242,7 +242,7 @@ class Index extends Component
         }
 
         $clientService->delete($client);
-        Flux::toast(variant: 'success', text: __('Lead deleted.'));
+        Toast::show(variant: 'success', text: __('Lead deleted.'));
         $this->showDeleteModal = false;
         $this->deleteClientId = null;
         unset($this->deleteClient);

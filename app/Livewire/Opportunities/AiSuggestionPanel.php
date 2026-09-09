@@ -7,7 +7,7 @@ use App\Enums\QualificationStatus;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
-use Flux\Flux;
+use App\Support\Toast;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
@@ -25,7 +25,7 @@ class AiSuggestionPanel extends Component
         $opportunity = Opportunity::findOrFail($this->opportunityId);
 
         if ($opportunity->qualification_status !== QualificationStatus::Qualified) {
-            Flux::toast(
+            Toast::show(
                 variant: 'danger',
                 text: __('AI insights are available after qualification completes.'),
             );
@@ -38,7 +38,7 @@ class AiSuggestionPanel extends Component
         $tooManyAttempts = RateLimiter::tooManyAttempts($rateLimitKey, 1);
 
         if ($tooManyAttempts) {
-            Flux::toast(
+            Toast::show(
                 variant: 'warning',
                 text: __('Please wait before refreshing AI insights again.'),
             );
@@ -68,7 +68,7 @@ class AiSuggestionPanel extends Component
         $this->refreshQueued = true;
         $this->dispatch('opportunity-ai-updated');
 
-        Flux::toast(
+        Toast::show(
             variant: 'success',
             text: __('AI insights refresh queued.'),
         );
@@ -85,7 +85,7 @@ class AiSuggestionPanel extends Component
             ! is_array($insights) ||
             $insights === []
         ) {
-            Flux::toast(
+            Toast::show(
                 variant: 'danger',
                 text: __('AI insights are available after qualification completes.'),
             );
@@ -98,7 +98,7 @@ class AiSuggestionPanel extends Component
         $tooManyAttempts = RateLimiter::tooManyAttempts($rateLimitKey, 1);
 
         if ($tooManyAttempts) {
-            Flux::toast(
+            Toast::show(
                 variant: 'warning',
                 text: __('Please wait before regenerating the email again.'),
             );
@@ -126,7 +126,7 @@ class AiSuggestionPanel extends Component
 
         $this->dispatch('opportunity-ai-updated');
 
-        Flux::toast(
+        Toast::show(
             variant: 'success',
             text: __('Example email regeneration queued.'),
         );

@@ -7,8 +7,8 @@ use App\Enums\FollowUpPriority;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
+use App\Support\Toast;
 use Carbon\Carbon;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -106,7 +106,7 @@ class QuickCreateModal extends Component
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        Flux::toast(variant: 'success', text: __('Follow-up created.'));
+        Toast::show(variant: 'success', text: __('Follow-up created.'));
 
         $this->showFormModal = false;
         $this->resetForm();

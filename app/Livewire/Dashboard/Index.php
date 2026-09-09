@@ -8,7 +8,7 @@ use App\Services\DashboardMetricsService;
 use App\Services\DashboardTablesService;
 use App\Services\FollowUpService;
 use App\Services\TaskService;
-use Flux\Flux;
+use App\Support\Toast;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -88,7 +88,7 @@ class Index extends Component
 
         unset($this->pendingTasks, $this->pendingTasksOverflow);
 
-        Flux::toast(variant: 'success', text: __('Task completed.'));
+        Toast::show(variant: 'success', text: __('Task completed.'));
     }
 
     public function markComplete(int $followUpId, FollowUpService $followUpService): void
@@ -98,7 +98,7 @@ class Index extends Component
 
         unset($this->actionableFollowUps, $this->actionableFollowUpsOverflow);
 
-        Flux::toast(variant: 'success', text: __('Follow-up completed.'));
+        Toast::show(variant: 'success', text: __('Follow-up completed.'));
     }
 
     public function render(): View

@@ -3,7 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\ProfileValidationRules;
-use Flux\Flux;
+use App\Support\Toast;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +47,7 @@ class Profile extends Component
 
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        Toast::show(variant: 'success', text: __('Profile updated.'));
     }
 
     /**
