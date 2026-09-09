@@ -2,10 +2,12 @@
 
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
+use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Jobs\RunQualificationAgentJob;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
@@ -90,7 +92,37 @@ it('opens the opportunity detail modal with structured AI insights', function ()
         ->assertSee('Helpful local growth conversation.')
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSee('A simple way to bring in more local conversations')
-        ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.');
+        ->assertSee('I noticed a practical opportunity to turn more local demand into conversations.')
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
+        ->assertSee('Regenerate email');
+});
+
+it('queues email regeneration from the opportunity detail modal', function () {
+    Queue::fake([
+        RunFirstContactEmailAgentJob::class,
+    ]);
+
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationQualified()
+                        ->withAiInsights()
+                        ->create([
+                            'title' => 'Regenerate Email Deal',
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
+        ->click('@opportunities-detail-ai-regenerate-email')
+        ->assertSee('Example email regeneration queued.')
+        ->assertDontSee('A simple way to bring in more local conversations')
+        ->assertNotPresent('[data-test="opportunities-detail-ai-contact-example"]');
+
+    Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
 });
 
 it('opens the opportunity detail modal with AI recommendations and a refresh action', function () {
@@ -191,6 +223,74 @@ it('opens the opportunity detail modal with client summary', function () {
         ->assertPresent('[data-test="opportunities-detail-website-link"]')
         ->assertSee('https://detail-summary.test')
         ->assertPresent('[data-test="opportunities-detail-qualification-badge"][data-status="pending"]');
+});
+
+it('adds a note from the opportunity detail modal', function () {
+    $user = User::factory()
+                ->create(['name' => 'Browser Note Author']);
+    $opportunity = Opportunity::factory()
+                        ->create([
+                            'title' => 'Notes Browser Deal',
+                            'stage' => PipelineStage::Contact,
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-notes"]')
+        ->assertPresent('[data-test="opportunities-detail-notes-empty"]')
+        ->fill('@opportunities-detail-notes-body', 'Called the owner this morning.')
+        ->click('@opportunities-detail-notes-submit')
+        ->waitForText('Note added.')
+        ->assertSee('Called the owner this morning.')
+        ->assertSee('Browser Note Author');
+
+    $noteExists = OpportunityNote::where('opportunity_id', $opportunity->id)
+                        ->where('body', 'Called the owner this morning.')
+                        ->exists();
+
+    expect($noteExists)
+        ->toBeTrue();
+
+    $opportunity->refresh();
+
+    expect($opportunity->stage)
+        ->toBe(PipelineStage::Contact);
+});
+
+it('deletes a note from the opportunity detail modal', function () {
+    $user = User::factory()
+                ->create(['name' => 'Browser Note Author']);
+    $opportunity = Opportunity::factory()
+                        ->create([
+                            'title' => 'Delete Note Browser Deal',
+                            'stage' => PipelineStage::Contact,
+                        ]);
+    $note = OpportunityNote::factory()
+                ->for($opportunity)
+                ->for($user)
+                ->create([
+                    'body' => 'Note to remove from the timeline.',
+                ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertSee('Note to remove from the timeline.')
+        ->assertPresent('[data-test="opportunities-detail-note-delete-'.$note->id.'"]')
+        ->click('@opportunities-detail-note-delete-'.$note->id)
+        ->assertNoJavaScriptErrors()
+        ->waitForText('Note deleted.')
+        ->assertDontSee('Note to remove from the timeline.')
+        ->assertDontSee('Unable to call component method');
+
+    $noteExists = OpportunityNote::where('id', $note->id)
+                        ->exists();
+
+    expect($noteExists)
+        ->toBeFalse();
 });
 
 it('renders qualification status chips on the kanban and failed error on detail', function () {

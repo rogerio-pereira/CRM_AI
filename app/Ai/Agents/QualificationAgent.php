@@ -36,7 +36,7 @@ class QualificationAgent implements AiAgent
     {
         $rawOpportunityId = $context['opportunity_id'] ?? 0;
         $opportunityId = (int) $rawOpportunityId;
-        $opportunity = Opportunity::with('client')
+        $opportunity = Opportunity::with(['client', 'notes.user'])
                             ->findOrFail($opportunityId);
         $client = $opportunity->client;
 
@@ -44,25 +44,37 @@ class QualificationAgent implements AiAgent
             throw new RuntimeException('Qualification client not found for opportunity: '.$opportunity->id);
         }
 
-        if ($opportunity->qualification_status === QualificationStatus::Qualified) {
-            return [
-                    'agent' => 'qualification',
-                    'status' => 'already_qualified',
-                    'opportunity_id' => $opportunity->id,
-                    'client_id' => $client->id,
-                ];
-        }
+        $trigger = $context['trigger'] ?? '';
 
-        $this->opportunities
-                ->update($opportunity, [
-                    'qualification_status' => QualificationStatus::Processing,
-                    'qualification_last_error' => null,
-                ]);
+        if ($opportunity->qualification_status === QualificationStatus::Qualified) {
+            if ($trigger !== 'manual_refresh') {
+                return [
+                        'agent' => 'qualification',
+                        'status' => 'already_qualified',
+                        'opportunity_id' => $opportunity->id,
+                        'client_id' => $client->id,
+                    ];
+            }
+        } else {
+            $this->opportunities
+                    ->update($opportunity, [
+                        'qualification_status' => QualificationStatus::Processing,
+                        'qualification_last_error' => null,
+                    ]);
+        }
 
         if ($opportunity->stage === PipelineStage::Lead) {
             $this->opportunities
                     ->moveToStage($opportunity, PipelineStage::Qualification);
         }
+
+        $opportunity->forgetGeneratedAiOutputs();
+        $opportunity = $this->opportunities
+                            ->update($opportunity, [
+                                'ai_insights' => $opportunity->ai_insights,
+                                'ai_recommendations' => $opportunity->ai_recommendations,
+                                'qualification_notes' => $opportunity->qualification_notes,
+                            ]);
 
         $payload = $this->analyzeOpportunity($opportunity, $client);
         $this->assertSuccessfulQualification($payload);
@@ -198,6 +210,7 @@ class QualificationAgent implements AiAgent
                 'company_notes' => $client->qualification_notes,
                 'opportunity_title' => $opportunity->title,
                 'opportunity_stage' => $opportunity->stage->value,
+                'opportunity_notes' => $opportunity->notesForAiContext(),
                 'service_catalog' => $catalog,
             ];
 

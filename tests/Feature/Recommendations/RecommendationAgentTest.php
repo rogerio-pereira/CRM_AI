@@ -9,6 +9,8 @@ use App\Enums\PipelineStage;
 use App\Jobs\RunFirstContactEmailAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
@@ -288,6 +290,8 @@ class RecommendationAgentTest extends TestCase
         $this->assertStringContainsString('You may omit `conversation_strategy.contact_example`', $promptText);
         $this->assertStringContainsString('Lead with website design and development', $promptText);
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
+        $this->assertStringContainsString('human opportunity notes', $promptText);
+        $this->assertStringContainsString('opportunity_notes', $promptText);
         $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
     }
 
@@ -448,5 +452,53 @@ class RecommendationAgentTest extends TestCase
         $agent->handle([
                                 'opportunity_id' => $opportunity->id,
         ]);
+    }
+
+    public function test_recommendation_prompt_includes_opportunity_notes(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create(['name' => 'Alex Sales']);
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create();
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->for($user)
+            ->create([
+                'body' => 'Owner prefers a simple brochure site first.',
+            ]);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        RecommendationFake::fakeSuccessful($opportunityId, $clientId);
+
+        $agent = app(RecommendationAgent::class);
+        $agent->handle([
+                                'opportunity_id' => $opportunity->id,
+        ]);
+
+        RecommendationAnalysisAgent::assertPrompted(function ($prompt) use ($user): bool {
+            $promptText = $prompt->prompt;
+            $hasNotesKey = str_contains($promptText, 'opportunity_notes');
+            $hasNoteBody = str_contains($promptText, 'Owner prefers a simple brochure site first.');
+            $hasAuthor = str_contains($promptText, $user->name);
+
+            if ($hasNotesKey === false) {
+                return false;
+            }
+
+            if ($hasNoteBody === false) {
+                return false;
+            }
+
+            return $hasAuthor;
+        });
     }
 }

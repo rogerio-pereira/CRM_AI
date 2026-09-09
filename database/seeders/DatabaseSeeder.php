@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
                 ClientSeeder::class,
                 OpportunitySeeder::class,
                 OpportunitySeederMonth::class,
+                OpportunityNoteSeeder::class,
                 FollowUpSeeder::class,
                 TaskSeeder::class,
             ]);

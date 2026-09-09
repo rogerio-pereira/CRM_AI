@@ -1,6 +1,6 @@
 # Write First Contact Email Tool
 
-**Version:** 1.4
+**Version:** 1.6
 **Status:** Approved for Wave 4 implementation
 **Owner:** Product owner
 **Used by:** First Contact Email Agent
@@ -14,9 +14,13 @@ This is not an automatically sent message.
 
 ## Input
 
-You receive one JSON dossier with `client`, `opportunity`, `ai_insights`, and `ai_recommendations` (which may be null). Use all of it.
+You receive one JSON dossier with `client`, `opportunity`, `ai_insights`, `ai_recommendations` (which may be null), and `opportunity_notes`. Use all of it.
 
-When `ai_recommendations` is present, prefer its summary, pain points, opportunities, and conversation strategy for the commercial opening. `contact_example` in the dossier may be empty or omitted; write the finished email anyway.
+`opportunity_notes` are internal human notes (body, author, created_at). Treat them as first-hand sales context. Prefer them over inferred public-source guesses when they conflict. Do not quote them to the client.
+
+When `ai_recommendations` is present, prefer its summary, pain points, opportunities, and conversation strategy for the commercial opening.
+
+Never reuse a previous email. The dossier does not include `contact_example`. Write a fresh draft from the current client, opportunity, insights, recommendations, and opportunity_notes as if this is the first email for this opportunity.
 
 Pick **one** opening. Follow the highest-priority opportunity in the dossier. When a website opening exists, write about the website. Do not switch the email to lead generation, content, email, or automation as the opening when a site opening exists.
 

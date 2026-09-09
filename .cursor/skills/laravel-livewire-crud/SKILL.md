@@ -251,6 +251,8 @@ provided by the test stack.
   - Uses clear labels (e.g. "Cancel", "Delete").
 - CRUD pages should integrate with this shared modal instead of implementing
   one-off confirmation UIs.
+- Confirm/delete **actions must live on the Livewire component that owns the
+  `flux:modal`**. Do not nest a Livewire child inside the modal.
 
 ### 6. Sidebar/menu integration
 
