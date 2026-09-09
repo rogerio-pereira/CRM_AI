@@ -104,7 +104,7 @@
 
             @if ($opportunity->qualification_notes)
                 <div>
-                    <flux:subheading>{{ __('Notes') }}</flux:subheading>
+                    <flux:subheading>{{ __('Qualification notes') }}</flux:subheading>
                     <flux:text class="text-text-secondary" data-test="opportunities-detail-qualification-notes">
                         {{ $opportunity->qualification_notes }}
                     </flux:text>
@@ -126,6 +126,11 @@
                     {{ __('View client in Leads') }}
                 </a>
             </div>
+
+            <livewire:opportunities.notes-timeline
+                :opportunity-id="$opportunity->id"
+                :key="'opportunity-notes-'.$opportunity->id"
+            />
 
             <div class="flex justify-end gap-2">
                 <flux:button

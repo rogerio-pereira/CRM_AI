@@ -217,7 +217,7 @@
         </div>
     @endif
 
-    @if ($hasContactExample)
+    @if ($hasContactExample || $showRefresh)
         <div
             class="mt-4 rounded-md border border-border-default p-3"
             data-test="opportunities-detail-ai-contact-example"
@@ -236,32 +236,53 @@
         >
             <div class="flex items-start justify-between gap-2">
                 <flux:subheading>{{ __('Example first contact email') }}</flux:subheading>
-                <flux:button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    icon="document-duplicate"
-                    x-on:click="copy()"
-                    data-test="opportunities-detail-ai-copy-email"
-                >
-                    <span x-show="!copied">{{ __('Copy') }}</span>
-                    <span x-cloak x-show="copied">{{ __('Copied') }}</span>
-                </flux:button>
+                <div class="flex items-center gap-2">
+                    <flux:button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        icon="arrow-path"
+                        wire:click="regenerateEmail"
+                        wire:loading.attr="disabled"
+                        data-test="opportunities-detail-ai-regenerate-email"
+                    >
+                        {{ __('Regenerate email') }}
+                    </flux:button>
+                    @if ($hasContactExample)
+                        <flux:button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            icon="document-duplicate"
+                            x-on:click="copy()"
+                            data-test="opportunities-detail-ai-copy-email"
+                        >
+                            <span x-show="!copied">{{ __('Copy') }}</span>
+                            <span x-cloak x-show="copied">{{ __('Copied') }}</span>
+                        </flux:button>
+                    @endif
+                </div>
             </div>
             <pre class="hidden" x-ref="contactEmail">{{ $copyText }}</pre>
-            @if (filled($contactSubject))
-                <div class="mt-2 text-sm text-text-primary" data-test="opportunities-detail-ai-contact-subject">
-                    <span class="text-text-muted">{{ __('Subject') }}:</span>
-                    {{ $contactSubject }}
-                </div>
-            @endif
-            @if (filled($contactBody))
-                <p
-                    class="mt-2 whitespace-pre-wrap text-sm text-text-secondary"
-                    data-test="opportunities-detail-ai-contact-body"
-                >
-                    {{ $contactBody }}
-                </p>
+            @if ($hasContactExample)
+                @if (filled($contactSubject))
+                    <div class="mt-2 text-sm text-text-primary" data-test="opportunities-detail-ai-contact-subject">
+                        <span class="text-text-muted">{{ __('Subject') }}:</span>
+                        {{ $contactSubject }}
+                    </div>
+                @endif
+                @if (filled($contactBody))
+                    <p
+                        class="mt-2 whitespace-pre-wrap text-sm text-text-secondary"
+                        data-test="opportunities-detail-ai-contact-body"
+                    >
+                        {{ $contactBody }}
+                    </p>
+                @endif
+            @else
+                <flux:text class="mt-2 text-text-secondary" data-test="opportunities-detail-ai-contact-pending">
+                    {{ __('Example email will appear here when generation finishes.') }}
+                </flux:text>
             @endif
         </div>
     @endif

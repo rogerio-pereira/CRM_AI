@@ -6,6 +6,7 @@ use App\Enums\AgentType;
 use App\Enums\QualificationStatus;
 use App\Models\Opportunity;
 use App\Services\AiOrchestrationService;
+use App\Services\OpportunityService;
 use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
@@ -47,6 +48,17 @@ class AiSuggestionPanel extends Component
 
         RateLimiter::hit($rateLimitKey, self::REFRESH_RATE_LIMIT_SECONDS);
 
+        $opportunity->forgetGeneratedAiOutputs();
+        $clearedInsights = $opportunity->ai_insights;
+        $clearedRecommendations = $opportunity->ai_recommendations;
+        $clearedQualificationNotes = $opportunity->qualification_notes;
+        $opportunities = app(OpportunityService::class);
+        $opportunities->update($opportunity, [
+                'ai_insights' => $clearedInsights,
+                'ai_recommendations' => $clearedRecommendations,
+                'qualification_notes' => $clearedQualificationNotes,
+            ]);
+
         $orchestration = app(AiOrchestrationService::class);
         $payload = [
                 'trigger' => 'manual_refresh',
@@ -54,13 +66,79 @@ class AiSuggestionPanel extends Component
                 'client_id' => $opportunity->client_id,
                 'user_id' => $userId,
             ];
-        $orchestration->dispatch(AgentType::Recommendation, $payload);
+        $orchestration->dispatch(AgentType::Qualification, $payload);
 
         $this->refreshQueued = true;
 
         Flux::toast(
             variant: 'success',
             text: __('AI insights refresh queued.'),
+        );
+    }
+
+    public function regenerateEmail(): void
+    {
+        $opportunity = Opportunity::findOrFail($this->opportunityId);
+
+        if ($opportunity->qualification_status !== QualificationStatus::Qualified) {
+            Flux::toast(
+                variant: 'danger',
+                text: __('AI insights are available after qualification completes.'),
+            );
+
+            return;
+        }
+
+        $insights = $opportunity->ai_insights;
+
+        if (
+            ! is_array($insights) ||
+            $insights === []
+        ) {
+            Flux::toast(
+                variant: 'danger',
+                text: __('AI insights are available after qualification completes.'),
+            );
+
+            return;
+        }
+
+        $userId = auth()->id();
+        $rateLimitKey = 'ai-email-refresh:'.$userId.':'.$opportunity->id;
+        $tooManyAttempts = RateLimiter::tooManyAttempts($rateLimitKey, 1);
+
+        if ($tooManyAttempts) {
+            Flux::toast(
+                variant: 'warning',
+                text: __('Please wait before regenerating the email again.'),
+            );
+
+            return;
+        }
+
+        RateLimiter::hit($rateLimitKey, self::REFRESH_RATE_LIMIT_SECONDS);
+
+        $opportunity->forgetContactExamples();
+        $clearedInsights = $opportunity->ai_insights;
+        $clearedRecommendations = $opportunity->ai_recommendations;
+        $opportunities = app(OpportunityService::class);
+        $opportunities->update($opportunity, [
+                'ai_insights' => $clearedInsights,
+                'ai_recommendations' => $clearedRecommendations,
+            ]);
+
+        $orchestration = app(AiOrchestrationService::class);
+        $payload = [
+                'trigger' => 'manual_email_refresh',
+                'opportunity_id' => $opportunity->id,
+                'client_id' => $opportunity->client_id,
+                'user_id' => $userId,
+            ];
+        $orchestration->dispatch(AgentType::FirstContactEmail, $payload);
+
+        Flux::toast(
+            variant: 'success',
+            text: __('Example email regeneration queued.'),
         );
     }
 
