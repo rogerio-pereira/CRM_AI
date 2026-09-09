@@ -53,6 +53,7 @@ it('hides the first-contact email panel when no example exists', function () {
         ->assertNotPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertNotPresent('[data-test="opportunities-detail-ai-copy-email"]')
         ->assertNotPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
+        ->assertNotPresent('[data-test="opportunities-detail-ai-send-email"]')
         ->assertDontSee('Example first contact email');
 });
 
@@ -109,7 +110,8 @@ it('shows the first-contact email panel when only a subject exists', function ()
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSeeIn('@opportunities-detail-ai-contact-subject', 'Only a subject line')
         ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
-        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]');
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-send-email"]');
 });
 
 it('shows the first-contact email panel when only a body exists', function () {
@@ -138,7 +140,8 @@ it('shows the first-contact email panel when only a body exists', function () {
         ->assertPresent('[data-test="opportunities-detail-ai-contact-example"]')
         ->assertSeeIn('@opportunities-detail-ai-contact-body', 'Just a body for the first contact email.')
         ->assertPresent('[data-test="opportunities-detail-ai-regenerate-email"]')
-        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]');
+        ->assertPresent('[data-test="opportunities-detail-ai-copy-email"]')
+        ->assertPresent('[data-test="opportunities-detail-ai-send-email"]');
 });
 
 it('copies the example email without raising JavaScript errors', function () {
