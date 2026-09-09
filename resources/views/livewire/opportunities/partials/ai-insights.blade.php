@@ -279,7 +279,7 @@
                                     return;
                                 }
 
-                                Livewire.find(parentId).closeDetailAfterFirstContactEmail();
+                                Livewire.find(parentId).closeDetailModal();
                             })
                         "
                     >

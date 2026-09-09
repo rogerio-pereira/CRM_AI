@@ -71,7 +71,7 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.panelComponentId).regenerateEmail()')
             ->assertSeeHtml('data-parent-component-id=')
             ->assertSeeHtml('.sendEmail()')
-            ->assertSeeHtml('closeDetailAfterFirstContactEmail()')
+            ->assertSeeHtml('closeDetailModal()')
             ->assertSeeHtml('btn-danger')
             ->assertSee('Refresh AI insights')
             ->assertSeeInOrder([

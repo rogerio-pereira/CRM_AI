@@ -408,7 +408,7 @@ class ClientManagementTest extends TestCase
         $this->assertCount(1, $detailClient?->opportunities ?? []);
     }
 
-    public function test_close_detail_after_first_contact_email_closes_lead_modal(): void
+    public function test_close_detail_modal_closes_lead_modal(): void
     {
         $user = User::factory()
                     ->create();
@@ -420,7 +420,7 @@ class ClientManagementTest extends TestCase
         Livewire::test(Index::class)
             ->call('openDetailModal', $client->id)
             ->assertSet('showDetailModal', true)
-            ->call('closeDetailAfterFirstContactEmail')
+            ->call('closeDetailModal')
             ->assertSet('showDetailModal', false)
             ->assertSet('detailClientId', null);
     }

@@ -145,7 +145,7 @@ class Index extends Component
         unset($this->detailClient);
     }
 
-    public function closeDetailAfterFirstContactEmail(): void
+    public function closeDetailModal(): void
     {
         $this->showDetailModal = false;
         $this->detailClientId = null;

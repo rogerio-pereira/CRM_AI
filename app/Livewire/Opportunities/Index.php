@@ -112,7 +112,7 @@ class Index extends Component
         unset($this->detailOpportunity);
     }
 
-    public function closeDetailAfterFirstContactEmail(): void
+    public function closeDetailModal(): void
     {
         $this->showDetailModal = false;
         $this->detailOpportunityId = null;

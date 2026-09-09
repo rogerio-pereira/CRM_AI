@@ -164,6 +164,9 @@ class AiSuggestionPanel extends Component
          */
         ContactWithFollowUp::dispatch($opportunity, $userId);
 
+        /**
+         * Livewire event so parent Index components refresh and the frontend updates.
+         */
         $this->dispatch('opportunity-ai-updated');
 
         Toast::show(

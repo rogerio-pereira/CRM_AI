@@ -282,7 +282,7 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
-    public function test_close_detail_after_first_contact_email_closes_modal_and_refreshes_board(): void
+    public function test_close_detail_modal_closes_modal_and_refreshes_board(): void
     {
         $user = User::factory()
                     ->create();
@@ -301,7 +301,7 @@ class OpportunityManagementTest extends TestCase
         $opportunity->stage = PipelineStage::ContactSent;
         $opportunity->save();
 
-        $component->call('closeDetailAfterFirstContactEmail')
+        $component->call('closeDetailModal')
             ->assertSet('showDetailModal', false)
             ->assertSet('detailOpportunityId', null);
 
