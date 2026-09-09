@@ -79,6 +79,92 @@ class Opportunity extends Model
     }
 
     /**
+     * @return HasMany<OpportunityNote, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(OpportunityNote::class);
+    }
+
+    /**
+     * @return list<array{body: string, author: string, created_at: string}>
+     */
+    public function notesForAiContext(): array
+    {
+        $this->loadMissing('notes.user');
+
+        $notes = $this->notes
+                    ->sortBy('created_at')
+                    ->values();
+        $payload = [];
+
+        foreach ($notes as $note) {
+            $user = $note->user;
+            $authorName = '';
+
+            if ($user !== null) {
+                $authorName = $user->name;
+            }
+
+            $createdAt = $note->created_at;
+
+            if ($createdAt === null) {
+                continue;
+            }
+
+            $payload[] = [
+                'body' => $note->body,
+                'author' => $authorName,
+                'created_at' => $createdAt->toIso8601String(),
+            ];
+        }
+
+        return $payload;
+    }
+
+    public function forgetGeneratedAiOutputs(): void
+    {
+        $this->ai_insights = null;
+        $this->ai_recommendations = null;
+        $this->qualification_notes = null;
+    }
+
+    public function forgetContactExamples(): void
+    {
+        $insights = $this->ai_insights;
+
+        if (is_array($insights)) {
+            $this->ai_insights = $this->withoutNestedContactExample($insights, 'outreach_strategy');
+        }
+
+        $recommendations = $this->ai_recommendations;
+
+        if (is_array($recommendations)) {
+            $recommendations = $this->withoutNestedContactExample($recommendations, 'outreach_strategy');
+            $recommendations = $this->withoutNestedContactExample($recommendations, 'conversation_strategy');
+            $this->ai_recommendations = $recommendations;
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function withoutNestedContactExample(array $payload, string $strategyKey): array
+    {
+        $strategy = $payload[$strategyKey] ?? null;
+
+        if (! is_array($strategy)) {
+            return $payload;
+        }
+
+        unset($strategy['contact_example']);
+        $payload[$strategyKey] = $strategy;
+
+        return $payload;
+    }
+
+    /**
      * @return HasMany<Task, $this>
      */
     public function tasks(): HasMany
