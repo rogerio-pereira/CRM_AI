@@ -32,7 +32,7 @@ class RecommendationAgent implements AiAgent
     public function handle(array $context): array
     {
         $opportunityId = $context['opportunity_id'];
-        $opportunity = Opportunity::with('client')
+        $opportunity = Opportunity::with(['client', 'notes.user'])
                             ->findOrFail($opportunityId);
         $client = $opportunity->client;
 
@@ -168,6 +168,7 @@ class RecommendationAgent implements AiAgent
                 'opportunity_title' => $opportunity->title,
                 'opportunity_stage' => $opportunity->stage->value,
                 'qualification_notes' => $opportunity->qualification_notes,
+                'opportunity_notes' => $opportunity->notesForAiContext(),
                 'ai_insights' => $opportunity->ai_insights,
             ];
 

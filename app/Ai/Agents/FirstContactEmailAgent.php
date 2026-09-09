@@ -26,7 +26,7 @@ class FirstContactEmailAgent implements AiAgent
     {
         $rawOpportunityId = $context['opportunity_id'] ?? 0;
         $opportunityId = (int) $rawOpportunityId;
-        $opportunity = Opportunity::with('client')
+        $opportunity = Opportunity::with(['client', 'notes.user'])
                             ->findOrFail($opportunityId);
         $client = $opportunity->client;
 
@@ -43,11 +43,19 @@ class FirstContactEmailAgent implements AiAgent
                 ];
         }
 
+        $opportunity->forgetContactExamples();
         $insights = $opportunity->ai_insights;
+        $recommendations = $opportunity->ai_recommendations;
 
         if (! is_array($insights)) {
             throw new FirstContactEmailFailedException('First contact email output was incomplete.');
         }
+
+        $opportunity = $this->opportunities
+                            ->update($opportunity, [
+                                'ai_insights' => $insights,
+                                'ai_recommendations' => $recommendations,
+                            ]);
 
         $contactExample = $this->writeContactExample($client, $opportunity, $insights);
         $outreachStrategy = $insights['outreach_strategy'] ?? [];
@@ -62,7 +70,12 @@ class FirstContactEmailAgent implements AiAgent
                                     ->update($opportunity, [
                                         'ai_insights' => $insights,
                                     ]);
-        $updatedOpportunity = $this->moveToContactWhenReady($updatedOpportunity);
+        $rawTrigger = $context['trigger'] ?? '';
+        $trigger = (string) $rawTrigger;
+
+        if ($trigger !== 'manual_email_refresh') {
+            $updatedOpportunity = $this->moveToContactWhenReady($updatedOpportunity);
+        }
 
         return [
                 'agent' => 'first_contact_email',
@@ -135,6 +148,7 @@ class FirstContactEmailAgent implements AiAgent
                 ],
                 'ai_insights' => $insights,
                 'ai_recommendations' => $opportunity->ai_recommendations,
+                'opportunity_notes' => $opportunity->notesForAiContext(),
             ];
     }
 
