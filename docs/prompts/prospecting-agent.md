@@ -1,6 +1,6 @@
 # Prospecting Agent Prompt
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-010, ADR-015, ADR-017, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`  
@@ -186,7 +186,11 @@ Return JSON only. Do not include Markdown, commentary, or code fences.
   "skipped": [
     {
       "name": "Candidate name",
-      "reason": "Why it was not returned as a lead."
+      "reason": "Why it was not returned as a lead.",
+      "contact_name": "Owner or contact name if public",
+      "email": "public@example.com when found",
+      "phone": "optional phone",
+      "website": "https://example.com"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Prospecting Discovery Prompt
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-010, ADR-015, `docs/prompts/prospecting-agent.md`
@@ -16,5 +16,7 @@ Discover 1 lead candidate with a public email.
 Rank website work first even for a simple institutional site. Prefer businesses whose site is missing, outdated, unclear, or merely “fine.” Treat other services as cross-sell. Do not add a lead whose website already looks strong when the only remaining work is ads, content, email, or custom software.
 
 Never invent an email; it must appear on a public page you fetched.
+
+When a company is skipped, still return the public details you found: name, website, and contact name, email, or phone when they are public. Put the skip reason in `reason`.
 
 Return structured JSON only.
