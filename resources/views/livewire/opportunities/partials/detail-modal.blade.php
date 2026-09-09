@@ -51,11 +51,18 @@
                             <flux:button
                                 type="button"
                                 size="sm"
-                                variant="primary"
+                                variant="filled"
+                                icon="arrow-path"
+                                class="btn-primary"
                                 data-test="opportunities-detail-requalify"
                                 data-index-component-id="{{ $indexComponentId }}"
                                 data-opportunity-id="{{ $opportunity->id }}"
-                                x-on:click="Livewire.find($event.currentTarget.dataset.indexComponentId).requalifyOpportunity(Number($event.currentTarget.dataset.opportunityId))"
+                                x-on:click="
+                                    const button = $event.currentTarget;
+                                    const indexId = button.dataset.indexComponentId;
+                                    const opportunityId = Number(button.dataset.opportunityId);
+                                    Livewire.find(indexId).requalifyOpportunity(opportunityId);
+                                "
                             >
                                 {{ __('Requalify') }}
                             </flux:button>
