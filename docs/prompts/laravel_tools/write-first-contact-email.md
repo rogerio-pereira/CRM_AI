@@ -1,6 +1,6 @@
 # Write First Contact Email Tool
 
-**Version:** 1.6
+**Version:** 1.8
 **Status:** Approved for Wave 4 implementation
 **Owner:** Product owner
 **Used by:** First Contact Email Agent
@@ -154,12 +154,44 @@ When they finish reading, these things should be true:
 - One specific observation that proves you looked. No flattery. Same problem as the subject.
 - One quick win that shows a result on that same problem, without giving away the service.
 - How Roger can help **this** owner with that same problem. Be direct. Name the kind of help (a clearer website, more quote requests, simple follow-up, staying in touch). When the opening is a website, name the website.
-- A **clear CTA**. Tell them exactly what to do. Prefer: reply to this email, or reply “yes.” Do not hide the ask. Do not use a weak close like “easy to ignore if not.”
+- A **clear CTA** in simple English. See the CTA section below.
 - The signature below.
 
 Keep it short. One idea per paragraph. Simple English.
 
 Do not lead with a biography. Say who you are after the observation, when you say how you can help.
+
+## CTA (the ask)
+
+The last body paragraph before the signature is the ask. It must be a **clear CTA**.
+
+After one read, they must know the next step. No guessing.
+
+Rules:
+
+- Simple English. Common words. Short sentences.
+- Sound natural and conversational. Write it the way you would say it out loud.
+- Name the action: reply with **3 dates and times** they can meet. Do not ask only for “yes.”
+- Say what happens after they reply: you pick one time and schedule an online **discovery meeting** of about 1 hour.
+- One ask. Do not offer a menu of options.
+- Write a new closing each time. Do not paste a stock line.
+
+Do not:
+
+- Hide the ask (“if this is useful,” “no pressure,” “easy to ignore if not”).
+- Use sales jargon in the email (CTA, conversion, engagement, hop on a call, at your earliest convenience, explore a collaboration).
+- Use stiff phrases (would you be open to, I would love to connect, let me know if this resonates).
+- Ask them to book a calendar link, fill a form, or visit a page. The next step is a reply with 3 dates and times.
+
+These rules are for you, the writer. Never write the word “CTA” in the email.
+
+Good: a short, spoken-sounding ask that names the 3 dates and times and the 1-hour online discovery meeting.
+Good: “If you want to talk this through, reply with 3 dates and times that work for you. I will set up a 1-hour online discovery meeting.”
+Good: “Want to go over this? Send 3 dates and times you are free. I will book a 1-hour online meeting.”
+Bad: a polite hedge, a calendar pitch, or a sentence they have to decode.
+Bad: “Would you be open to exploring how we might support your digital presence?”
+Bad: “Happy to chat if useful — easy to ignore if not.”
+Bad: “Reply yes and I will send a few ideas.”
 
 ## Signature
 

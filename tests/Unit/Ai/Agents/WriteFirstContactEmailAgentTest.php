@@ -23,6 +23,10 @@ class WriteFirstContactEmailAgentTest extends TestCase
         $this->assertStringContainsString('must **not** replace Front Porch', $instructions);
         $this->assertStringContainsString('Avoid flattery', $instructions);
         $this->assertStringContainsString('clear CTA', $instructions);
+        $this->assertStringContainsString('Sound natural and conversational', $instructions);
+        $this->assertStringContainsString('Name the action: reply with **3 dates and times** they can meet', $instructions);
+        $this->assertStringContainsString('online **discovery meeting** of about 1 hour', $instructions);
+        $this->assertStringContainsString('Never write the word “CTA” in the email', $instructions);
         $this->assertStringContainsString('Simple English', $instructions);
         $this->assertStringContainsString('The emoji must **belong to this email**', $instructions);
         $this->assertStringContainsString('Do not copy a sample', $instructions);

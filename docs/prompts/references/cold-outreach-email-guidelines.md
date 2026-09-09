@@ -19,7 +19,7 @@ When they finish reading, all of this should be true:
 - The subject, the first body line, the observation, the quick win, and the offer are the **same** problem.
 - You gave one **quick win** that points to a result on that same problem, but does **not** replace Front Porch’s work.
 - They know how Roger can help **this** owner with that same problem.
-- They know exactly what to do next (clear CTA, usually reply to this email).
+- They know exactly what to do next. End with a **clear CTA** in simple English: a natural, conversational ask to reply with 3 dates and times they can meet. After that, Roger picks one time and schedules an online discovery meeting of about 1 hour. Do not hide the ask. Do not use stiff or salesy phrasing.
 
 Do not fill a numbered template. Do not write a free how-to.
 
@@ -46,6 +46,8 @@ Avoid: checking in, quick question, ALL CAPS, free, act now, guaranteed.
 # Body
 
 Lead with their world. Say how you can help after the observation. End with a clear ask.
+
+The last body paragraph before the signature is the CTA. Keep it simple and conversational. Ask them to reply with 3 dates and times they can meet. Say you will then schedule a 1-hour online discovery meeting. Do not hedge. Do not write the word “CTA” in the email.
 
 Keep paragraphs short. One idea each. Simple English. Do not open with a biography.
 
@@ -90,4 +92,4 @@ Proposal
 Sale
 ```
 
-The email must sell the next step: a reply that starts the work you can do for them.
+The email must sell the next step: a reply with 3 dates and times, then a 1-hour online discovery meeting.
