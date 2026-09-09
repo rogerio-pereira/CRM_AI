@@ -28,6 +28,7 @@ it('displays the kanban board and creates an opportunity', function () {
         ->assertNoSmoke()
         ->assertPresent('[data-test="opportunities-page"]')
         ->assertPresent('[data-test="kanban-board"]')
+        ->assertPresent('[data-test="kanban-top-scrollbar"]')
         ->assertPresent('[data-test="kanban-column-lead"]')
         ->assertPresent('[data-test="kanban-column-contact"][data-user-action-column="true"]')
         ->assertPresent('[data-test="kanban-column-contact-sent"][data-user-action-column="true"]')
@@ -65,13 +66,63 @@ it('moves an opportunity via the action menu', function () {
     visit('/opportunities')
         ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]')
         ->click('@kanban-card-actions-'.$opportunity->id)
-        ->click('@kanban-card-move-'.$opportunity->id.'-qualification')
+        ->select('@kanban-card-move-'.$opportunity->id, PipelineStage::Qualification->value)
         ->assertPresent('[data-test="kanban-column-qualification"] [data-test="kanban-card-'.$opportunity->id.'"]');
 
     $opportunity->refresh();
 
     expect($opportunity->stage)
         ->toBe(PipelineStage::Qualification);
+});
+
+it('keeps the kanban horizontal scroll after moving a card', function () {
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->qualificationProcessing()
+                        ->create([
+                            'title' => 'Keep Scroll Deal',
+                            'stage' => PipelineStage::ProposalGeneration,
+                        ]);
+
+    $this->actingAs($user);
+
+    $page = visit('/opportunities');
+
+    $page->assertPresent('[data-test="kanban-board"]')
+        ->assertPresent('[data-test="kanban-card-'.$opportunity->id.'"]');
+
+    $scrollBoardScript = <<<'JS'
+() => {
+    const board = document.querySelector('[data-test="kanban-board"]');
+    board.scrollLeft = 480;
+
+    return board.scrollLeft;
+}
+JS;
+
+    $scrolledLeft = $page->script($scrollBoardScript);
+
+    expect($scrolledLeft)
+        ->toBeGreaterThan(0);
+
+    $page->click('@kanban-card-actions-'.$opportunity->id)
+        ->select('@kanban-card-move-'.$opportunity->id, PipelineStage::ProposalAnalysis->value)
+        ->assertPresent('[data-test="kanban-column-proposal-analysis"] [data-test="kanban-card-'.$opportunity->id.'"]')
+        ->wait(0.2);
+
+    $readScrollScript = <<<'JS'
+() => {
+    const board = document.querySelector('[data-test="kanban-board"]');
+
+    return board.scrollLeft;
+}
+JS;
+
+    $leftAfterMove = $page->script($readScrollScript);
+
+    expect($leftAfterMove)
+        ->toBeGreaterThan(300);
 });
 
 it('opens the opportunity detail modal with structured AI insights', function () {

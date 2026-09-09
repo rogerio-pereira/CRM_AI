@@ -30,6 +30,26 @@ class OpportunityManagementTest extends TestCase
             ->assertOk();
     }
 
+    public function test_kanban_uses_a_move_select_and_top_scrollbar(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Move select deal',
+                                'stage' => PipelineStage::Lead,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-test="kanban-top-scrollbar"')
+            ->assertSeeHtml('data-test="kanban-autoscroller"')
+            ->assertSeeHtml('data-test="kanban-card-move-'.$opportunity->id.'"')
+            ->assertDontSee('Move to Qualification')
+            ->assertSee('Move to');
+    }
+
     public function test_user_can_create_an_opportunity_in_lead_stage(): void
     {
         Queue::fake();
