@@ -148,6 +148,12 @@ class Index extends Component
         unset($this->opportunitiesByStage);
     }
 
+    #[On('opportunity-ai-updated')]
+    public function refreshDetailAfterAiUpdate(): void
+    {
+        unset($this->opportunitiesByStage, $this->detailOpportunity);
+    }
+
     public function moveToStage(int $opportunityId, string $targetStageValue, OpportunityService $opportunityService): void
     {
         $opportunity = Opportunity::findOrFail($opportunityId);
