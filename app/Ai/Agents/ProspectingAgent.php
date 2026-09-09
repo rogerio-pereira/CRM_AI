@@ -160,11 +160,14 @@ class ProspectingAgent implements AiAgent
 
             $excludeCompanyNames[] = $companyName;
 
+            $website = $item['website'] ?? null;
+            $email = $item['email'] ?? null;
+            $phone = $item['phone'] ?? null;
             $candidate = [
                     'company_name' => $companyName,
-                    'website' => null,
-                    'email' => null,
-                    'phone' => null,
+                    'website' => $website,
+                    'email' => $email,
+                    'phone' => $phone,
                 ];
 
             $duplicate = $this->deduplication
@@ -181,14 +184,26 @@ class ProspectingAgent implements AiAgent
                 $reason = 'Skipped during prospecting.';
             }
 
-            $this->createDisqualifiedLead($companyName, $reason);
+            $this->createDisqualifiedLead($item, $companyName, $reason);
         }
     }
 
-    private function createDisqualifiedLead(string $companyName, string $reason): void
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function createDisqualifiedLead(array $item, string $companyName, string $reason): void
     {
+        $contactName = $item['contact_name'] ?? null;
+        $email = $item['email'] ?? null;
+        $phone = $item['phone'] ?? null;
+        $website = $item['website'] ?? null;
+
         $clientAttributes = [
                 'company_name' => $companyName,
+                'contact_name' => $contactName,
+                'contact_email' => $email,
+                'contact_phone' => $phone,
+                'website' => $website,
                 'lead_source' => 'prospecting',
                 'status' => ClientStatus::Active,
             ];
