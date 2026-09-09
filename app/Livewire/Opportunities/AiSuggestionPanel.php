@@ -160,7 +160,7 @@ class AiSuggestionPanel extends Component
         $userId = auth()->id();
 
         /**
-         * @calls app/Listeners/HandleFirstContactOutreachSent
+         * @calls app/Listeners/HandleContactWithFollowUp
          */
         ContactWithFollowUp::dispatch($opportunity, $userId);
 

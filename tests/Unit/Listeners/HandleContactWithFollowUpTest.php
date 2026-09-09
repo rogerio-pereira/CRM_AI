@@ -6,7 +6,7 @@ use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
-use App\Listeners\HandleFirstContactOutreachSent;
+use App\Listeners\HandleContactWithFollowUp;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Models\OpportunityNote;
@@ -15,7 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class HandleFirstContactOutreachSentTest extends TestCase
+class HandleContactWithFollowUpTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -37,7 +37,7 @@ class HandleFirstContactOutreachSentTest extends TestCase
                                 'stage' => PipelineStage::Contact,
                             ]);
         $event = new ContactWithFollowUp($opportunity, $user->id);
-        $listener = app(HandleFirstContactOutreachSent::class);
+        $listener = app(HandleContactWithFollowUp::class);
 
         $listener->handle($event);
 

@@ -13,7 +13,7 @@ use Carbon\Carbon;
 /*
  * Called by app/Events/ContactWithFollowUp.php
  */
-class HandleFirstContactOutreachSent
+class HandleContactWithFollowUp
 {
     public function __construct(
         private readonly OpportunityService $opportunities,

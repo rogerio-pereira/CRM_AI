@@ -7,7 +7,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /*
- * @calls app/Listeners/HandleFirstContactOutreachSent
+ * @calls app/Listeners/HandleContactWithFollowUp
  */
 class ContactWithFollowUp
 {
