@@ -59,8 +59,9 @@
                     <flux:button
                         type="button"
                         size="sm"
-                        variant="ghost"
+                        variant="filled"
                         icon="arrow-path"
+                        class="btn-danger"
                         wire:click="refreshInsights"
                         wire:loading.attr="disabled"
                         data-test="ai-suggestion-refresh"
