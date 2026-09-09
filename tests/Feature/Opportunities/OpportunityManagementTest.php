@@ -262,6 +262,39 @@ class OpportunityManagementTest extends TestCase
             ->assertSet('detailOpportunity.title', 'Detail target deal');
     }
 
+    public function test_close_detail_after_first_contact_email_closes_modal_and_refreshes_board(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'title' => 'Close after send deal',
+                                'stage' => PipelineStage::Contact,
+                            ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->assertSet('showDetailModal', true);
+
+        $opportunity->stage = PipelineStage::ContactSent;
+        $opportunity->save();
+
+        $component->call('closeDetailAfterFirstContactEmail')
+            ->assertSet('showDetailModal', false)
+            ->assertSet('detailOpportunityId', null);
+
+        $grouped = $component->instance()->opportunitiesByStage;
+        $contactSent = $grouped[PipelineStage::ContactSent->value];
+
+        $this->assertTrue(
+            $contactSent->contains(
+                fn (Opportunity $item): bool => $item->is($opportunity),
+            ),
+        );
+    }
+
     public function test_opportunity_detail_renders_client_contact_summary(): void
     {
         $user = User::factory()
