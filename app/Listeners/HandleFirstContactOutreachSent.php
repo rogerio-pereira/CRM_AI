@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Enums\FollowUpPriority;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
+use App\Models\OpportunityNote;
 use App\Services\FollowUpService;
 use App\Services\OpportunityService;
 use Carbon\Carbon;
@@ -45,5 +46,13 @@ class HandleFirstContactOutreachSent
                 'priority' => $priority,
                 'notes' => $notes,
             ]);
+
+        $noteBody = __('First Email sent');
+        $noteAttributes = [
+            'opportunity_id' => $opportunity->id,
+            'user_id' => $event->userId,
+            'body' => $noteBody,
+        ];
+        OpportunityNote::create($noteAttributes);
     }
 }
