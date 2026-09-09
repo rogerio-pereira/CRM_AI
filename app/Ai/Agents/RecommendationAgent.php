@@ -95,23 +95,13 @@ class RecommendationAgent implements AiAgent
     {
         $recommendations = $payload['ai_recommendations'] ?? [];
         $summary = $recommendations['summary'] ?? '';
-        $conversationStrategy = $recommendations['conversation_strategy'] ?? [];
-        $contactExample = $conversationStrategy['contact_example'] ?? [];
-        $subject = $contactExample['subject'] ?? '';
-        $body = $contactExample['body'] ?? '';
 
-        if (
-            $summary === '' ||
-            $subject === '' ||
-            $body === ''
-        ) {
+        if ($summary === '') {
             $payloadKeys = array_keys($payload);
 
             Log::warning('ai.recommendation.incomplete', [
                 'has_recommendations' => $recommendations !== [],
                 'summary_length' => strlen($summary),
-                'subject_length' => strlen($subject),
-                'body_length' => strlen($body),
                 'payload_keys' => $payloadKeys,
             ]);
 

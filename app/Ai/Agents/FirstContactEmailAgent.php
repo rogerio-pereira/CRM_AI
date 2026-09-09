@@ -4,13 +4,12 @@ namespace App\Ai\Agents;
 
 use App\Ai\Contracts\AiAgent;
 use App\Ai\Exceptions\FirstContactEmailFailedException;
-use App\Ai\Tools\WriteFirstContactEmail;
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\OpportunityService;
-use Laravel\Ai\Tools\Request;
+use Laravel\Ai\Responses\StructuredAgentResponse;
 use RuntimeException;
 
 class FirstContactEmailAgent implements AiAgent
@@ -50,8 +49,7 @@ class FirstContactEmailAgent implements AiAgent
             throw new FirstContactEmailFailedException('First contact email output was incomplete.');
         }
 
-        $briefInsights = $this->briefInsights($opportunity, $insights);
-        $contactExample = $this->writeContactExample($client, $briefInsights);
+        $contactExample = $this->writeContactExample($client, $opportunity, $insights);
         $outreachStrategy = $insights['outreach_strategy'] ?? [];
 
         if (! is_array($outreachStrategy)) {
@@ -78,38 +76,24 @@ class FirstContactEmailAgent implements AiAgent
      * @param  array<string, mixed>  $insights
      * @return array<string, mixed>
      */
-    private function briefInsights(Opportunity $opportunity, array $insights): array
+    private function writeContactExample(Client $client, Opportunity $opportunity, array $insights): array
     {
-        $recommendations = $opportunity->ai_recommendations;
+        $dossier = $this->copywriterDossier($client, $opportunity, $insights);
+        $encodedDossier = json_encode($dossier);
 
-        if (! is_array($recommendations)) {
-            return $insights;
-        }
-
-        $brief = $insights;
-        $brief['pain_points'] = $recommendations['pain_points'] ?? $insights['pain_points'] ?? [];
-        $brief['opportunities'] = $recommendations['opportunities'] ?? $insights['opportunities'] ?? [];
-        $brief['summary'] = $recommendations['summary'] ?? $insights['summary'] ?? '';
-
-        return $brief;
-    }
-
-    /**
-     * @param  array<string, mixed>  $insights
-     * @return array<string, mixed>
-     */
-    private function writeContactExample(Client $client, array $insights): array
-    {
-        $brief = $this->firstContactBrief($client, $insights);
-        $tool = app(WriteFirstContactEmail::class);
-        $request = new Request($brief);
-        $encoded = $tool->handle($request);
-        $contactExample = json_decode((string) $encoded, true);
-
-        if (! is_array($contactExample)) {
+        if (! is_string($encodedDossier)) {
             throw new FirstContactEmailFailedException('First contact email output was incomplete.');
         }
 
+        $copywriter = app(WriteFirstContactEmailAgent::class);
+        $prompt = "Write the example first contact email for this lead. Return structured JSON only.\n\n".$encodedDossier;
+        $response = $copywriter->prompt($prompt);
+
+        if (! $response instanceof StructuredAgentResponse) {
+            throw new FirstContactEmailFailedException('First contact email output was incomplete.');
+        }
+
+        $contactExample = $response->toArray();
         $rawSubject = $contactExample['subject'] ?? '';
         $subject = trim((string) $rawSubject);
         $rawBody = $contactExample['body'] ?? '';
@@ -127,98 +111,31 @@ class FirstContactEmailAgent implements AiAgent
 
     /**
      * @param  array<string, mixed>  $insights
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
-    private function firstContactBrief(Client $client, array $insights): array
+    private function copywriterDossier(Client $client, Opportunity $opportunity, array $insights): array
     {
-        $contactName = (string) ($client->contact_name ?? '');
-
-        if ($contactName === '') {
-            $contactName = (string) $client->company_name;
-        }
-
-        $firstPain = $this->firstArrayItem($insights['pain_points'] ?? []);
-        $preferredOpportunity = $this->preferredCatalogItem($insights['opportunities'] ?? []);
-        $rawHook = $firstPain['evidence'] ?? $firstPain['title'] ?? '';
-        $rawService = $preferredOpportunity['service'] ?? 'lead_generation';
-        $rawOpportunity = $preferredOpportunity['why_it_matters'] ?? $preferredOpportunity['title'] ?? '';
-        $rawSummary = $insights['summary'] ?? '';
-
         return [
-                'contact_name' => $contactName,
-                'company_name' => (string) $client->company_name,
-                'line_of_business' => (string) $rawSummary,
-                'location' => 'Plant City, FL area',
-                'service_angle' => (string) $rawService,
-                'observed_hook' => (string) $rawHook,
-                'opportunity' => (string) $rawOpportunity,
-                'sample_insight' => (string) $rawSummary,
+                'client' => [
+                    'id' => (string) $client->id,
+                    'company_name' => $client->company_name,
+                    'contact_name' => $client->contact_name,
+                    'contact_email' => $client->contact_email,
+                    'contact_phone' => $client->contact_phone,
+                    'website' => $client->website,
+                    'social_links' => $client->social_links,
+                    'lead_source' => $client->lead_source,
+                    'company_notes' => $client->qualification_notes,
+                ],
+                'opportunity' => [
+                    'id' => (string) $opportunity->id,
+                    'title' => $opportunity->title,
+                    'stage' => $opportunity->stage->value,
+                    'qualification_notes' => $opportunity->qualification_notes,
+                ],
+                'ai_insights' => $insights,
+                'ai_recommendations' => $opportunity->ai_recommendations,
             ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function preferredCatalogItem(mixed $items): array
-    {
-        if (! is_array($items)) {
-            return [];
-        }
-
-        $priorityOrder = [
-                'high',
-                'medium',
-                'low',
-            ];
-
-        foreach ($priorityOrder as $priority) {
-            $match = $this->firstItemWithPriority($items, $priority);
-
-            if ($match !== []) {
-                return $match;
-            }
-        }
-
-        return $this->firstArrayItem($items);
-    }
-
-    /**
-     * @param  array<int|string, mixed>  $items
-     * @return array<string, mixed>
-     */
-    private function firstItemWithPriority(array $items, string $priority): array
-    {
-        foreach ($items as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $itemPriority = $item['priority'] ?? '';
-
-            if ($itemPriority === $priority) {
-                return $item;
-            }
-        }
-
-        return [];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function firstArrayItem(mixed $items): array
-    {
-        if (! is_array($items)) {
-            return [];
-        }
-
-        $firstItem = $items[0] ?? [];
-
-        if (! is_array($firstItem)) {
-            return [];
-        }
-
-        return $firstItem;
     }
 
     private function moveToContactWhenReady(Opportunity $opportunity): Opportunity
