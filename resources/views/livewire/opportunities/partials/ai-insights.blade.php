@@ -241,23 +241,23 @@
                         type="button"
                         size="sm"
                         variant="ghost"
-                        icon="document-duplicate"
-                        x-on:click="copy()"
-                        data-test="opportunities-detail-ai-copy-email"
-                    >
-                        <span x-show="!copied">{{ __('Copy') }}</span>
-                        <span x-cloak x-show="copied">{{ __('Copied') }}</span>
-                    </flux:button>
-                    <flux:button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
                         icon="arrow-path"
                         wire:click="regenerateEmail"
                         wire:loading.attr="disabled"
                         data-test="opportunities-detail-ai-regenerate-email"
                     >
                         {{ __('Regenerate email') }}
+                    </flux:button>
+                    <flux:button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        icon="document-duplicate"
+                        x-on:click="copy()"
+                        data-test="opportunities-detail-ai-copy-email"
+                    >
+                        <span x-show="!copied">{{ __('Copy') }}</span>
+                        <span x-cloak x-show="copied">{{ __('Copied') }}</span>
                     </flux:button>
                 </div>
             </div>
