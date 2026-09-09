@@ -42,6 +42,35 @@ class OpportunityNotesTest extends TestCase
             ->assertSee('Owner asked for a brochure site.');
     }
 
+    public function test_opportunity_detail_renders_ai_authored_notes(): void
+    {
+        $user = User::factory()
+                    ->create(['name' => 'Taylor Closer']);
+        $opportunity = Opportunity::factory()
+                            ->create(['title' => 'AI Note Deal']);
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->create([
+                        'user_id' => null,
+                        'body' => 'No public email.',
+                    ]);
+
+        $this->actingAs($user);
+
+        $html = Livewire::test(Index::class)
+                    ->call('openDetailModal', $opportunity->id)
+                    ->html();
+        $authorMarker = 'data-test="opportunities-detail-note-author-'.$note->id.'"';
+        $authorPosition = strpos($html, $authorMarker);
+
+        $this->assertNotFalse($authorPosition);
+
+        $authorSlice = substr($html, $authorPosition, 200);
+
+        $this->assertStringContainsString('AI', $authorSlice);
+        $this->assertStringContainsString('No public email.', $html);
+    }
+
     public function test_notes_render_after_ai_insights(): void
     {
         $user = User::factory()
