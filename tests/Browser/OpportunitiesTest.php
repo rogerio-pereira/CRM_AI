@@ -260,6 +260,40 @@ it('adds a note from the opportunity detail modal', function () {
         ->toBe(PipelineStage::Contact);
 });
 
+it('deletes a note from the opportunity detail modal', function () {
+    $user = User::factory()
+                ->create(['name' => 'Browser Note Author']);
+    $opportunity = Opportunity::factory()
+                        ->create([
+                            'title' => 'Delete Note Browser Deal',
+                            'stage' => PipelineStage::Contact,
+                        ]);
+    $note = OpportunityNote::factory()
+                ->for($opportunity)
+                ->for($user)
+                ->create([
+                    'body' => 'Note to remove from the timeline.',
+                ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertSee('Note to remove from the timeline.')
+        ->assertPresent('[data-test="opportunities-detail-note-delete-'.$note->id.'"]')
+        ->click('@opportunities-detail-note-delete-'.$note->id)
+        ->assertNoJavaScriptErrors()
+        ->waitForText('Note deleted.')
+        ->assertDontSee('Note to remove from the timeline.')
+        ->assertDontSee('Unable to call component method');
+
+    $noteExists = OpportunityNote::where('id', $note->id)
+                        ->exists();
+
+    expect($noteExists)
+        ->toBeFalse();
+});
+
 it('renders qualification status chips on the kanban and failed error on detail', function () {
     $user = User::factory()
                 ->create();

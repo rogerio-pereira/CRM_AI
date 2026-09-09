@@ -9,6 +9,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -32,10 +33,18 @@ class OpportunityNotesTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(Index::class)
-            ->call('openDetailModal', $opportunity->id)
-            ->assertSeeHtml('data-test="opportunities-detail-notes"')
+        $page = Livewire::test(Index::class)
+                    ->call('openDetailModal', $opportunity->id);
+        $ownerComponentId = $page->instance()
+                                ->getId();
+
+        $page->assertSeeHtml('data-test="opportunities-detail-notes"')
             ->assertSeeHtml('data-test="opportunities-detail-notes-list"')
+            ->assertSeeHtml('data-test="opportunities-detail-note-delete-')
+            ->assertSeeHtml('data-index-component-id="'.$ownerComponentId.'"')
+            ->assertSeeHtml('Livewire.find($event.currentTarget.dataset.indexComponentId)')
+            ->assertSeeHtml('.deleteNote(')
+            ->assertDontSeeHtml('wire:click="deleteNote')
             ->assertSee('Taylor Closer')
             ->assertSee('Owner asked for a brochure site.');
     }
@@ -167,18 +176,110 @@ class OpportunityNotesTest extends TestCase
         $this->assertDatabaseCount('opportunity_notes', 0);
     }
 
-    public function test_guests_cannot_add_notes(): void
+    public function test_authenticated_user_can_delete_a_note(): void
     {
+        $user = User::factory()
+                    ->create();
         $opportunity = Opportunity::factory()
                             ->create();
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->for($user)
+                    ->create([
+                        'body' => 'Note to remove.',
+                    ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('openDetailModal', $opportunity->id)
+            ->call('deleteNote', $note->id)
+            ->assertDontSee('Note to remove.');
+
+        $this->assertDatabaseMissing('opportunity_notes', [
+            'id' => $note->id,
+        ]);
+    }
+
+    public function test_notes_timeline_can_delete_a_note(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->for($user)
+                    ->create([
+                        'body' => 'Note to remove from the nested timeline.',
+                    ]);
+
+        $this->actingAs($user);
 
         Livewire::test(NotesTimeline::class, [
                                 'opportunityId' => $opportunity->id,
                             ])
-            ->set('body', 'Unauthorized note.')
-            ->call('addNote')
-            ->assertForbidden();
+            ->call('deleteNote', $note->id)
+            ->assertDontSee('Note to remove from the nested timeline.');
 
-        $this->assertDatabaseCount('opportunity_notes', 0);
+        $this->assertDatabaseMissing('opportunity_notes', [
+            'id' => $note->id,
+        ]);
+    }
+
+    public function test_delete_note_does_not_remove_notes_from_another_opportunity(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $otherOpportunity = Opportunity::factory()
+                            ->create();
+        $otherNote = OpportunityNote::factory()
+                            ->for($otherOpportunity)
+                            ->for($user)
+                            ->create([
+                                'body' => 'Belongs to another opportunity.',
+                            ]);
+
+        $this->actingAs($user);
+
+        try {
+            Livewire::test(Index::class)
+                ->call('openDetailModal', $opportunity->id)
+                ->call('deleteNote', $otherNote->id);
+            $this->fail('Expected the note from another opportunity to be missing.');
+        } catch (ModelNotFoundException) {
+            $this->assertDatabaseHas('opportunity_notes', [
+                'id' => $otherNote->id,
+            ]);
+        }
+    }
+
+    public function test_notes_timeline_refreshes_when_a_note_is_deleted(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create();
+        $note = OpportunityNote::factory()
+                    ->for($opportunity)
+                    ->for($user)
+                    ->create([
+                        'body' => 'Note to remove.',
+                    ]);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(NotesTimeline::class, [
+                                'opportunityId' => $opportunity->id,
+                            ]);
+        $component->assertSee('Note to remove.');
+
+        $note->delete();
+
+        $component->call('refreshNotes')
+            ->assertDontSee('Note to remove.')
+            ->assertSeeHtml('data-test="opportunities-detail-notes-empty"');
     }
 }
