@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (amended 2026-08-13; service catalog interpretation partially superseded by [ADR-020](ADR-020-commercial-service-catalog-boundary.md); amended 2026-09-08 to drop a fixed service ranking)
+Accepted (amended 2026-08-13; service catalog interpretation partially superseded by [ADR-020](ADR-020-commercial-service-catalog-boundary.md); amended 2026-09-08 to drop a fixed service ranking; amended 2026-09-08 to restore website-first as the early-stage opening)
 
 ADR-017 remains authoritative for qualification. Where the historical text calls `docs/services/` the service source of truth, ADR-020 narrows that role to qualification categories and makes the database catalog authoritative for priced proposal line items.
 
@@ -115,21 +115,33 @@ The 2026-07-31 decisions below that placed qualification status, errors, timesta
 
 ### Amendment 2026-09-08 — no fixed service ranking
 
-Prospecting, qualification, and recommendation analyze the **whole** business. They do not apply a global service ranking and do not treat website work as the required commercial opening.
+Prospecting, qualification, and recommendation briefly analyzed the **whole** business without a global service ranking. Recurring catalog work was treated as the better first engagement. A website rebuild was an opening only when the public site was missing, broken, or clearly blocking inquiries.
 
-Priority comes from evidence on this company. Recurring catalog work (lead generation, content, email, automations) is often the better first engagement. A website rebuild is an opening only when the public site is missing, broken, or clearly blocking inquiries; otherwise it is a later upsell. Custom software stays in the catalog scan and stays low unless a simpler service cannot cover a clear operational need.
+That amendment pulled higher-standard companies whose first job was ads, content retainers, or other heavier work. It is **superseded** by the restoration below.
 
-Do not invent benefits such as “a branded mailbox raises prices” or “a new site will convert because it is custom.” Order `ai_insights.opportunities` by actual need for this company, highest first. The top pain, top opportunity, talking points, and first-contact email must describe the same opening.
+### Amendment 2026-09-08 — restore website-first as the early-stage opening
+
+Front Porch is an early-stage agency. The commercial opening is website work: lower delivery complexity, a result the owner can see, and the best platform for later lead generation, email, content, and automation.
+
+This is temporary. Search `revert-later-website-first` in [05 - Feature List](../05%20-%20Feature%20List.md#revert-later-website-first) when cash flow and delivery capacity allow heavier first jobs.
+
+Prospecting prefers companies with a missing, outdated, slow, unclear, brochure-only, or merely “fine” site. Do not fill the list with strong-site companies whose remaining work is ads, content, email, or custom software.
+
+Qualification still scores **every** catalog service on the first prospecting opportunity. Rank `website_design_development` first whenever a site opening exists. Lead generation, automation, email, and content are cross-sell. Custom software stays low unless a simpler service cannot cover a clear operational need.
+
+Recommendation and the first-contact email follow that same opening. Do not re-rank the conversation toward recurring work when a website opening exists.
+
+Do not invent benefits such as “a branded mailbox raises prices” or “a new site will convert because it is custom.” The top pain, top opportunity, talking points, and first-contact email must describe the same opening.
 
 ### Service opportunity reference examples
 
-These examples guide AI recommendations and internal sales notes. They are tone references, not a ranking and not an opening order. They should frame services as practical opportunities to grow revenue, save time, and reduce friction, not as expenses the prospect is being pressured to buy. Mental triggers may be used with a light hand. Never sound like someone selling insurance, a car, or solar panels.
+These examples guide AI recommendations and internal sales notes. They should frame services as practical opportunities to grow revenue, save time, and reduce friction, not as expenses the prospect is being pressured to buy. Mental triggers may be used with a light hand. Never sound like someone selling insurance, a car, or solar panels.
 
 | Service | Reference angle |
 | ------- | --------------- |
-| `lead_generation` | Show the owner that referrals are valuable, but they should not be the only path to new work. Frame lead generation as a way to create a steadier flow of opportunities. |
+| `website_design_development` | Frame the website as the first trust check before someone calls. This is the usual first job. |
+| `lead_generation` | Show the owner that referrals are valuable, but they should not be the only path to new work. Pitch after a site opening. |
 | `email_marketing` | Position email as a simple way to stay remembered by people who already know or considered the business. Emphasize follow-up and repeat revenue. |
-| `website_design_development` | Frame the website as the first trust check before someone calls. Recommend a rebuild only when the current site is actually in the way. |
 | `content_creation` | Present content as useful local proof and education, not vanity posting. Emphasize consistency and trust. |
 | `business_automation` | Position automation as removing repeated manual work so the owner has more time for customers and sales. |
 | `custom_software_development` | Use only when there is a clear operational need. Frame as a tailored tool after simpler options are considered, not as the first pitch. |
