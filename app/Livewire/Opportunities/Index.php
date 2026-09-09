@@ -8,6 +8,7 @@ use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
 use Flux\Flux;
@@ -195,6 +196,24 @@ class Index extends Component
         );
 
         unset($this->opportunitiesByStage, $this->detailOpportunity);
+    }
+
+    public function deleteNote(int $noteId): void
+    {
+        if ($this->detailOpportunityId === null) {
+            return;
+        }
+
+        $note = OpportunityNote::where('opportunity_id', $this->detailOpportunityId)
+                            ->findOrFail($noteId);
+        $note->delete();
+
+        $this->dispatch('opportunity-note-deleted');
+
+        Flux::toast(
+            variant: 'success',
+            text: __('Note deleted.'),
+        );
     }
 
     public function render(): View
