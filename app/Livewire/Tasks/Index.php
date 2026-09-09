@@ -8,8 +8,8 @@ use App\Models\Client;
 use App\Models\Opportunity;
 use App\Models\Task;
 use App\Services\TaskService;
+use App\Support\Toast;
 use Carbon\Carbon;
-use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -178,11 +178,11 @@ class Index extends Component
 
         if ($this->editingTaskId === null) {
             $taskService->create($attributes);
-            Flux::toast(variant: 'success', text: __('Task created.'));
+            Toast::show(variant: 'success', text: __('Task created.'));
         } else {
             $task = Task::findOrFail($this->editingTaskId);
             $taskService->update($task, $attributes);
-            Flux::toast(variant: 'success', text: __('Task updated.'));
+            Toast::show(variant: 'success', text: __('Task updated.'));
         }
 
         $this->showFormModal = false;
@@ -193,7 +193,7 @@ class Index extends Component
     {
         $task = Task::findOrFail($taskId);
         $taskService->markDone($task);
-        Flux::toast(variant: 'success', text: __('Task completed.'));
+        Toast::show(variant: 'success', text: __('Task completed.'));
     }
 
     public function confirmDelete(TaskService $taskService): void
@@ -205,7 +205,7 @@ class Index extends Component
         $task = Task::findOrFail($this->deleteTaskId);
         $taskService->delete($task);
 
-        Flux::toast(variant: 'success', text: __('Task deleted.'));
+        Toast::show(variant: 'success', text: __('Task deleted.'));
         $this->showDeleteModal = false;
         $this->deleteTaskId = null;
         unset($this->deleteTask);

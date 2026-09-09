@@ -12,7 +12,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Services\AiOrchestrationService;
 use App\Services\OpportunityService;
-use Flux\Flux;
+use App\Support\Toast;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -124,11 +124,11 @@ class Index extends Component
 
         if ($this->editingOpportunityId === null) {
             $opportunityService->create($attributes);
-            Flux::toast(variant: 'success', text: __('Opportunity created.'));
+            Toast::show(variant: 'success', text: __('Opportunity created.'));
         } else {
             $opportunity = Opportunity::findOrFail($this->editingOpportunityId);
             $opportunityService->update($opportunity, $attributes);
-            Flux::toast(variant: 'success', text: __('Opportunity updated.'));
+            Toast::show(variant: 'success', text: __('Opportunity updated.'));
         }
 
         $this->showFormModal = false;
@@ -165,7 +165,7 @@ class Index extends Component
             auth()->id(),
         );
 
-        Flux::toast(variant: 'success', text: __('Opportunity moved to :stage.', [
+        Toast::show(variant: 'success', text: __('Opportunity moved to :stage.', [
             'stage' => $targetStage->label(),
         ]));
 
@@ -177,7 +177,7 @@ class Index extends Component
         $opportunity = Opportunity::findOrFail($opportunityId);
 
         if ($opportunity->qualification_status !== QualificationStatus::Failed) {
-            Flux::toast(
+            Toast::show(
                 variant: 'danger',
                 text: __('Only failed qualifications can be retried.'),
             );
@@ -202,7 +202,7 @@ class Index extends Component
         $orchestration = app(AiOrchestrationService::class);
         $orchestration->dispatch(AgentType::Qualification, $payload);
 
-        Flux::toast(
+        Toast::show(
             variant: 'success',
             text: __('Qualification queued.'),
         );
@@ -230,7 +230,7 @@ class Index extends Component
         $this->body = '';
         unset($this->detailOpportunity);
 
-        Flux::toast(
+        Toast::show(
             variant: 'success',
             text: __('Note added.'),
         );
@@ -247,7 +247,7 @@ class Index extends Component
         $note->delete();
         unset($this->detailOpportunity);
 
-        Flux::toast(
+        Toast::show(
             variant: 'success',
             text: __('Note deleted.'),
         );

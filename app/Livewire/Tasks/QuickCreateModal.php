@@ -7,8 +7,8 @@ use App\Enums\TaskPriority;
 use App\Models\Client;
 use App\Models\Opportunity;
 use App\Services\TaskService;
+use App\Support\Toast;
 use Carbon\Carbon;
-use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -117,7 +117,7 @@ class QuickCreateModal extends Component
             'is_important' => (bool) ($validated['is_important'] ?? false),
         ]);
 
-        Flux::toast(variant: 'success', text: __('Task created.'));
+        Toast::show(variant: 'success', text: __('Task created.'));
 
         $this->showFormModal = false;
         $this->resetForm();

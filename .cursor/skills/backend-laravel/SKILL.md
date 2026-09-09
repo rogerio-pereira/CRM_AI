@@ -197,7 +197,7 @@ Follow standard Laravel patterns. Every model must have a factory. Use seeders w
 - For HTTP responses:
   - Use appropriate status codes (200, 201, 204, 400, 404, 422, 500, etc.).
   - For JSON APIs, return structured JSON with clear error messages.
-  - For Livewire UI: redirects, `Flux::toast`, validation errors on the component.
+  - For Livewire UI: redirects, `Toast::show()` (`App\Support\Toast`), validation errors on the component. If the class is missing, create `app/Support/Toast.php` from `.cursor/skills/frontend-livewire-flux/SKILL.md`.
 
 ---
 

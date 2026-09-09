@@ -8,8 +8,8 @@ use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
 use App\Services\FollowUpService;
+use App\Support\Toast;
 use Carbon\Carbon;
-use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -149,11 +149,11 @@ class Index extends Component
 
         if ($this->editingFollowUpId === null) {
             $followUpService->create($attributes);
-            Flux::toast(variant: 'success', text: __('Follow-up created.'));
+            Toast::show(variant: 'success', text: __('Follow-up created.'));
         } else {
             $followUp = FollowUp::findOrFail($this->editingFollowUpId);
             $followUpService->update($followUp, $attributes);
-            Flux::toast(variant: 'success', text: __('Follow-up updated.'));
+            Toast::show(variant: 'success', text: __('Follow-up updated.'));
         }
 
         $this->showFormModal = false;
@@ -164,7 +164,7 @@ class Index extends Component
     {
         $followUp = FollowUp::findOrFail($followUpId);
         $followUpService->markComplete($followUp);
-        Flux::toast(variant: 'success', text: __('Follow-up completed.'));
+        Toast::show(variant: 'success', text: __('Follow-up completed.'));
     }
 
     public function render(): View
