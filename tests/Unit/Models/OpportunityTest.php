@@ -159,40 +159,6 @@ class OpportunityTest extends TestCase
         $this->assertSame('Second Author', $secondPayload['author']);
     }
 
-    public function test_notes_for_ai_context_uses_empty_author_when_user_is_missing(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $note = OpportunityNote::factory()
-                    ->for($opportunity)
-                    ->create([
-                        'body' => 'Note without a loaded author.',
-                    ]);
-        $note->setRelation('user', null);
-        $opportunity->setRelation('notes', collect([$note]));
-        $payload = $opportunity->notesForAiContext();
-        $firstPayload = $payload[0];
-
-        $this->assertSame('', $firstPayload['author']);
-        $this->assertSame('Note without a loaded author.', $firstPayload['body']);
-    }
-
-    public function test_notes_for_ai_context_skips_notes_without_created_at(): void
-    {
-        $opportunity = Opportunity::factory()
-                            ->create();
-        $note = OpportunityNote::factory()
-                    ->for($opportunity)
-                    ->create([
-                        'body' => 'Note missing a timestamp.',
-                    ]);
-        $note->created_at = null;
-        $opportunity->setRelation('notes', collect([$note]));
-        $payload = $opportunity->notesForAiContext();
-
-        $this->assertSame([], $payload);
-    }
-
     public function test_forget_contact_examples_removes_stored_email_drafts(): void
     {
         $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];

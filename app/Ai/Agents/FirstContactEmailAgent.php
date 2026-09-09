@@ -70,8 +70,7 @@ class FirstContactEmailAgent implements AiAgent
                                     ->update($opportunity, [
                                         'ai_insights' => $insights,
                                     ]);
-        $rawTrigger = $context['trigger'] ?? '';
-        $trigger = (string) $rawTrigger;
+        $trigger = $context['trigger'] ?? '';
 
         if ($trigger !== 'manual_email_refresh') {
             $updatedOpportunity = $this->moveToContactWhenReady($updatedOpportunity);

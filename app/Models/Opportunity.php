@@ -94,27 +94,15 @@ class Opportunity extends Model
         $this->loadMissing('notes.user');
 
         $notes = $this->notes
-                    ->sortBy('created_at')
-                    ->values();
+                    ->sortBy('created_at');
         $payload = [];
 
         foreach ($notes as $note) {
-            $user = $note->user;
-            $authorName = '';
-
-            if ($user !== null) {
-                $authorName = $user->name;
-            }
-
+            $author = $note->user;
             $createdAt = $note->created_at;
-
-            if ($createdAt === null) {
-                continue;
-            }
-
             $payload[] = [
                 'body' => $note->body,
-                'author' => $authorName,
+                'author' => $author->name,
                 'created_at' => $createdAt->toIso8601String(),
             ];
         }
@@ -133,35 +121,24 @@ class Opportunity extends Model
     {
         $insights = $this->ai_insights;
 
-        if (is_array($insights)) {
-            $this->ai_insights = $this->withoutNestedContactExample($insights, 'outreach_strategy');
+        if (is_array($insights) && is_array($insights['outreach_strategy'] ?? null)) {
+            unset($insights['outreach_strategy']['contact_example']);
+            $this->ai_insights = $insights;
         }
 
         $recommendations = $this->ai_recommendations;
 
         if (is_array($recommendations)) {
-            $recommendations = $this->withoutNestedContactExample($recommendations, 'outreach_strategy');
-            $recommendations = $this->withoutNestedContactExample($recommendations, 'conversation_strategy');
+            if (is_array($recommendations['outreach_strategy'] ?? null)) {
+                unset($recommendations['outreach_strategy']['contact_example']);
+            }
+
+            if (is_array($recommendations['conversation_strategy'] ?? null)) {
+                unset($recommendations['conversation_strategy']['contact_example']);
+            }
+
             $this->ai_recommendations = $recommendations;
         }
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
-    private function withoutNestedContactExample(array $payload, string $strategyKey): array
-    {
-        $strategy = $payload[$strategyKey] ?? null;
-
-        if (! is_array($strategy)) {
-            return $payload;
-        }
-
-        unset($strategy['contact_example']);
-        $payload[$strategyKey] = $strategy;
-
-        return $payload;
     }
 
     /**

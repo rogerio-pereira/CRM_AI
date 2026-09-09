@@ -44,8 +44,7 @@ class QualificationAgent implements AiAgent
             throw new RuntimeException('Qualification client not found for opportunity: '.$opportunity->id);
         }
 
-        $rawTrigger = $context['trigger'] ?? '';
-        $trigger = (string) $rawTrigger;
+        $trigger = $context['trigger'] ?? '';
 
         if ($opportunity->qualification_status === QualificationStatus::Qualified) {
             if ($trigger !== 'manual_refresh') {
@@ -70,14 +69,11 @@ class QualificationAgent implements AiAgent
         }
 
         $opportunity->forgetGeneratedAiOutputs();
-        $clearedInsights = $opportunity->ai_insights;
-        $clearedRecommendations = $opportunity->ai_recommendations;
-        $clearedQualificationNotes = $opportunity->qualification_notes;
         $opportunity = $this->opportunities
                             ->update($opportunity, [
-                                'ai_insights' => $clearedInsights,
-                                'ai_recommendations' => $clearedRecommendations,
-                                'qualification_notes' => $clearedQualificationNotes,
+                                'ai_insights' => $opportunity->ai_insights,
+                                'ai_recommendations' => $opportunity->ai_recommendations,
+                                'qualification_notes' => $opportunity->qualification_notes,
                             ]);
 
         $payload = $this->analyzeOpportunity($opportunity, $client);

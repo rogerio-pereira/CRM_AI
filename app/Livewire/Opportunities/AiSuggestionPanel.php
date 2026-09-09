@@ -49,14 +49,11 @@ class AiSuggestionPanel extends Component
         RateLimiter::hit($rateLimitKey, self::REFRESH_RATE_LIMIT_SECONDS);
 
         $opportunity->forgetGeneratedAiOutputs();
-        $clearedInsights = $opportunity->ai_insights;
-        $clearedRecommendations = $opportunity->ai_recommendations;
-        $clearedQualificationNotes = $opportunity->qualification_notes;
         $opportunities = app(OpportunityService::class);
         $opportunities->update($opportunity, [
-                'ai_insights' => $clearedInsights,
-                'ai_recommendations' => $clearedRecommendations,
-                'qualification_notes' => $clearedQualificationNotes,
+                'ai_insights' => $opportunity->ai_insights,
+                'ai_recommendations' => $opportunity->ai_recommendations,
+                'qualification_notes' => $opportunity->qualification_notes,
             ]);
 
         $orchestration = app(AiOrchestrationService::class);
@@ -80,18 +77,10 @@ class AiSuggestionPanel extends Component
     {
         $opportunity = Opportunity::findOrFail($this->opportunityId);
 
-        if ($opportunity->qualification_status !== QualificationStatus::Qualified) {
-            Flux::toast(
-                variant: 'danger',
-                text: __('AI insights are available after qualification completes.'),
-            );
-
-            return;
-        }
-
         $insights = $opportunity->ai_insights;
 
         if (
+            $opportunity->qualification_status !== QualificationStatus::Qualified ||
             ! is_array($insights) ||
             $insights === []
         ) {
@@ -119,12 +108,10 @@ class AiSuggestionPanel extends Component
         RateLimiter::hit($rateLimitKey, self::REFRESH_RATE_LIMIT_SECONDS);
 
         $opportunity->forgetContactExamples();
-        $clearedInsights = $opportunity->ai_insights;
-        $clearedRecommendations = $opportunity->ai_recommendations;
         $opportunities = app(OpportunityService::class);
         $opportunities->update($opportunity, [
-                'ai_insights' => $clearedInsights,
-                'ai_recommendations' => $clearedRecommendations,
+                'ai_insights' => $opportunity->ai_insights,
+                'ai_recommendations' => $opportunity->ai_recommendations,
             ]);
 
         $orchestration = app(AiOrchestrationService::class);
