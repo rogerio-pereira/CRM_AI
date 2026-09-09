@@ -165,6 +165,17 @@
         padding-inline: 0.35rem;
         padding-block: 0.1rem;
     }
+
+    .btn-danger {
+        color: var(--color-status-danger) !important;
+        border-color: var(--color-status-danger) !important;
+    }
+
+    .btn-danger:hover {
+        background-color: color-mix(in srgb, var(--color-status-danger) 15%, transparent) !important;
+        border-color: var(--color-status-danger) !important;
+        color: var(--color-status-danger) !important;
+    }
 }
 
 @source inline("bg-status-danger/15");
