@@ -9,6 +9,7 @@ use App\Events\ContactWithFollowUp;
 use App\Listeners\HandleFirstContactOutreachSent;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,5 +55,12 @@ class HandleFirstContactOutreachSentTest extends TestCase
         $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
         $this->assertSame('Follow up after first-contact email.', $followUp->notes);
         $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
+
+        $note = OpportunityNote::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+        $this->assertNotNull($note);
+        $this->assertSame($user->id, $note->user_id);
+        $this->assertSame('First Email sent', $note->body);
     }
 }

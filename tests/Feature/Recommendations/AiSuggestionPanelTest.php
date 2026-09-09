@@ -555,6 +555,13 @@ class AiSuggestionPanelTest extends TestCase
         $this->assertSame('Follow up after first-contact email.', $followUp->notes);
         $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
 
+        $note = OpportunityNote::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+        $this->assertNotNull($note);
+        $this->assertSame($user->id, $note->user_id);
+        $this->assertSame('First Email sent', $note->body);
+
         Carbon::setTestNow();
     }
 
