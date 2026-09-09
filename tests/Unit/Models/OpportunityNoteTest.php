@@ -35,5 +35,18 @@ class OpportunityNoteTest extends TestCase
 
         $this->assertTrue($relatedUser->is($user));
         $this->assertSame('Note Author', $relatedUser->name);
+        $this->assertSame('Note Author', $note->authorName());
+    }
+
+    public function test_author_name_is_ai_when_the_note_has_no_user(): void
+    {
+        $note = OpportunityNote::factory()
+                    ->create([
+                        'user_id' => null,
+                        'body' => 'No public email.',
+                    ]);
+
+        $this->assertNull($note->user);
+        $this->assertSame('AI', $note->authorName());
     }
 }

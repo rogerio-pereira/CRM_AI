@@ -99,11 +99,10 @@ class Opportunity extends Model
         $payload = [];
 
         foreach ($notes as $note) {
-            $author = $note->user;
             $createdAt = $note->created_at;
             $payload[] = [
                 'body' => $note->body,
-                'author' => $author->name,
+                'author' => $note->authorName(),
                 'created_at' => $createdAt->toIso8601String(),
             ];
         }

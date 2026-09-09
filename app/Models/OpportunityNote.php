@@ -36,4 +36,15 @@ class OpportunityNote extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function authorName(): string
+    {
+        $user = $this->user;
+
+        if ($user === null) {
+            return __('AI');
+        }
+
+        return $user->name;
+    }
 }

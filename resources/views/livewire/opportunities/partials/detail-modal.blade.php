@@ -153,7 +153,7 @@
                             >
                                 <div class="flex items-center justify-between gap-2 text-xs text-text-muted">
                                     <span data-test="opportunities-detail-note-author-{{ $note->id }}">
-                                        {{ $note->user->name }}
+                                        {{ $note->authorName() }}
                                     </span>
                                     <div class="flex items-center gap-2">
                                         <span data-test="opportunities-detail-note-created-at-{{ $note->id }}">

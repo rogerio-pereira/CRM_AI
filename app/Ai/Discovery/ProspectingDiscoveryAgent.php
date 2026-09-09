@@ -84,6 +84,14 @@ class ProspectingDiscoveryAgent implements Agent, HasStructuredOutput, HasTools
                                 ->required(),
                 'reason' => $schema->string()
                                 ->required(),
+                'contact_name' => $schema->string()
+                                        ->nullable(),
+                'email' => $schema->string()
+                                ->nullable(),
+                'phone' => $schema->string()
+                                ->nullable(),
+                'website' => $schema->string()
+                                ->nullable(),
             ]);
 
         $leads = $schema->array()

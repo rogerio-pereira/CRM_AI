@@ -38,6 +38,24 @@ class OpportunityService
     /**
      * @param  array<string, mixed>  $attributes
      */
+    public function createDisqualified(array $attributes): Opportunity
+    {
+        $attributes['stage'] = PipelineStage::Disqualified;
+        $attributes['status'] = OpportunityStatus::Lost;
+
+        $opportunity = Opportunity::create($attributes)
+                            ->fresh(['client']);
+
+        if ($opportunity === null) {
+            throw new RuntimeException('Created opportunity could not be reloaded.');
+        }
+
+        return $opportunity;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public function update(Opportunity $opportunity, array $attributes): Opportunity
     {
         $opportunity->update($attributes);

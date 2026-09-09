@@ -6,6 +6,7 @@ use App\Ai\Contracts\AiAgent;
 use App\Ai\Contracts\DiscoveryAdapter;
 use App\Enums\ClientStatus;
 use App\Models\Client;
+use App\Models\OpportunityNote;
 use App\Services\ClientService;
 use App\Services\LeadDeduplicationService;
 use App\Services\OpportunityService;
@@ -48,19 +49,12 @@ class ProspectingAgent implements AiAgent
                                 ]);
 
             $leads = $discovery['leads'];
+            $skipped = $discovery['skipped'];
+            $this->recordSkippedCompanies($skipped, $excludeCompanyNames);
+
             $lead = $leads[0] ?? null;
 
             if ($lead === null) {
-                // Discovery can return companies in `skipped` that were found
-                // but are not a contactable lead (for example, no public email).
-                // Exclude those names so the next attempt does not suggest them again.
-                $skipped = $discovery['skipped'];
-
-                foreach ($skipped as $item) {
-                    $name = $item['name'];
-                    $excludeCompanyNames[] = $name;
-                }
-
                 continue; // Goes back to while
             }
 
@@ -141,6 +135,99 @@ class ProspectingAgent implements AiAgent
                 'opportunity_id' => $opportunity->id,
                 'company_name' => $client->company_name,
             ];
+    }
+
+    /**
+     * Persist skipped companies in Disqualified so later jobs skip them
+     * and a human can review why discovery discarded them.
+     *
+     * @param  list<array<string, mixed>>  $skipped
+     * @param  list<string>  $excludeCompanyNames
+     */
+    private function recordSkippedCompanies(array $skipped, array &$excludeCompanyNames): void
+    {
+        foreach ($skipped as $item) {
+            $rawName = $item['name'] ?? '';
+            $companyName = trim((string) $rawName);
+
+            if ($companyName === '') {
+                continue;
+            }
+
+            if ($companyName === 'Unknown') {
+                continue;
+            }
+
+            $excludeCompanyNames[] = $companyName;
+
+            $website = $item['website'] ?? null;
+            $email = $item['email'] ?? null;
+            $phone = $item['phone'] ?? null;
+            $candidate = [
+                    'company_name' => $companyName,
+                    'website' => $website,
+                    'email' => $email,
+                    'phone' => $phone,
+                ];
+
+            $duplicate = $this->deduplication
+                                ->findDuplicate($candidate);
+
+            if ($duplicate !== null) {
+                continue;
+            }
+
+            $rawReason = $item['reason'] ?? '';
+            $reason = trim((string) $rawReason);
+
+            if ($reason === '') {
+                $reason = 'Skipped during prospecting.';
+            }
+
+            $this->createDisqualifiedLead($item, $companyName, $reason);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function createDisqualifiedLead(array $item, string $companyName, string $reason): void
+    {
+        $contactName = $item['contact_name'] ?? null;
+        $email = $item['email'] ?? null;
+        $phone = $item['phone'] ?? null;
+        $website = $item['website'] ?? null;
+
+        $clientAttributes = [
+                'company_name' => $companyName,
+                'contact_name' => $contactName,
+                'contact_email' => $email,
+                'contact_phone' => $phone,
+                'website' => $website,
+                'lead_source' => 'prospecting',
+                'status' => ClientStatus::Active,
+            ];
+
+        $client = $this->clients
+                        ->create($clientAttributes);
+
+        $opportunityTitle = $client->company_name;
+
+        $opportunityAttributes = [
+                'client_id' => $client->id,
+                'title' => $opportunityTitle,
+            ];
+
+        $opportunity = $this->opportunities
+                            ->createDisqualified($opportunityAttributes);
+
+        $noteAttributes = [
+                'opportunity_id' => $opportunity->id,
+                'user_id' => null,
+                'body' => $reason,
+            ];
+
+        OpportunityNote::create($noteAttributes);
     }
 
     /**

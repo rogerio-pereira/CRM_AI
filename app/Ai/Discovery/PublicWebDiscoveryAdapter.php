@@ -67,13 +67,7 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
                 continue;
             }
 
-            $rawName = $item['name'] ?? '';
-            $rawReason = $item['reason'] ?? '';
-
-            $skipped[] = [
-                    'name' => (string) $rawName,
-                    'reason' => (string) $rawReason,
-                ];
+            $skipped[] = $this->mapSkipped($item);
         }
 
         foreach ($rawLeads as $item) {
@@ -84,17 +78,9 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
             $mappedLead = $this->mapLead($item);
 
             if ($mappedLead === null) {
-                $rawSkippedName = $item['company_name'] ?? '';
-                $skippedName = trim((string) $rawSkippedName);
-
-                if ($skippedName === '') {
-                    $skippedName = 'Unknown';
-                }
-
-                $skipped[] = [
-                        'name' => $skippedName,
-                        'reason' => 'Missing company name or valid public email.',
-                    ];
+                $mappedSkipped = $this->mapSkipped($item);
+                $mappedSkipped['reason'] = 'Missing company name or valid public email.';
+                $skipped[] = $mappedSkipped;
 
                 continue;
             }
@@ -135,6 +121,75 @@ class PublicWebDiscoveryAdapter implements DiscoveryAdapter
         }
 
         return $prompt;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function mapSkipped(array $item): array
+    {
+        $rawName = $item['name'] ?? '';
+        $name = trim((string) $rawName);
+
+        if ($name === '') {
+            $rawCompanyName = $item['company_name'] ?? '';
+            $name = trim((string) $rawCompanyName);
+        }
+
+        if ($name === '') {
+            $name = 'Unknown';
+        }
+
+        $rawReason = $item['reason'] ?? '';
+        $reason = (string) $rawReason;
+
+        $rawWebsite = $item['website'] ?? null;
+        $website = null;
+
+        if (is_string($rawWebsite)) {
+            $website = UrlNormalizer::normalize($rawWebsite);
+        }
+
+        $rawContactName = $item['contact_name'] ?? null;
+        $contactName = null;
+
+        if (is_string($rawContactName)) {
+            $trimmedContactName = trim($rawContactName);
+
+            if ($trimmedContactName !== '') {
+                $contactName = $trimmedContactName;
+            }
+        }
+
+        $rawEmail = $item['email'] ?? '';
+        $trimmedEmail = trim((string) $rawEmail);
+        $email = strtolower($trimmedEmail);
+        $emailIsValid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+
+        if ($emailIsValid === false) {
+            $email = null;
+        }
+
+        $rawPhone = $item['phone'] ?? null;
+        $phone = null;
+
+        if (is_string($rawPhone)) {
+            $trimmedPhone = trim($rawPhone);
+
+            if ($trimmedPhone !== '') {
+                $phone = $trimmedPhone;
+            }
+        }
+
+        return [
+                'name' => $name,
+                'reason' => $reason,
+                'contact_name' => $contactName,
+                'email' => $email,
+                'phone' => $phone,
+                'website' => $website,
+            ];
     }
 
     /**
