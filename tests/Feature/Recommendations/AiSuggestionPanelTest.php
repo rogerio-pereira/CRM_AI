@@ -2,12 +2,15 @@
 
 namespace Tests\Feature\Recommendations;
 
-use App\Jobs\RunRecommendationAgentJob;
+use App\Enums\QualificationStatus;
+use App\Jobs\RunFirstContactEmailAgentJob;
+use App\Jobs\RunQualificationAgentJob;
 use App\Livewire\Leads\Index as LeadsIndex;
 use App\Livewire\Opportunities\AiSuggestionPanel;
 use App\Livewire\Opportunities\Index as OpportunitiesIndex;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -54,7 +57,10 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI Insight')
             ->assertSee('AI-generated. Not a confirmed human decision.')
             ->assertSeeHtml('data-test="ai-suggestion-refresh"')
-            ->assertSee('Refresh AI insights');
+            ->assertSee('Refresh AI insights')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-copy-email"')
+            ->assertSeeHtml('data-test="opportunities-detail-ai-regenerate-email"')
+            ->assertSee('Regenerate email');
     }
 
     public function test_lead_detail_renders_related_opportunity_recommendations(): void
@@ -92,18 +98,27 @@ class AiSuggestionPanelTest extends TestCase
             ->assertSee('AI-generated. Not a confirmed human decision.');
     }
 
-    public function test_refresh_queues_recommendation_job(): void
+    public function test_refresh_queues_qualification_job(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunQualificationAgentJob::class,
         ]);
 
         $user = User::factory()
                     ->create();
         $opportunity = Opportunity::factory()
                             ->qualificationQualified()
+                            ->withAiInsights()
                             ->withAiRecommendations()
-                            ->create();
+                            ->create([
+                                'qualification_notes' => 'Old qualification notes.',
+                            ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->for($user)
+            ->create([
+                'body' => 'Owner prefers a simple brochure site first.',
+            ]);
 
         $this->actingAs($user);
 
@@ -112,10 +127,20 @@ class AiSuggestionPanelTest extends TestCase
                             ])
             ->call('refreshInsights')
             ->assertSet('refreshQueued', true)
-            ->assertSee('Refresh AI insights');
+            ->assertSee('Refresh AI insights')
+            ->assertSee('AI insights refresh queued.')
+            ->assertDontSee('Ready for a first conversation.');
 
-        Queue::assertPushed(RunRecommendationAgentJob::class, 1);
-        Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity, $user): bool {
+        $opportunity->refresh();
+
+        $this->assertNull($opportunity->ai_insights);
+        $this->assertNull($opportunity->ai_recommendations);
+        $this->assertNull($opportunity->qualification_notes);
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
+        $this->assertSame(1, $opportunity->notes()->count());
+
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
+        Queue::assertPushed(RunQualificationAgentJob::class, function (RunQualificationAgentJob $job) use ($opportunity, $user): bool {
             $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
             $payloadClientId = $job->payload['client_id'] ?? null;
             $trigger = $job->payload['trigger'] ?? null;
@@ -140,7 +165,7 @@ class AiSuggestionPanelTest extends TestCase
     public function test_refresh_is_rate_limited(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunQualificationAgentJob::class,
         ]);
 
         $user = User::factory()
@@ -158,13 +183,13 @@ class AiSuggestionPanelTest extends TestCase
         $component->call('refreshInsights');
         $component->call('refreshInsights');
 
-        Queue::assertPushed(RunRecommendationAgentJob::class, 1);
+        Queue::assertPushed(RunQualificationAgentJob::class, 1);
     }
 
     public function test_refresh_is_rejected_when_opportunity_is_not_qualified(): void
     {
         Queue::fake([
-            RunRecommendationAgentJob::class,
+            RunQualificationAgentJob::class,
         ]);
 
         $user = User::factory()
@@ -242,5 +267,184 @@ class AiSuggestionPanelTest extends TestCase
             'opportunityId' => $opportunity->id,
         ])
             ->assertDontSeeHtml('data-test="ai-suggestion-panel"');
+    }
+
+    public function test_regenerate_email_queues_first_contact_email_job(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('regenerateEmail')
+            ->assertSee('Example email will appear here when generation finishes.');
+
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, function (RunFirstContactEmailAgentJob $job) use ($opportunity, $user): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+            $payloadClientId = $job->payload['client_id'] ?? null;
+            $trigger = $job->payload['trigger'] ?? null;
+            $payloadUserId = $job->payload['user_id'] ?? null;
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $opportunity->client_id) {
+                return false;
+            }
+
+            if ($trigger !== 'manual_email_refresh') {
+                return false;
+            }
+
+            return $payloadUserId === $user->id;
+        });
+
+        $opportunity->refresh();
+        $insights = $opportunity->ai_insights;
+        $outreachStrategy = $insights['outreach_strategy'];
+
+        $this->assertArrayNotHasKey('contact_example', $outreachStrategy);
+    }
+
+    public function test_regenerate_email_clears_recommendation_example_before_queueing(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $recommendations = RecommendationFake::successfulPayload('1', '1')['ai_recommendations'];
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'ai_recommendations' => $recommendations,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('regenerateEmail');
+
+        $opportunity->refresh();
+        $insights = $opportunity->ai_insights;
+        $storedRecommendations = $opportunity->ai_recommendations;
+        $insightOutreach = $insights['outreach_strategy'];
+        $recommendationConversation = $storedRecommendations['conversation_strategy'];
+
+        $this->assertArrayNotHasKey('contact_example', $insightOutreach);
+        $this->assertArrayNotHasKey('contact_example', $recommendationConversation);
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
+    }
+
+    public function test_regenerate_email_is_rate_limited(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(AiSuggestionPanel::class, [
+            'opportunityId' => $opportunity->id,
+        ]);
+
+        $component->call('regenerateEmail');
+        $component->call('regenerateEmail');
+
+        Queue::assertPushed(RunFirstContactEmailAgentJob::class, 1);
+    }
+
+    public function test_regenerate_email_is_rejected_when_opportunity_is_not_qualified(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationPending()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('regenerateEmail');
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_regenerate_email_is_rejected_when_insights_are_missing(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'ai_insights' => null,
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('regenerateEmail');
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_regenerate_email_is_rejected_when_insights_are_empty(): void
+    {
+        Queue::fake([
+            RunFirstContactEmailAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'ai_insights' => [],
+                            ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AiSuggestionPanel::class, [
+                                'opportunityId' => $opportunity->id,
+                            ])
+            ->call('regenerateEmail');
+
+        Queue::assertNothingPushed();
     }
 }

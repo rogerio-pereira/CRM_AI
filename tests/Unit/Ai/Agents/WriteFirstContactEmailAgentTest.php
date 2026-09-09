@@ -31,6 +31,9 @@ class WriteFirstContactEmailAgentTest extends TestCase
         $this->assertStringContainsString('Do not bait with one topic and switch', $instructions);
         $this->assertStringContainsString('JSON dossier', $instructions);
         $this->assertStringContainsString('ai_recommendations', $instructions);
+        $this->assertStringContainsString('opportunity_notes', $instructions);
+        $this->assertStringContainsString('Never reuse a previous email', $instructions);
+        $this->assertStringContainsString('does not include `contact_example`', $instructions);
         $this->assertStringContainsString('A branded or custom-domain email raises prices', $instructions);
         $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $instructions);
         $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $instructions);

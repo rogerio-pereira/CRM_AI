@@ -8,6 +8,8 @@ use App\Ai\Exceptions\FirstContactEmailFailedException;
 use App\Enums\PipelineStage;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Ai\Responses\AgentResponse;
@@ -15,6 +17,7 @@ use Mockery;
 use ReflectionClass;
 use RuntimeException;
 use Tests\Support\QualificationFake;
+use Tests\Support\RecommendationFake;
 use Tests\TestCase;
 
 class FirstContactEmailAgentTest extends TestCase
@@ -71,6 +74,11 @@ class FirstContactEmailAgentTest extends TestCase
             }
 
             return $hasHook;
+        });
+        WriteFirstContactEmailAgent::assertNotPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+
+            return str_contains($promptText, 'A simple way to bring in more local conversations');
         });
     }
 
@@ -403,6 +411,30 @@ class FirstContactEmailAgentTest extends TestCase
         ]);
     }
 
+    public function test_copywriter_dossier_that_cannot_be_encoded_is_incomplete(): void
+    {
+        $client = Client::factory()
+                        ->create();
+        $client->company_name = "\xB1\x31";
+        $client->save();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => QualificationFake::successfulPayload('1', '1')['ai_insights'],
+                            ]);
+
+        $agent = app(FirstContactEmailAgent::class);
+
+        $this->expectException(FirstContactEmailFailedException::class);
+        $this->expectExceptionMessage('First contact email output was incomplete.');
+
+        $agent->handle([
+                            'opportunity_id' => $opportunity->id,
+        ]);
+    }
+
     public function test_agent_throws_when_opportunity_is_missing(): void
     {
         $agent = app(FirstContactEmailAgent::class);
@@ -443,5 +475,185 @@ class FirstContactEmailAgentTest extends TestCase
             unset($scopes[Client::class]['first-contact-missing-client']);
             $scopesProperty->setValue(null, $scopes);
         }
+    }
+
+    public function test_copywriter_brief_includes_opportunity_notes(): void
+    {
+        $user = User::factory()
+                    ->create(['name' => 'Alex Sales']);
+        $client = Client::factory()
+                        ->create([
+                            'contact_name' => 'Sarah',
+                            'company_name' => 'GreenSprout Lawn Care',
+                        ]);
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => QualificationFake::successfulPayload('1', '1')['ai_insights'],
+                            ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->for($user)
+            ->create([
+                'body' => 'Owner prefers a simple brochure site first.',
+            ]);
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $agent->handle([
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        WriteFirstContactEmailAgent::assertPrompted(function ($prompt) use ($user): bool {
+            $promptText = $prompt->prompt;
+            $hasNotesKey = str_contains($promptText, 'opportunity_notes');
+            $hasNoteBody = str_contains($promptText, 'Owner prefers a simple brochure site first.');
+            $hasAuthor = str_contains($promptText, $user->name);
+
+            if ($hasNotesKey === false) {
+                return false;
+            }
+
+            if ($hasNoteBody === false) {
+                return false;
+            }
+
+            return $hasAuthor;
+        });
+    }
+
+    public function test_manual_email_refresh_does_not_move_pipeline_stage(): void
+    {
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => QualificationFake::successfulPayload('1', '1')['ai_insights'],
+                            ]);
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $copywriter = QualificationFake::copywriterPayload();
+        $agent->handle([
+                            'trigger' => 'manual_email_refresh',
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        $opportunity->refresh();
+        $insights = $opportunity->ai_insights;
+        $outreachStrategy = $insights['outreach_strategy'];
+        $contactExample = $outreachStrategy['contact_example'];
+
+        $this->assertSame(PipelineStage::Qualification, $opportunity->stage);
+        $this->assertSame($copywriter['subject'], $contactExample['subject']);
+    }
+
+    public function test_clears_previous_examples_before_writing_a_new_email(): void
+    {
+        $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];
+        $recommendations = RecommendationFake::successfulPayload('1', '1')['ai_recommendations'];
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Qualification,
+                                'ai_insights' => $insights,
+                                'ai_recommendations' => $recommendations,
+                            ]);
+
+        QualificationFake::fakeCopywriter([
+            'channel' => 'email',
+            'subject' => '',
+            'body' => '',
+        ]);
+
+        $agent = app(FirstContactEmailAgent::class);
+
+        try {
+            $agent->handle([
+                                'opportunity_id' => $opportunity->id,
+            ]);
+            $this->fail('Expected the copywriter to fail after clearing stored examples.');
+        } catch (FirstContactEmailFailedException $exception) {
+            $this->assertSame('First contact email output was incomplete.', $exception->getMessage());
+        }
+
+        $opportunity->refresh();
+        $storedInsights = $opportunity->ai_insights;
+        $storedRecommendations = $opportunity->ai_recommendations;
+        $insightOutreach = $storedInsights['outreach_strategy'];
+        $recommendationConversation = $storedRecommendations['conversation_strategy'];
+
+        $this->assertArrayNotHasKey('contact_example', $insightOutreach);
+        $this->assertArrayNotHasKey('contact_example', $recommendationConversation);
+        WriteFirstContactEmailAgent::assertNotPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasOldInsightEmail = str_contains($promptText, 'A simple way to bring in more local conversations');
+            $hasOldRecommendationEmail = str_contains($promptText, 'Helping more visitors feel ready to call');
+
+            if ($hasOldInsightEmail) {
+                return true;
+            }
+
+            return $hasOldRecommendationEmail;
+        });
+    }
+
+    public function test_manual_email_refresh_writes_from_notes_without_the_previous_example(): void
+    {
+        $user = User::factory()
+                    ->create(['name' => 'Alex Sales']);
+        $client = Client::factory()
+                        ->create([
+                            'contact_name' => 'Sarah',
+                            'company_name' => 'GreenSprout Lawn Care',
+                        ]);
+        $insights = QualificationFake::successfulPayload('1', '1')['ai_insights'];
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                                'ai_insights' => $insights,
+                            ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->for($user)
+            ->create([
+                'body' => 'Owner prefers a simple brochure site first.',
+            ]);
+
+        QualificationFake::fakeCopywriter();
+
+        $agent = app(FirstContactEmailAgent::class);
+        $agent->handle([
+                            'trigger' => 'manual_email_refresh',
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        WriteFirstContactEmailAgent::assertPrompted(function ($prompt) use ($user): bool {
+            $promptText = $prompt->prompt;
+            $hasNotesKey = str_contains($promptText, 'opportunity_notes');
+            $hasNoteBody = str_contains($promptText, 'Owner prefers a simple brochure site first.');
+            $hasAuthor = str_contains($promptText, $user->name);
+            $hasOldEmail = str_contains($promptText, 'A simple way to bring in more local conversations');
+
+            if ($hasNotesKey === false) {
+                return false;
+            }
+
+            if ($hasNoteBody === false) {
+                return false;
+            }
+
+            if ($hasAuthor === false) {
+                return false;
+            }
+
+            return $hasOldEmail === false;
+        });
     }
 }

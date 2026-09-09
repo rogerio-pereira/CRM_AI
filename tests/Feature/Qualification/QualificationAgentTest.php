@@ -11,6 +11,8 @@ use App\Jobs\RunQualificationAgentJob;
 use App\Jobs\RunRecommendationAgentJob;
 use App\Models\Client;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
+use App\Models\User;
 use App\Services\ClientService;
 use App\Services\OpportunityService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -23,6 +25,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 use Tests\Support\QualificationFake;
+use Tests\Support\RecommendationFake;
 use Tests\TestCase;
 
 class QualificationAgentTest extends TestCase
@@ -216,6 +219,150 @@ class QualificationAgentTest extends TestCase
         $opportunity->refresh();
 
         $this->assertSame('already_qualified', $result['status']);
+        $this->assertSame(PipelineStage::Contact, $opportunity->stage);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_manual_refresh_requalifies_and_dispatches_recommendation(): void
+    {
+        Queue::fake([
+            RunRecommendationAgentJob::class,
+        ]);
+
+        $user = User::factory()
+                    ->create(['name' => 'Alex Sales']);
+        $client = Client::factory()
+                        ->create();
+        $opportunity = Opportunity::factory()
+                            ->for($client)
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                                'qualification_notes' => 'Old qualification notes.',
+                                'ai_insights' => [
+                                    'summary' => 'Stale insight from the previous run.',
+                                ],
+                                'ai_recommendations' => [
+                                    'summary' => 'Stale recommendation from the previous run.',
+                                ],
+                            ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->for($user)
+            ->create([
+                'body' => 'Owner prefers a simple brochure site first.',
+            ]);
+        $opportunityId = (string) $opportunity->id;
+        $clientId = (string) $client->id;
+
+        QualificationFake::fakeSuccessful($opportunityId, $clientId);
+
+        $agent = app(QualificationAgent::class);
+        $result = $agent->handle([
+                            'trigger' => 'manual_refresh',
+                            'opportunity_id' => $opportunity->id,
+        ]);
+
+        $opportunity->refresh();
+
+        $this->assertSame('qualified', $result['status']);
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
+        $this->assertSame(PipelineStage::Contact, $opportunity->stage);
+        $this->assertSame(
+            'Local service business with a weak website and referral-heavy growth.',
+            $opportunity->qualification_notes,
+        );
+        $this->assertNull($opportunity->ai_recommendations);
+        Queue::assertPushed(RunRecommendationAgentJob::class, 1);
+        Queue::assertPushed(RunRecommendationAgentJob::class, function (RunRecommendationAgentJob $job) use ($opportunity, $client): bool {
+            $payloadOpportunityId = $job->payload['opportunity_id'] ?? null;
+            $payloadClientId = $job->payload['client_id'] ?? null;
+            $trigger = $job->payload['trigger'] ?? null;
+
+            if ($payloadOpportunityId !== $opportunity->id) {
+                return false;
+            }
+
+            if ($payloadClientId !== $client->id) {
+                return false;
+            }
+
+            return $trigger === 'qualification_completed';
+        });
+        QualificationAnalysisAgent::assertPrompted(function ($prompt) use ($user): bool {
+            $promptText = $prompt->prompt;
+            $hasNotesKey = str_contains($promptText, 'opportunity_notes');
+            $hasNoteBody = str_contains($promptText, 'Owner prefers a simple brochure site first.');
+            $hasAuthor = str_contains($promptText, $user->name);
+
+            if ($hasNotesKey === false) {
+                return false;
+            }
+
+            if ($hasNoteBody === false) {
+                return false;
+            }
+
+            return $hasAuthor;
+        });
+        QualificationAnalysisAgent::assertNotPrompted(function ($prompt): bool {
+            $promptText = $prompt->prompt;
+            $hasOldQualificationNotes = str_contains($promptText, 'Old qualification notes.');
+            $hasOldInsights = str_contains($promptText, 'Stale insight from the previous run.');
+            $hasOldRecommendations = str_contains($promptText, 'Stale recommendation from the previous run.');
+
+            if ($hasOldQualificationNotes) {
+                return true;
+            }
+
+            if ($hasOldInsights) {
+                return true;
+            }
+
+            return $hasOldRecommendations;
+        });
+    }
+
+    public function test_manual_refresh_clears_previous_outputs_before_requalifying(): void
+    {
+        Queue::fake([
+            RunRecommendationAgentJob::class,
+        ]);
+
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->create([
+                                'stage' => PipelineStage::Contact,
+                                'qualification_notes' => 'Old qualification notes.',
+                                'ai_insights' => [
+                                    'summary' => 'Stale insight from the previous run.',
+                                ],
+                                'ai_recommendations' => RecommendationFake::successfulPayload('1', '1')['ai_recommendations'],
+                            ]);
+
+        QualificationFake::fakeFailed('Not enough public information to qualify this lead.');
+
+        $agent = app(QualificationAgent::class);
+
+        try {
+            $agent->handle([
+                                'trigger' => 'manual_refresh',
+                                'opportunity_id' => $opportunity->id,
+            ]);
+            $this->fail('Expected qualification to fail after clearing stored AI outputs.');
+        } catch (QualificationFailedException $exception) {
+            $this->assertSame(
+                'Not enough public information to qualify this lead.',
+                $exception->getMessage(),
+            );
+        }
+
+        $opportunity->refresh();
+
+        $this->assertNull($opportunity->ai_insights);
+        $this->assertNull($opportunity->ai_recommendations);
+        $this->assertNull($opportunity->qualification_notes);
+        $this->assertSame(QualificationStatus::Qualified, $opportunity->qualification_status);
         $this->assertSame(PipelineStage::Contact, $opportunity->stage);
         Queue::assertNothingPushed();
     }
@@ -676,6 +823,8 @@ class QualificationAgentTest extends TestCase
         $promptText = (string) $prompt;
 
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
+        $this->assertStringContainsString('human opportunity notes', $promptText);
+        $this->assertStringContainsString('opportunity_notes', $promptText);
         $this->assertStringContainsString('website_design_development` — primary', $promptText);
         $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
         $this->assertStringContainsString('You may omit `outreach_strategy.contact_example`', $promptText);
