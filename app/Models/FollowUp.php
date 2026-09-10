@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
+use App\Enums\FollowUpSequenceStep;
+use App\Enums\PipelineStage;
 use Carbon\Carbon;
 use Database\Factories\FollowUpFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -23,6 +25,7 @@ class FollowUp extends Model
     protected $fillable = [
         'client_id',
         'opportunity_id',
+        'sequence_step',
         'due_at',
         'priority',
         'notes',
@@ -37,6 +40,7 @@ class FollowUp extends Model
     {
         return [
             'due_at' => 'datetime',
+            'sequence_step' => FollowUpSequenceStep::class,
             'priority' => FollowUpPriority::class,
             'reminder_status' => FollowUpReminderStatus::class,
             'completed_at' => 'datetime',
@@ -57,6 +61,25 @@ class FollowUp extends Model
     public function opportunity(): BelongsTo
     {
         return $this->belongsTo(Opportunity::class);
+    }
+
+    public function canSendSequenceEmail(): bool
+    {
+        if ($this->reminder_status !== FollowUpReminderStatus::Pending) {
+            return false;
+        }
+
+        if ($this->sequence_step === null) {
+            return false;
+        }
+
+        $opportunity = $this->opportunity;
+
+        if ($opportunity === null) {
+            return false;
+        }
+
+        return $opportunity->stage === PipelineStage::ContactSent;
     }
 
     public function isOverdue(): bool
