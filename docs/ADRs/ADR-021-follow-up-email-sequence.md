@@ -25,42 +25,36 @@ The sales motion needs a two-step value-drip after the introduction: each email 
 2. Sending the follow-up **email** is never automatic (no due-date cron, no Horizon auto-send).
 3. The email goes out only when an authenticated user clicks **Send follow-up** on the Follow-ups page.
 
-### 2. Sequence steps on follow-up records
+### 2. Follow-up reminders stay generic
 
-Add nullable `sequence_step` on `follow_ups` (`1` or `2`).
+Do **not** store “follow-up 1” or “follow-up 2” on the reminder row. `follow_ups` remains the existing reminder list (due date, priority, complete).
 
-| `sequence_step` | Meaning |
-| --------------- | ------- |
-| `null` | Manual reminder. No Send follow-up button. |
-| `1` | First follow-up email in the outreach sequence. |
-| `2` | Second (last) follow-up email. |
+Whether the next send is FU1 or FU2 is decided at send time: if the opportunity already has the note **Follow-up 1 sent**, this send is the last email; otherwise it is the first follow-up. The copywriter receives that step as `sequence_step` in its dossier. It does not infer the step from notes.
 
-Manual CRUD follow-ups stay `null`. Sequence reminders are created only by the generalized contact listener (below), not by the Follow-ups create modal.
+### 3. `ContactWithFollowUp` is introduction only
 
-### 3. Generalized `ContactWithFollowUp`
+Keep the existing event for the first-contact send:
 
-Keep the existing event. Pass the step that was **just sent**:
+- Move to `Contact Sent` if needed.
+- Note: first email sent.
+- Create a normal reminder, due +3 days at 09:00, medium priority.
 
-| Just sent | Listener |
-| --------- | -------- |
-| Introduction (step `0`) | Move to `Contact Sent` if needed. Note: first email sent. Create reminder `sequence_step = 1`, due +3 days at 09:00, medium priority. |
-| Follow-up 1 | Short note that follow-up 1 was sent. Create reminder `sequence_step = 2`, due +3 days at 09:00. Stay on `Contact Sent`. |
+Follow-up 1 **does not** dispatch this event. The send job writes **Follow-up 1 sent** and creates the next reminder itself.
 
-Follow-up 2 **does not** dispatch `ContactWithFollowUp`. After a successful FU2 send: persist the email as a note, write that follow-up 2 was sent, and `moveToStage(NoResponse)`. Do not create a third reminder.
+Follow-up 2 **does not** dispatch it either. After a successful FU2 send: persist the email as a note, write that follow-up 2 was sent, and `moveToStage(NoResponse)`. Do not create a third reminder.
 
 ### 4. Send follow-up job
 
 The Follow-ups index button is visible only when all of these are true:
 
 - `reminder_status` is Pending
-- `sequence_step` is 1 or 2
 - the linked opportunity exists and is in `Contact Sent`
 
 Click:
 
 1. Mark the follow-up reminder completed, then dispatch `SendFollowUpEmailJob` (Horizon / Redis). Do **not** add an `AgentType`, orchestration wrapper, or extra domain agent.
-2. The job calls `WriteFollowUpEmailAgent`, persists subject and body as an opportunity note, and sends SMTP (same mail stack as first-contact outreach).
-3. If step 1: dispatch `ContactWithFollowUp`. If step 2: note + move to **No Response**.
+2. The job decides FU1 vs FU2 from the **Follow-up 1 sent** note, calls `WriteFollowUpEmailAgent` with that `sequence_step`, persists subject and body as an opportunity note, and sends SMTP (same mail stack as first-contact outreach).
+3. If FU1: note **Follow-up 1 sent** and create the next reminder. If FU2: note + move to **No Response**.
 
 There is **no** draft preview or regenerate on this path (unlike first-contact). The click is the human confirmation to write and send.
 
@@ -97,9 +91,9 @@ Won / Lost / Disqualified behavior is unchanged. Disqualified remains the skip/u
 flowchart TD
   contactSent[ContactSent]
   sendIntro[Human sends introduction]
-  fu1[Reminder sequence_step 1]
+  fu1[Reminder after introduction]
   sendFu1[Human Send follow-up]
-  fu2[Reminder sequence_step 2 last]
+  fu2[Reminder after follow-up 1]
   sendFu2[Human Send follow-up]
   noResponse[NoResponse terminal]
 
@@ -133,7 +127,7 @@ Prompt asset: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 
 - **Positive:**
   - Humans stay in control of every client email.
-  - Sequence progress is explicit on the follow-up record.
+  - Sequence progress is the **Follow-up 1 sent** note, not a column on the reminder.
   - Silence has a distinct terminal stage instead of overloading Lost or Disqualified.
 - **Negative:**
   - Follow-up copy is not reviewed in-app before SMTP (the click is the approval).

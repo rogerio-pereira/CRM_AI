@@ -174,7 +174,6 @@
 **Produces:**
 
 - Follow-up records for dashboard, Slack, and Calendar
-- Sequence reminders (`sequence_step` 1–2) consumed by [21 Follow-up email sequence](#f21-follow-up-email-sequence)
 
 **ADRs:** [ADR-009](ADRs/ADR-009-slack-integration.md), [ADR-010](ADRs/ADR-010-google-calendar-integration.md)
 
