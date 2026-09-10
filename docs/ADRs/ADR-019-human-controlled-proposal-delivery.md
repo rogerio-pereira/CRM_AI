@@ -39,7 +39,7 @@ Local development already provides Laravel Mail with Mailpit. Production uses co
 - Inbox synchronization or conversation threads.
 - Electronic signature.
 
-A **human-triggered** three-email follow-up sequence (click to send; no due-date auto-send) is specified in [ADR-021](ADR-021-follow-up-email-sequence.md) and is not covered by this out-of-scope list.
+A **human-triggered** two-email follow-up sequence (click to send; no due-date auto-send) is specified in [ADR-021](ADR-021-follow-up-email-sequence.md) and is not covered by this out-of-scope list.
 
 ## Consequences
 

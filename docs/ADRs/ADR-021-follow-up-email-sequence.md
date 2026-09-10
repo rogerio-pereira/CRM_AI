@@ -7,7 +7,7 @@ Accepted (2026-09-10)
 ## Partially supersedes
 
 - The ordered eight-stage list in [ADR-005](ADR-005-fixed-sales-pipeline.md). The pipeline remains **fixed** (not admin-configurable). This ADR is authoritative for the **current ordered stages**, including stages already in code (`Contact Sent`, `Meeting Scheduled`, `Disqualified`) and the new terminal stage **No Response**.
-- The “email sequences out of scope” bullet in [ADR-019](ADR-019-human-controlled-proposal-delivery.md). Inbox sync, conversation threads, and `In-Reply-To` remain out of scope. A **human-triggered** sequence of three follow-up emails is now in scope for [21 Follow-up email sequence](../05%20-%20Feature%20List.md#f21-follow-up-email-sequence).
+- The “email sequences out of scope” bullet in [ADR-019](ADR-019-human-controlled-proposal-delivery.md). Inbox sync, conversation threads, and `In-Reply-To` remain out of scope. A **human-triggered** sequence of two follow-up emails is now in scope for [21 Follow-up email sequence](../05%20-%20Feature%20List.md#f21-follow-up-email-sequence).
 
 ADR-019 still stands for: AI must never send client email autonomously; every outbound send is an explicit user action.
 
@@ -15,7 +15,7 @@ ADR-019 still stands for: AI must never send client email autonomously; every ou
 
 After the first-contact email is sent, the CRM already creates a follow-up **reminder** (+3 days at 09:00) and a short opportunity note. That reminder is not a send. There is no sequence step on the follow-up record, no Send action on the Follow-ups page, and no copywriter for follow-up emails.
 
-The sales motion needs a three-step value-drip after the introduction: each email is a new insight on the **same** problem, written only when a user clicks **Send follow-up**. After the third send with no reply, the opportunity should leave the active pipeline as **No Response** (silence, not a lost deal and not a disqualification).
+The sales motion needs a two-step value-drip after the introduction: each email is a new insight on the **same** problem, written only when a user clicks **Send follow-up**. After the second follow-up with no reply, the opportunity should leave the active pipeline as **No Response** (silence, not a lost deal and not a disqualification).
 
 ## Decision
 
@@ -27,14 +27,13 @@ The sales motion needs a three-step value-drip after the introduction: each emai
 
 ### 2. Sequence steps on follow-up records
 
-Add nullable `sequence_step` on `follow_ups` (`1`, `2`, or `3`).
+Add nullable `sequence_step` on `follow_ups` (`1` or `2`).
 
 | `sequence_step` | Meaning |
 | --------------- | ------- |
 | `null` | Manual reminder. No Send follow-up button. |
 | `1` | First follow-up email in the outreach sequence. |
-| `2` | Second follow-up email. |
-| `3` | Third (last) follow-up email. |
+| `2` | Second (last) follow-up email. |
 
 Manual CRUD follow-ups stay `null`. Sequence reminders are created only by the generalized contact listener (below), not by the Follow-ups create modal.
 
@@ -46,16 +45,15 @@ Keep the existing event. Pass the step that was **just sent**:
 | --------- | -------- |
 | Introduction (step `0`) | Move to `Contact Sent` if needed. Note: first email sent. Create reminder `sequence_step = 1`, due +3 days at 09:00, medium priority. |
 | Follow-up 1 | Short note that follow-up 1 was sent. Create reminder `sequence_step = 2`, due +3 days at 09:00. Stay on `Contact Sent`. |
-| Follow-up 2 | Short note that follow-up 2 was sent. Create reminder `sequence_step = 3`, due +3 days at 09:00. Stay on `Contact Sent`. |
 
-Follow-up 3 **does not** dispatch `ContactWithFollowUp`. After a successful FU3 send: persist the email as a note, write that follow-up 3 was sent, and `moveToStage(NoResponse)`. Do not create a fourth reminder.
+Follow-up 2 **does not** dispatch `ContactWithFollowUp`. After a successful FU2 send: persist the email as a note, write that follow-up 2 was sent, and `moveToStage(NoResponse)`. Do not create a third reminder.
 
 ### 4. Send follow-up job
 
 The Follow-ups index button is visible only when all of these are true:
 
 - `reminder_status` is Pending
-- `sequence_step` is 1, 2, or 3
+- `sequence_step` is 1 or 2
 - the linked opportunity exists and is in `Contact Sent`
 
 Click:
@@ -65,7 +63,7 @@ Click:
 3. Persist the generated subject and body as an opportunity note.
 4. Send SMTP to the client contact email (same mail stack as first-contact outreach).
 5. Mark the follow-up reminder completed.
-6. If step 1 or 2: dispatch `ContactWithFollowUp`. If step 3: note + move to **No Response**.
+6. If step 1: dispatch `ContactWithFollowUp`. If step 2: note + move to **No Response**.
 
 There is **no** draft preview or regenerate on this path (unlike first-contact). The click is the human confirmation to write and send.
 
@@ -104,10 +102,8 @@ flowchart TD
   sendIntro[Human sends introduction]
   fu1[Reminder sequence_step 1]
   sendFu1[Human Send follow-up]
-  fu2[Reminder sequence_step 2]
+  fu2[Reminder sequence_step 2 last]
   sendFu2[Human Send follow-up]
-  fu3[Reminder sequence_step 3]
-  sendFu3[Human Send follow-up]
   noResponse[NoResponse terminal]
 
   sendIntro --> contactSent
@@ -115,9 +111,7 @@ flowchart TD
   fu1 --> sendFu1
   sendFu1 --> fu2
   fu2 --> sendFu2
-  sendFu2 --> fu3
-  fu3 --> sendFu3
-  sendFu3 --> noResponse
+  sendFu2 --> noResponse
 ```
 
 ### 6. Copywriter contract
@@ -126,8 +120,8 @@ flowchart TD
 - Same commercial problem as the introduction. Standalone emails (do not require reading the previous message).
 - New unique subject each time (not `Re:`). One emoji in the subject; none in the body.
 - Value drip: each follow-up uses a **new** insight and quick win. The agent receives previously sent copy (opportunity notes) so it does not repeat.
-- CTA for FU1, FU2, and FU3: reply with 3 dates and times for a 1-hour online discovery meeting.
-- FU3 also states clearly that this is the **last** email.
+- CTA for FU1 and FU2: reply with 3 dates and times for a 1-hour online discovery meeting.
+- FU2 also states clearly that this is the **last** email.
 
 Prompt asset: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 

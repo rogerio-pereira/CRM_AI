@@ -105,6 +105,6 @@ Used by `docs/prompts/laravel_tools/write-follow-up-email.md`.
 The introduction already did observation + quick win + the 3-dates CTA. Follow-ups are a **value drip** on the **same problem**:
 
 - Each follow-up is standalone. New subject (not `Re:`). New insight. New quick win.
-- Follow-up 1 and 2: same CTA. Do not say it is the last email.
-- Follow-up 3: same CTA, plus one clear line that this is the last email.
+- Follow-up 1: same CTA. Do not say it is the last email.
+- Follow-up 2: same CTA, plus one clear line that this is the last email.
 - Do not repeat copy already sent (`previous_emails`).

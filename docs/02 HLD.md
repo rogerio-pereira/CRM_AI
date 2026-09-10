@@ -257,7 +257,7 @@ Fixed order ([ADR-021](ADRs/ADR-021-follow-up-email-sequence.md); not admin-conf
 - Opportunity lost.
 
 ### No Response
-- Terminal. Entered after the human sends follow-up 3 with no reply. Not a lost negotiation and not a disqualification.
+- Terminal. Entered after the human sends follow-up 2 with no reply. Not a lost negotiation and not a disqualification.
 
 ### Disqualified
 - Terminal skip / unfit (including prospecting skips).

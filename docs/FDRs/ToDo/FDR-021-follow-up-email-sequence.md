@@ -28,8 +28,7 @@ Same voice as the first-contact prompt (Gustavo Ferreira / Allison Hardy; Roger 
 | ----- | --- | --- |
 | Introduction (existing) | Observation + quick win | Reply with 3 dates and times for a 1-hour online discovery meeting |
 | Follow-up 1 | **New** insight + quick win, same problem | Same CTA |
-| Follow-up 2 | **Another new** insight + quick win, same problem | Same CTA |
-| Follow-up 3 | **New** insight + quick win, and state clearly this is the **last** email | Same CTA, last-email tone |
+| Follow-up 2 | **New** insight + quick win, and state clearly this is the **last** email | Same CTA, last-email tone |
 
 The copywriter receives previously sent subject/body (from opportunity notes) so it does not repeat an insight or quick win.
 
@@ -37,12 +36,12 @@ Prompt: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 
 ### Reminders vs send
 
-- **Reminder:** system-created after introduction, follow-up 1, and follow-up 2.
+- **Reminder:** system-created after introduction and follow-up 1.
 - **Send:** never automatic. Only when a user clicks **Send follow-up** on the Follow-ups page.
 
 ### Data
 
-1. Add nullable `sequence_step` on `follow_ups` (`1` | `2` | `3`). `null` = manual follow-up (no send button).
+1. Add nullable `sequence_step` on `follow_ups` (`1` | `2`). `null` = manual follow-up (no send button).
 2. Add pipeline stage `No Response` (`no_response`): terminal, Kanban order after Lost and before Disqualified, color token `neutral`, sets `OpportunityStatus::Lost`.
 
 ### Introduction send (listener change)
@@ -57,7 +56,7 @@ Prompt: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 On `[follow-ups.index](../../../app/Livewire/FollowUps/Index.php)`, each row may show **Send follow-up** when:
 
 - the follow-up is Pending
-- `sequence_step` is 1, 2, or 3
+- `sequence_step` is 1 or 2
 - the opportunity is in Contact Sent
 
 Use `data-test="follow-ups-send-email"` (include the follow-up id in the selector, e.g. `follow-ups-send-email-{id}`).
@@ -71,8 +70,8 @@ Manual follow-ups (`sequence_step` null) do not get the button. If the opportuni
 3. Save the sent email (subject and body) as an opportunity note.
 4. Send SMTP to the client contact email (same stack as first-contact outreach).
 5. Mark the follow-up reminder completed.
-6. **Steps 1 and 2:** dispatch `ContactWithFollowUp` with the step just sent → short note “Follow-up N sent” → create the next reminder (`sequence_step + 1`, +3 days at 09:00).
-7. **Step 3:** short note that follow-up 3 was sent → `moveToStage(NoResponse)`. Do not dispatch `ContactWithFollowUp`. Do not create another reminder.
+6. **Step 1:** dispatch `ContactWithFollowUp` with the step just sent → short note “Follow-up 1 sent” → create the next reminder (`sequence_step = 2`, +3 days at 09:00).
+7. **Step 2:** short note that follow-up 2 was sent → `moveToStage(NoResponse)`. Do not dispatch `ContactWithFollowUp`. Do not create another reminder.
 
 If the job runs and the opportunity is not in Contact Sent: do not send, do not change stage, leave the reminder unchanged.
 
@@ -85,13 +84,9 @@ flowchart TD
   click1[Send follow-up]
   job1[Job write note SMTP]
   ev1[ContactWithFollowUp]
-  fu2[Reminder step 2]
+  fu2[Reminder step 2 last]
   click2[Send follow-up]
   job2[Job write note SMTP]
-  ev2[ContactWithFollowUp]
-  fu3[Reminder step 3]
-  click3[Send follow-up]
-  job3[Job write note SMTP]
   nr[No Response]
 
   intro --> fu1
@@ -101,11 +96,7 @@ flowchart TD
   ev1 --> fu2
   fu2 --> click2
   click2 --> job2
-  job2 --> ev2
-  ev2 --> fu3
-  fu3 --> click3
-  click3 --> job3
-  job3 --> nr
+  job2 --> nr
 ```
 
 ---
@@ -114,12 +105,11 @@ flowchart TD
 
 - **Introduction:** Send first-contact email; opportunity is Contact Sent; note exists; pending follow-up has `sequence_step = 1` and due date +3 days at 09:00.
 - **Send FU1:** Button visible on that row; click queues job; note contains subject/body; SMTP sent; reminder completed; new pending follow-up with `sequence_step = 2`.
-- **Send FU2:** Same pattern; creates `sequence_step = 3`.
-- **Send FU3:** SMTP + notes; opportunity moves to No Response; status Lost; no fourth sequence reminder; `ContactWithFollowUp` not dispatched.
+- **Send FU2:** SMTP + notes; opportunity moves to No Response; status Lost; no third sequence reminder; `ContactWithFollowUp` not dispatched.
 - **Manual follow-up:** No Send follow-up button.
 - **Wrong stage:** Opportunity in Meeting Scheduled (or any stage other than Contact Sent): button hidden; if a job is forced, it does not send.
 - **SMTP failure:** Reminder stays pending; stage unchanged.
-- **Copywriter:** FU3 output states it is the last email; FU1/FU2 do not claim that; subjects are not `Re:`; previously used insights are not reused (feature test with fake agent).
+- **Copywriter:** FU2 output states it is the last email; FU1 does not claim that; subjects are not `Re:`; previously used insights are not reused (feature test with fake agent).
 - **Kanban:** No Response column exists, is terminal, sits between Lost and Disqualified.
 - **Browser:** Follow-ups index send button (`data-test`); opportunity can be moved to No Response; notes timeline shows the saved email.
 - **Translations:** Button and stage labels covered for each app locale in Feature tests.
@@ -128,15 +118,15 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] `follow_ups.sequence_step` nullable 1–3; manual follow-ups remain null.
+- [ ] `follow_ups.sequence_step` nullable 1–2; manual follow-ups remain null.
 - [ ] Introduction send creates `sequence_step = 1` reminder (+3 days 09:00).
 - [ ] Follow-ups index **Send follow-up** only for pending sequence rows whose opportunity is Contact Sent (`data-test` stable).
 - [ ] Click dispatches a job: copywriter → opportunity note with subject/body → SMTP → complete reminder.
-- [ ] FU1 and FU2 dispatch generalized `ContactWithFollowUp` and create the next sequence reminder.
-- [ ] FU3 does not dispatch that event; notes the send; moves the opportunity to **No Response**.
+- [ ] FU1 dispatches generalized `ContactWithFollowUp` and creates the `sequence_step = 2` reminder.
+- [ ] FU2 does not dispatch that event; notes the send; moves the opportunity to **No Response**.
 - [ ] No Response is terminal, ordered after Lost and before Disqualified, `OpportunityStatus::Lost`, color token `neutral`.
 - [ ] No due-date auto-send. No bulk-delete of reminders on stage change.
-- [ ] Follow-up prompt documents the storytelling table (new insight per step; FU3 last-email; same CTA).
+- [ ] Follow-up prompt documents the storytelling table (new insight per step; FU2 last-email; same CTA).
 - [ ] Feature + Pest Browser coverage for the flows above.
 
 ---

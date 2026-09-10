@@ -174,7 +174,7 @@
 **Produces:**
 
 - Follow-up records for dashboard, Slack, and Calendar
-- Sequence reminders (`sequence_step` 1–3) consumed by [21 Follow-up email sequence](#f21-follow-up-email-sequence)
+- Sequence reminders (`sequence_step` 1–2) consumed by [21 Follow-up email sequence](#f21-follow-up-email-sequence)
 
 **ADRs:** [ADR-009](ADRs/ADR-009-slack-integration.md), [ADR-010](ADRs/ADR-010-google-calendar-integration.md)
 
@@ -507,7 +507,7 @@
 
 ### 21 · Follow-up email sequence
 
-**Objective:** After the introduction email is sent, create sequenced follow-up **reminders**; let a user send follow-up 1–3 from the Follow-ups page (copywriter job, note, SMTP); after follow-up 3 move the opportunity to terminal **No Response**.
+**Objective:** After the introduction email is sent, create sequenced follow-up **reminders**; let a user send follow-up 1–2 from the Follow-ups page (copywriter job, note, SMTP); after follow-up 2 move the opportunity to terminal **No Response**.
 
 **Dependencies:** [05 Opportunity management and Kanban pipeline](#f05-opportunity-kanban-pipeline), [06 Follow-up management](#f06-follow-up-management), [09 AI provider layer and orchestration](#f09-ai-orchestration), [12 AI recommendations and insights](#f12-ai-recommendations), [19 Opportunity notes](#f19-opportunity-notes)
 
@@ -525,7 +525,7 @@
 
 - Sequenced follow-up sends (human-triggered)
 - Opportunity notes with sent follow-up copy
-- Terminal No Response after follow-up 3
+- Terminal No Response after follow-up 2
 
 **ADRs:** [ADR-021](ADRs/ADR-021-follow-up-email-sequence.md), [ADR-005](ADRs/ADR-005-fixed-sales-pipeline.md), [ADR-019](ADRs/ADR-019-human-controlled-proposal-delivery.md), [ADR-003](ADRs/ADR-003-ai-orchestration-architecture.md)
 
