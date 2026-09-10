@@ -63,7 +63,6 @@ class FollowUpManagementTest extends TestCase
             'priority' => FollowUpPriority::High->value,
             'reminder_status' => FollowUpReminderStatus::Pending->value,
             'notes' => 'Call back tomorrow',
-            'sequence_step' => null,
         ]);
 
         Event::assertDispatched(FollowUpCreated::class);
@@ -426,7 +425,7 @@ class FollowUpManagementTest extends TestCase
         $this->assertStringContainsString('limit', $lowercaseSql);
     }
 
-    public function test_send_follow_up_button_is_visible_only_for_pending_sequence_on_contact_sent(): void
+    public function test_send_follow_up_button_is_visible_only_for_pending_rows_on_contact_sent(): void
     {
         $user = User::factory()
                     ->create();
@@ -438,13 +437,7 @@ class FollowUpManagementTest extends TestCase
                             ->create([
                                 'stage' => PipelineStage::MeetingScheduled,
                             ]);
-        $sequenceFollowUp = FollowUp::factory()
-                                ->for($contactSent->client)
-                                ->create([
-                                    'opportunity_id' => $contactSent->id,
-                                    'sequence_step' => 1,
-                                ]);
-        $manualFollowUp = FollowUp::factory()
+        $sendableFollowUp = FollowUp::factory()
                                 ->for($contactSent->client)
                                 ->create([
                                     'opportunity_id' => $contactSent->id,
@@ -453,14 +446,12 @@ class FollowUpManagementTest extends TestCase
                                 ->for($meetingScheduled->client)
                                 ->create([
                                     'opportunity_id' => $meetingScheduled->id,
-                                    'sequence_step' => 2,
                                 ]);
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
-            ->assertSeeHtml('data-test="follow-ups-send-email-'.$sequenceFollowUp->id.'"')
-            ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$manualFollowUp->id.'"')
+            ->assertSeeHtml('data-test="follow-ups-send-email-'.$sendableFollowUp->id.'"')
             ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$wrongStageFollowUp->id.'"')
             ->assertSee(__('Send follow-up'));
     }
@@ -479,7 +470,6 @@ class FollowUpManagementTest extends TestCase
                         ->for($opportunity->client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
 
         $this->actingAs($user);

@@ -107,7 +107,6 @@ it('sends a sequenced follow-up email from the index', function () {
                     ->for($client)
                     ->create([
                         'opportunity_id' => $opportunity->id,
-                        'sequence_step' => 1,
                     ]);
 
     $this->actingAs($user);
@@ -130,8 +129,6 @@ it('sends a sequenced follow-up email from the index', function () {
     expect($nextFollowUp)
         ->not
         ->toBeNull();
-    expect($nextFollowUp->sequence_step)
-        ->toBe(2);
     expect($emailNote)
         ->not
         ->toBeNull();

@@ -19,6 +19,7 @@ class WriteFollowUpEmailAgentTest extends TestCase
         $this->assertStringContainsString('Gustavo Ferreira', $instructions);
         $this->assertStringContainsString('Allison Hardy', $instructions);
         $this->assertStringContainsString('sequence_step', $instructions);
+        $this->assertStringContainsString('Do not infer it from notes', $instructions);
         $this->assertStringContainsString('New insight + new quick win', $instructions);
         $this->assertStringContainsString('this is the last email', $instructions);
         $this->assertStringContainsString('Do not use `Re:` in the subject', $instructions);

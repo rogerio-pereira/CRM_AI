@@ -55,7 +55,6 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->for($client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
         $copySubject = '🔁 A new way to turn local quotes into booked work';
         $copyBody = "Hi Sarah,\n\nHere is a new insight on the same problem.\n\nRoger Pereira\n[Front Porch Creative](https://frontporchcreative.io)";
@@ -80,7 +79,6 @@ class SendFollowUpEmailJobTest extends TestCase
         $this->assertStringContainsString($copyBody, $emailNote->body);
         $this->assertNotNull($statusNote);
         $this->assertNotNull($nextFollowUp);
-        $this->assertSame(2, $nextFollowUp->sequence_step);
         $this->assertSame(FollowUpReminderStatus::Pending, $nextFollowUp->reminder_status);
         $this->assertTrue($expectedDueAt->equalTo($nextFollowUp->due_at));
 
@@ -160,17 +158,20 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->for($client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 2,
                         ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->create([
+                'body' => 'Follow-up 1 sent',
+            ]);
         $copySubject = '📌 Last note on turning quotes into booked work';
 
         SendFollowUpEmailJob::dispatchSync($followUp->id, $user->id);
 
         $followUp->refresh();
         $opportunity->refresh();
-        $sequenceReminders = FollowUp::where('opportunity_id', $opportunity->id)
-                                ->whereNotNull('sequence_step')
-                                ->count();
+        $reminderCount = FollowUp::where('opportunity_id', $opportunity->id)
+                            ->count();
         $statusNote = OpportunityNote::where('opportunity_id', $opportunity->id)
                             ->where('body', 'Follow-up 2 sent')
                             ->first();
@@ -181,7 +182,7 @@ class SendFollowUpEmailJobTest extends TestCase
         $this->assertSame(FollowUpReminderStatus::Completed, $followUp->reminder_status);
         $this->assertSame(PipelineStage::NoResponse, $opportunity->stage);
         $this->assertSame(OpportunityStatus::Lost, $opportunity->status);
-        $this->assertSame(1, $sequenceReminders);
+        $this->assertSame(1, $reminderCount);
         $this->assertNotNull($statusNote);
         $this->assertNotNull($emailNote);
         Event::assertNotDispatched(ContactWithFollowUp::class);
@@ -211,7 +212,6 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->for($opportunity->client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
 
         SendFollowUpEmailJob::dispatchSync($followUp->id, null);
@@ -240,7 +240,6 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->for($opportunity->client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
 
         try {
@@ -279,32 +278,12 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->for($opportunity->client)
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Follow-up email output was incomplete.');
 
         SendFollowUpEmailJob::dispatchSync($followUp->id, null);
-    }
-
-    public function test_skips_when_sequence_step_is_null(): void
-    {
-        Mail::fake();
-
-        $opportunity = Opportunity::factory()
-                            ->create([
-                                'stage' => PipelineStage::ContactSent,
-                            ]);
-        $followUp = FollowUp::factory()
-                        ->for($opportunity->client)
-                        ->create([
-                            'opportunity_id' => $opportunity->id,
-                        ]);
-
-        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
-
-        Mail::assertNothingSent();
     }
 
     public function test_skips_when_the_follow_up_has_no_opportunity(): void
@@ -314,7 +293,6 @@ class SendFollowUpEmailJobTest extends TestCase
         $followUp = FollowUp::factory()
                         ->create([
                             'opportunity_id' => null,
-                            'sequence_step' => 1,
                         ]);
 
         SendFollowUpEmailJob::dispatchSync($followUp->id, null);
@@ -337,7 +315,6 @@ class SendFollowUpEmailJobTest extends TestCase
                         ->completed()
                         ->create([
                             'opportunity_id' => $opportunity->id,
-                            'sequence_step' => 1,
                         ]);
 
         SendFollowUpEmailJob::dispatchSync($followUp->id, null);

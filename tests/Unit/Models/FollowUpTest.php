@@ -40,7 +40,7 @@ class FollowUpTest extends TestCase
         );
     }
 
-    public function test_can_send_sequence_email_only_for_pending_sequence_on_contact_sent(): void
+    public function test_can_send_sequence_email_only_for_pending_rows_on_contact_sent(): void
     {
         $contactSent = Opportunity::factory()
                             ->create([
@@ -54,29 +54,23 @@ class FollowUpTest extends TestCase
                         ->for($contactSent->client)
                         ->create([
                             'opportunity_id' => $contactSent->id,
-                            'sequence_step' => 1,
                         ]);
-        $manual = FollowUp::factory()
-                        ->for($contactSent->client)
-                        ->create([
-                            'opportunity_id' => $contactSent->id,
-                        ]);
+        $withoutOpportunity = FollowUp::factory()
+                                ->create();
         $wrongStage = FollowUp::factory()
                         ->for($meetingScheduled->client)
                         ->create([
                             'opportunity_id' => $meetingScheduled->id,
-                            'sequence_step' => 1,
                         ]);
         $completed = FollowUp::factory()
                         ->for($contactSent->client)
                         ->completed()
                         ->create([
                             'opportunity_id' => $contactSent->id,
-                            'sequence_step' => 1,
                         ]);
 
         $this->assertTrue($sendable->canSendSequenceEmail());
-        $this->assertFalse($manual->canSendSequenceEmail());
+        $this->assertFalse($withoutOpportunity->canSendSequenceEmail());
         $this->assertFalse($wrongStage->canSendSequenceEmail());
         $this->assertFalse($completed->canSendSequenceEmail());
     }
