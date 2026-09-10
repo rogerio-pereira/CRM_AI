@@ -78,10 +78,7 @@ class OpportunityService
 
         if ($targetStage === PipelineStage::Won) {
             $opportunity->status = OpportunityStatus::Won;
-        } elseif (
-            $targetStage === PipelineStage::Lost ||
-            $targetStage === PipelineStage::Disqualified
-        ) {
+        } elseif ($targetStage->isTerminal()) {
             $opportunity->status = OpportunityStatus::Lost;
         } else {
             $opportunity->status = OpportunityStatus::Open;

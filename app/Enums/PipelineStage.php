@@ -14,6 +14,7 @@ enum PipelineStage: string
     case ProposalSent = 'proposal_sent';
     case Won = 'won';
     case Lost = 'lost';
+    case NoResponse = 'no_response';
     case Disqualified = 'disqualified';
 
     public function label(): string
@@ -29,6 +30,7 @@ enum PipelineStage: string
             self::ProposalSent => __('Proposal Sent'),
             self::Won => __('Won'),
             self::Lost => __('Lost'),
+            self::NoResponse => __('No Response'),
             self::Disqualified => __('Disqualified'),
         };
     }
@@ -46,6 +48,7 @@ enum PipelineStage: string
             self::ProposalSent => 'neutral',
             self::Won => 'success',
             self::Lost => 'danger',
+            self::NoResponse => 'neutral',
             self::Disqualified => 'danger',
         };
     }
@@ -118,6 +121,7 @@ enum PipelineStage: string
         $terminalStages = [
             self::Won,
             self::Lost,
+            self::NoResponse,
             self::Disqualified,
         ];
 
@@ -141,6 +145,7 @@ enum PipelineStage: string
             self::ProposalSent,
             self::Won,
             self::Lost,
+            self::NoResponse,
             self::Disqualified,
         ];
     }

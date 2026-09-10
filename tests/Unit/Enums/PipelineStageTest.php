@@ -22,6 +22,7 @@ class PipelineStageTest extends TestCase
         return [
             'won' => [PipelineStage::Won],
             'lost' => [PipelineStage::Lost],
+            'no response' => [PipelineStage::NoResponse],
             'disqualified' => [PipelineStage::Disqualified],
         ];
     }
@@ -53,14 +54,15 @@ class PipelineStageTest extends TestCase
     {
         $ordered = PipelineStage::ordered();
 
-        $this->assertCount(11, $ordered);
+        $this->assertCount(12, $ordered);
         $this->assertSame(PipelineStage::Lead, $ordered[0]);
         $this->assertSame(PipelineStage::Contact, $ordered[2]);
         $this->assertSame(PipelineStage::ContactSent, $ordered[3]);
         $this->assertSame(PipelineStage::MeetingScheduled, $ordered[4]);
         $this->assertSame(PipelineStage::ProposalGeneration, $ordered[5]);
         $this->assertSame(PipelineStage::Lost, $ordered[9]);
-        $this->assertSame(PipelineStage::Disqualified, $ordered[10]);
+        $this->assertSame(PipelineStage::NoResponse, $ordered[10]);
+        $this->assertSame(PipelineStage::Disqualified, $ordered[11]);
     }
 
     public function test_label_and_color_token_are_defined_for_each_stage(): void
@@ -122,6 +124,7 @@ class PipelineStageTest extends TestCase
             'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
             'won' => [PipelineStage::Won, 'status-success'],
             'lost' => [PipelineStage::Lost, 'status-danger'],
+            'no response' => [PipelineStage::NoResponse, 'status-neutral'],
             'disqualified' => [PipelineStage::Disqualified, 'status-danger'],
         ];
     }
@@ -150,6 +153,7 @@ class PipelineStageTest extends TestCase
             'proposal sent' => [PipelineStage::ProposalSent, 'status-neutral'],
             'won' => [PipelineStage::Won, 'status-success'],
             'lost' => [PipelineStage::Lost, 'status-danger'],
+            'no response' => [PipelineStage::NoResponse, 'status-neutral'],
             'disqualified' => [PipelineStage::Disqualified, 'status-danger'],
         ];
     }
@@ -185,6 +189,7 @@ class PipelineStageTest extends TestCase
             'proposal sent' => [PipelineStage::ProposalSent],
             'won' => [PipelineStage::Won],
             'lost' => [PipelineStage::Lost],
+            'no response' => [PipelineStage::NoResponse],
             'disqualified' => [PipelineStage::Disqualified],
         ];
     }
