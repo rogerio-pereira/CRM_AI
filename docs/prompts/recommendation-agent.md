@@ -1,6 +1,6 @@
 # Recommendation Agent Prompt
 
-**Version:** 1.9  
+**Version:** 2.0  
 **Status:** Approved for Wave 4 implementation  
 **Owner:** Product owner  
 **Related:** FDR-012, ADR-011, ADR-017, `docs/prompts/references/frontporch-creative-briefing.md`, `docs/prompts/references/frontporch-creative-design-system.md`  
@@ -125,5 +125,6 @@ Return JSON only. Do not include Markdown, commentary, or code fences.
 
 - Recommendations are read-only until a user acts.
 - Do not claim the prospect has a problem unless the evidence supports it.
+- Do not invent website defects. Do not recommend “make it mobile” or “add a clickable phone number”, etc, unless the qualification evidence shows you actually saw that gap on the live page.
 - Do not create urgency through fear or pressure.
 - Keep every recommendation understandable by a non-technical business owner.
