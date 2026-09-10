@@ -95,7 +95,10 @@
                         </td>
                         <td class="px-4 text-end">
                             <div class="inline-flex items-center justify-end gap-2">
-                                @if ($followUp->canSendSequenceEmail())
+                                @if (
+                                    $followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending
+                                    && $followUp->opportunity?->stage === \App\Enums\PipelineStage::ContactSent
+                                )
                                     <flux:button
                                         size="sm"
                                         variant="primary"

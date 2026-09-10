@@ -4,6 +4,8 @@ namespace App\Livewire\FollowUps;
 
 use App\Concerns\FollowUpValidationRules;
 use App\Enums\FollowUpPriority;
+use App\Enums\FollowUpReminderStatus;
+use App\Enums\PipelineStage;
 use App\Jobs\SendFollowUpEmailJob;
 use App\Models\Client;
 use App\Models\FollowUp;
@@ -173,7 +175,18 @@ class Index extends Component
         $followUp = FollowUp::with('opportunity')
                         ->findOrFail($followUpId);
 
-        if (! $followUp->canSendSequenceEmail()) {
+        $opportunity = $followUp->opportunity;
+        $isPending = $followUp->reminder_status === FollowUpReminderStatus::Pending;
+        $isContactSent = false;
+
+        if ($opportunity !== null) {
+            $isContactSent = $opportunity->stage === PipelineStage::ContactSent;
+        }
+
+        if (
+            ! $isPending ||
+            ! $isContactSent
+        ) {
             Toast::show(
                 variant: 'danger',
                 text: __('This follow-up cannot be sent.'),
