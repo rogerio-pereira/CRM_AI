@@ -200,11 +200,14 @@ class SendFollowUpEmailJobTest extends TestCase
         });
     }
 
-    public function test_skips_send_when_opportunity_is_not_contact_sent(): void
+    public function test_sends_when_opportunity_is_in_another_stage(): void
     {
         Mail::fake();
+        Carbon::setTestNow('2026-09-09 13:05:00');
 
         $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
                             ->create([
                                 'stage' => PipelineStage::MeetingScheduled,
                             ]);
@@ -218,10 +221,56 @@ class SendFollowUpEmailJobTest extends TestCase
 
         $followUp->refresh();
         $opportunity->refresh();
+        $nextFollowUp = FollowUp::where('opportunity_id', $opportunity->id)
+                            ->where('id', '!=', $followUp->id)
+                            ->first();
+        $statusNote = OpportunityNote::where('opportunity_id', $opportunity->id)
+                            ->where('body', 'Follow-up 1 sent')
+                            ->first();
 
-        $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
+        $this->assertSame(FollowUpReminderStatus::Completed, $followUp->reminder_status);
         $this->assertSame(PipelineStage::MeetingScheduled, $opportunity->stage);
-        Mail::assertNothingSent();
+        $this->assertNotNull($nextFollowUp);
+        $this->assertNotNull($statusNote);
+        Mail::assertSent(FirstContactOutreachMail::class);
+    }
+
+    public function test_follow_up_two_outside_contact_sent_does_not_move_stage(): void
+    {
+        Mail::fake();
+        WriteFollowUpEmailAgent::fake([
+            [
+                'channel' => 'email',
+                'subject' => '📌 Checking in on the contract',
+                'body' => "Hi Sarah,\n\nJust checking in.\n\nRoger Pereira",
+            ],
+        ]);
+
+        $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
+                            ->create([
+                                'stage' => PipelineStage::ProposalSent,
+                            ]);
+        $followUp = FollowUp::factory()
+                        ->for($opportunity->client)
+                        ->create([
+                            'opportunity_id' => $opportunity->id,
+                        ]);
+        OpportunityNote::factory()
+            ->for($opportunity)
+            ->create([
+                'body' => 'Follow-up 1 sent',
+            ]);
+
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
+
+        $followUp->refresh();
+        $opportunity->refresh();
+
+        $this->assertSame(FollowUpReminderStatus::Completed, $followUp->reminder_status);
+        $this->assertSame(PipelineStage::ProposalSent, $opportunity->stage);
+        Mail::assertSent(FirstContactOutreachMail::class);
     }
 
     public function test_smtp_failure_leaves_reminder_pending_and_stage_unchanged(): void
