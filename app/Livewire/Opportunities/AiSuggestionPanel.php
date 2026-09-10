@@ -158,16 +158,11 @@ class AiSuggestionPanel extends Component
             ->send($mail);
 
         $userId = auth()->id();
-        $sentStep = ContactWithFollowUp::INTRODUCTION_STEP;
 
         /**
          * @calls app/Listeners/HandleContactWithFollowUp
          */
-        ContactWithFollowUp::dispatch(
-            $opportunity,
-            $userId,
-            $sentStep,
-        );
+        ContactWithFollowUp::dispatch($opportunity, $userId);
 
         /**
          * Livewire event so parent Index components refresh and the frontend updates.

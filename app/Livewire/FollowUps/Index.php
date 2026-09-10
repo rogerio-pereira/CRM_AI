@@ -3,12 +3,11 @@
 namespace App\Livewire\FollowUps;
 
 use App\Concerns\FollowUpValidationRules;
-use App\Enums\AgentType;
 use App\Enums\FollowUpPriority;
+use App\Jobs\SendFollowUpEmailJob;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
-use App\Services\AiOrchestrationService;
 use App\Services\FollowUpService;
 use App\Support\Toast;
 use Carbon\Carbon;
@@ -169,7 +168,7 @@ class Index extends Component
         Toast::show(variant: 'success', text: __('Follow-up completed.'));
     }
 
-    public function sendFollowUpEmail(int $followUpId): void
+    public function sendFollowUpEmail(int $followUpId, FollowUpService $followUpService): void
     {
         $followUp = FollowUp::with('opportunity')
                         ->findOrFail($followUpId);
@@ -184,13 +183,9 @@ class Index extends Component
         }
 
         $userId = auth()->id();
-        $payload = [
-            'follow_up_id' => $followUp->id,
-            'opportunity_id' => $followUp->opportunity_id,
-            'user_id' => $userId,
-        ];
-        $orchestration = app(AiOrchestrationService::class);
-        $orchestration->dispatch(AgentType::FollowUpEmail, $payload);
+        $followUpService->markComplete($followUp);
+
+        SendFollowUpEmailJob::dispatch($followUp->id, $userId);
 
         Toast::show(
             variant: 'success',
