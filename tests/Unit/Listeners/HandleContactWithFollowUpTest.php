@@ -63,4 +63,41 @@ class HandleContactWithFollowUpTest extends TestCase
         $this->assertSame($user->id, $note->user_id);
         $this->assertSame('First Email sent', $note->body);
     }
+
+    public function test_handle_follow_up_creates_the_last_reminder(): void
+    {
+        Carbon::setTestNow('2026-09-09 13:05:00');
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::ContactSent,
+                            ]);
+        $event = new ContactWithFollowUp($opportunity, $user->id);
+        $listener = app(HandleContactWithFollowUp::class);
+
+        $listener->handle($event);
+
+        $expectedDueAt = Carbon::parse('2026-09-12 09:00:00');
+        $followUp = FollowUp::where('opportunity_id', $opportunity->id)
+                        ->first();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::ContactSent->value,
+        ]);
+        $this->assertNotNull($followUp);
+        $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
+        $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
+        $this->assertSame('Send the last follow-up email.', $followUp->notes);
+        $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
+
+        $note = OpportunityNote::where('opportunity_id', $opportunity->id)
+                    ->first();
+
+        $this->assertNotNull($note);
+        $this->assertSame($user->id, $note->user_id);
+        $this->assertSame('Follow-up 1 sent', $note->body);
+    }
 }
