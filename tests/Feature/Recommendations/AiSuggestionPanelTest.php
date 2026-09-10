@@ -4,7 +4,6 @@ namespace Tests\Feature\Recommendations;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Enums\QualificationStatus;
 use App\Events\ContactWithFollowUp;
@@ -553,7 +552,7 @@ class AiSuggestionPanelTest extends TestCase
         $this->assertSame($client->id, $followUp->client_id);
         $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
         $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
-        $this->assertSame(FollowUpSequenceStep::First, $followUp->sequence_step);
+        $this->assertSame(1, $followUp->sequence_step);
         $this->assertSame('Follow up after first-contact email.', $followUp->notes);
         $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
 

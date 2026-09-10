@@ -1,15 +1,13 @@
 <?php
 
-namespace Tests\Feature\FollowUpEmail;
+namespace Tests\Feature\FollowUps;
 
-use App\Ai\Agents\FollowUpEmailAgent;
 use App\Ai\Agents\WriteFollowUpEmailAgent;
-use App\Ai\Exceptions\FollowUpEmailFailedException;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\OpportunityStatus;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
+use App\Jobs\SendFollowUpEmailJob;
 use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
 use App\Models\FollowUp;
@@ -21,10 +19,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
-use Tests\Support\FollowUpEmailFake;
 use Tests\TestCase;
 
-class FollowUpEmailAgentTest extends TestCase
+class SendFollowUpEmailJobTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -56,17 +53,14 @@ class FollowUpEmailAgentTest extends TestCase
                             ]);
         $followUp = FollowUp::factory()
                         ->for($client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 1,
                         ]);
-        $copy = FollowUpEmailFake::copywriterPayload();
+        $copySubject = '🔁 A new way to turn local quotes into booked work';
+        $copyBody = "Hi Sarah,\n\nHere is a new insight on the same problem.\n\nRoger Pereira\n[Front Porch Creative](https://frontporchcreative.io)";
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-                            'user_id' => $user->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, $user->id);
 
         $followUp->refresh();
         $expectedDueAt = Carbon::parse('2026-09-12 09:00:00');
@@ -74,20 +68,19 @@ class FollowUpEmailAgentTest extends TestCase
                             ->where('id', '!=', $followUp->id)
                             ->first();
         $emailNote = OpportunityNote::where('opportunity_id', $opportunity->id)
-                            ->where('body', 'like', '%'.$copy['subject'].'%')
+                            ->where('body', 'like', '%'.$copySubject.'%')
                             ->first();
         $statusNote = OpportunityNote::where('opportunity_id', $opportunity->id)
                             ->where('body', 'Follow-up 1 sent')
                             ->first();
 
-        $this->assertSame('completed', $result['status']);
         $this->assertSame(FollowUpReminderStatus::Completed, $followUp->reminder_status);
         $this->assertNotNull($emailNote);
         $this->assertSame($user->id, $emailNote->user_id);
-        $this->assertStringContainsString($copy['body'], $emailNote->body);
+        $this->assertStringContainsString($copyBody, $emailNote->body);
         $this->assertNotNull($statusNote);
         $this->assertNotNull($nextFollowUp);
-        $this->assertSame(FollowUpSequenceStep::Second, $nextFollowUp->sequence_step);
+        $this->assertSame(2, $nextFollowUp->sequence_step);
         $this->assertSame(FollowUpReminderStatus::Pending, $nextFollowUp->reminder_status);
         $this->assertTrue($expectedDueAt->equalTo($nextFollowUp->due_at));
 
@@ -95,10 +88,10 @@ class FollowUpEmailAgentTest extends TestCase
 
         $this->assertSame(PipelineStage::ContactSent, $opportunity->stage);
 
-        Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client, $copy): bool {
+        Mail::assertSent(FirstContactOutreachMail::class, function (FirstContactOutreachMail $mail) use ($client, $copySubject, $copyBody): bool {
             $hasRecipient = $mail->hasTo($client->contact_email);
-            $hasSubject = $mail->emailSubject === $copy['subject'];
-            $hasBody = $mail->markdownBody === $copy['body'];
+            $hasSubject = $mail->emailSubject === $copySubject;
+            $hasBody = $mail->markdownBody === $copyBody;
 
             if (! $hasRecipient) {
                 return false;
@@ -142,7 +135,13 @@ class FollowUpEmailAgentTest extends TestCase
     {
         Mail::fake();
         Event::fake([ContactWithFollowUp::class]);
-        FollowUpEmailFake::fake(FollowUpEmailFake::lastEmailPayload());
+        WriteFollowUpEmailAgent::fake([
+            [
+                'channel' => 'email',
+                'subject' => '📌 Last note on turning quotes into booked work',
+                'body' => "Hi Sarah,\n\nThis is the last email I will send about this.\n\nRoger Pereira\n[Front Porch Creative](https://frontporchcreative.io)",
+            ],
+        ]);
 
         $user = User::factory()
                     ->create();
@@ -159,22 +158,13 @@ class FollowUpEmailAgentTest extends TestCase
                             ]);
         $followUp = FollowUp::factory()
                         ->for($client)
-                        ->sequenceStep(FollowUpSequenceStep::Second)
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 2,
                         ]);
-        OpportunityNote::factory()
-            ->for($opportunity)
-            ->create([
-                'body' => "Follow-up 1 email sent.\n\nSubject: A new way to turn local quotes into booked work\n\nPrevious insight about quotes.",
-            ]);
-        $copy = FollowUpEmailFake::lastEmailPayload();
+        $copySubject = '📌 Last note on turning quotes into booked work';
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-                            'user_id' => $user->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, $user->id);
 
         $followUp->refresh();
         $opportunity->refresh();
@@ -185,30 +175,27 @@ class FollowUpEmailAgentTest extends TestCase
                             ->where('body', 'Follow-up 2 sent')
                             ->first();
         $emailNote = OpportunityNote::where('opportunity_id', $opportunity->id)
-                            ->where('body', 'like', '%'.$copy['subject'].'%')
+                            ->where('body', 'like', '%'.$copySubject.'%')
                             ->first();
 
-        $this->assertSame('completed', $result['status']);
         $this->assertSame(FollowUpReminderStatus::Completed, $followUp->reminder_status);
         $this->assertSame(PipelineStage::NoResponse, $opportunity->stage);
         $this->assertSame(OpportunityStatus::Lost, $opportunity->status);
         $this->assertSame(1, $sequenceReminders);
         $this->assertNotNull($statusNote);
         $this->assertNotNull($emailNote);
-        $this->assertStringContainsString('last email', $copy['body']);
-        $this->assertStringNotContainsString('Re:', $copy['subject']);
         Event::assertNotDispatched(ContactWithFollowUp::class);
         Mail::assertSent(FirstContactOutreachMail::class);
         WriteFollowUpEmailAgent::assertPrompted(function ($prompt): bool {
             $promptText = $prompt->prompt;
             $hasStep = str_contains($promptText, '"sequence_step":2');
-            $hasPreviousFollowUp = str_contains($promptText, 'A new way to turn local quotes into booked work');
+            $hasIntroductionSubject = str_contains($promptText, 'A simple way to bring in more local conversations');
 
             if ($hasStep === false) {
                 return false;
             }
 
-            return $hasPreviousFollowUp;
+            return $hasIntroductionSubject;
         });
     }
 
@@ -222,20 +209,16 @@ class FollowUpEmailAgentTest extends TestCase
                             ]);
         $followUp = FollowUp::factory()
                         ->for($opportunity->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 1,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
 
         $followUp->refresh();
         $opportunity->refresh();
 
-        $this->assertSame('skipped_wrong_stage', $result['status']);
         $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
         $this->assertSame(PipelineStage::MeetingScheduled, $opportunity->stage);
         Mail::assertNothingSent();
@@ -255,17 +238,13 @@ class FollowUpEmailAgentTest extends TestCase
                             ]);
         $followUp = FollowUp::factory()
                         ->for($opportunity->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 1,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-
         try {
-            $agent->handle([
-                'follow_up_id' => $followUp->id,
-            ]);
+            SendFollowUpEmailJob::dispatchSync($followUp->id, null);
             $this->fail('Expected SMTP failure to throw.');
         } catch (RuntimeException $exception) {
             $this->assertSame('SMTP failed', $exception->getMessage());
@@ -282,10 +261,12 @@ class FollowUpEmailAgentTest extends TestCase
 
     public function test_empty_copywriter_email_is_incomplete(): void
     {
-        FollowUpEmailFake::fake([
-            'channel' => 'email',
-            'subject' => '',
-            'body' => '',
+        WriteFollowUpEmailAgent::fake([
+            [
+                'channel' => 'email',
+                'subject' => '',
+                'body' => '',
+            ],
         ]);
 
         $opportunity = Opportunity::factory()
@@ -296,47 +277,15 @@ class FollowUpEmailAgentTest extends TestCase
                             ]);
         $followUp = FollowUp::factory()
                         ->for($opportunity->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 1,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-
-        $this->expectException(FollowUpEmailFailedException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Follow-up email output was incomplete.');
 
-        $agent->handle([
-            'follow_up_id' => $followUp->id,
-        ]);
-    }
-
-    public function test_follow_up_one_does_not_claim_to_be_the_last_email(): void
-    {
-        Mail::fake();
-
-        $opportunity = Opportunity::factory()
-                            ->qualificationQualified()
-                            ->withAiInsights()
-                            ->create([
-                                'stage' => PipelineStage::ContactSent,
-                            ]);
-        $followUp = FollowUp::factory()
-                        ->for($opportunity->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
-                        ->create([
-                            'opportunity_id' => $opportunity->id,
-                        ]);
-        $copy = FollowUpEmailFake::copywriterPayload();
-
-        $agent = app(FollowUpEmailAgent::class);
-        $agent->handle([
-            'follow_up_id' => $followUp->id,
-        ]);
-
-        $this->assertStringNotContainsString('last email', strtolower($copy['subject']));
-        $this->assertStringNotContainsString('last email', strtolower($copy['body']));
-        $this->assertStringNotContainsString('Re:', $copy['subject']);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
     }
 
     public function test_skips_when_sequence_step_is_null(): void
@@ -353,12 +302,8 @@ class FollowUpEmailAgentTest extends TestCase
                             'opportunity_id' => $opportunity->id,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
 
-        $this->assertSame('skipped_wrong_stage', $result['status']);
         Mail::assertNothingSent();
     }
 
@@ -367,42 +312,36 @@ class FollowUpEmailAgentTest extends TestCase
         Mail::fake();
 
         $followUp = FollowUp::factory()
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => null,
+                            'sequence_step' => 1,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
 
-        $this->assertSame('skipped_missing_opportunity', $result['status']);
         Mail::assertNothingSent();
     }
 
-    public function test_skips_when_the_reminder_is_already_completed(): void
+    public function test_still_sends_when_the_reminder_was_completed_on_click(): void
     {
         Mail::fake();
 
         $opportunity = Opportunity::factory()
+                            ->qualificationQualified()
+                            ->withAiInsights()
                             ->create([
                                 'stage' => PipelineStage::ContactSent,
                             ]);
         $followUp = FollowUp::factory()
                         ->for($opportunity->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->completed()
                         ->create([
                             'opportunity_id' => $opportunity->id,
+                            'sequence_step' => 1,
                         ]);
 
-        $agent = app(FollowUpEmailAgent::class);
-        $result = $agent->handle([
-                            'follow_up_id' => $followUp->id,
-        ]);
+        SendFollowUpEmailJob::dispatchSync($followUp->id, null);
 
-        $this->assertSame('skipped_wrong_stage', $result['status']);
-        Mail::assertNothingSent();
+        Mail::assertSent(FirstContactOutreachMail::class);
     }
 }

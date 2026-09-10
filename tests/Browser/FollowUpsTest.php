@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
@@ -106,9 +105,9 @@ it('sends a sequenced follow-up email from the index', function () {
                         ]);
     $followUp = FollowUp::factory()
                     ->for($client)
-                    ->sequenceStep(FollowUpSequenceStep::First)
                     ->create([
                         'opportunity_id' => $opportunity->id,
+                        'sequence_step' => 1,
                     ]);
 
     $this->actingAs($user);
@@ -132,7 +131,7 @@ it('sends a sequenced follow-up email from the index', function () {
         ->not
         ->toBeNull();
     expect($nextFollowUp->sequence_step)
-        ->toBe(FollowUpSequenceStep::Second);
+        ->toBe(2);
     expect($emailNote)
         ->not
         ->toBeNull();
