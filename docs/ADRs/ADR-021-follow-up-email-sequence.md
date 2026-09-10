@@ -58,12 +58,9 @@ The Follow-ups index button is visible only when all of these are true:
 
 Click:
 
-1. Dispatch a queued job (Horizon / Redis).
-2. Run a follow-up copywriter agent (same orchestration pattern as first-contact email).
-3. Persist the generated subject and body as an opportunity note.
-4. Send SMTP to the client contact email (same mail stack as first-contact outreach).
-5. Mark the follow-up reminder completed.
-6. If step 1: dispatch `ContactWithFollowUp`. If step 2: note + move to **No Response**.
+1. Mark the follow-up reminder completed, then dispatch `SendFollowUpEmailJob` (Horizon / Redis). Do **not** add an `AgentType`, orchestration wrapper, or extra domain agent.
+2. The job calls `WriteFollowUpEmailAgent`, persists subject and body as an opportunity note, and sends SMTP (same mail stack as first-contact outreach).
+3. If step 1: dispatch `ContactWithFollowUp`. If step 2: note + move to **No Response**.
 
 There is **no** draft preview or regenerate on this path (unlike first-contact). The click is the human confirmation to write and send.
 
@@ -119,7 +116,7 @@ flowchart TD
 - Reuse first-contact tone: Gustavo Ferreira / Allison Hardy, Roger Pereira, Front Porch Creative.
 - Same commercial problem as the introduction. Standalone emails (do not require reading the previous message).
 - New unique subject each time (not `Re:`). One emoji in the subject; none in the body.
-- Value drip: each follow-up uses a **new** insight and quick win. The agent receives previously sent copy (opportunity notes) so it does not repeat.
+- Value drip: each follow-up uses a **new** insight and quick win. The copywriter receives the introduction `contact_example` as `previous_emails` (opportunity notes stay in the dossier).
 - CTA for FU1 and FU2: reply with 3 dates and times for a 1-hour online discovery meeting.
 - FU2 also states clearly that this is the **last** email.
 

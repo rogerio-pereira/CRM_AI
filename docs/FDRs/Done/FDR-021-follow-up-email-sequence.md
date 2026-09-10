@@ -30,7 +30,7 @@ Same voice as the first-contact prompt (Gustavo Ferreira / Allison Hardy; Roger 
 | Follow-up 1 | **New** insight + quick win, same problem | Same CTA |
 | Follow-up 2 | **New** insight + quick win, and state clearly this is the **last** email | Same CTA, last-email tone |
 
-The copywriter receives previously sent subject/body (from opportunity notes) so it does not repeat an insight or quick win.
+The copywriter receives the introduction `contact_example` as `previous_emails`, plus existing opportunity notes, so it does not repeat an insight or quick win.
 
 Prompt: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 
