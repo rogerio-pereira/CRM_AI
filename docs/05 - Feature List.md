@@ -38,7 +38,7 @@
 | 18 | [18 Commercial service catalog](#f18-commercial-service-catalog) | [FDR-018](FDRs/ToDo/FDR-018-commercial-service-catalog.md) |
 | 19 | [19 Opportunity notes](#f19-opportunity-notes) | [FDR-019](FDRs/Done/FDR-019-opportunity-notes.md) |
 | 20 | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery) | [FDR-020](FDRs/ToDo/FDR-020-proposal-artifacts-and-delivery.md) |
-| 21 | [21 Follow-up email sequence](#f21-follow-up-email-sequence) | [FDR-021](FDRs/ToDo/FDR-021-follow-up-email-sequence.md) |
+| 21 | [21 Follow-up email sequence](#f21-follow-up-email-sequence) | [FDR-021](FDRs/Done/FDR-021-follow-up-email-sequence.md) |
 
 ---
 
@@ -575,7 +575,7 @@ At most **three** features per wave. Order respects dependencies (no feature app
 | **6** | Pending | [13 Proposal assistance](#f13-proposal-assistance) |
 | **7** | Pending | [20 Proposal artifacts and delivery](#f20-proposal-artifacts-and-delivery), [14 Pipeline stage-based automation](#f14-pipeline-stage-automation) |
 | **8** | Pending | [15 Slack notifications](#f15-slack-notifications), [16 Google Calendar integration](#f16-google-calendar) |
-| **9** | Pending | [21 Follow-up email sequence](#f21-follow-up-email-sequence) |
+| **9** | Done | [21 Follow-up email sequence](#f21-follow-up-email-sequence) |
 
 ---
 

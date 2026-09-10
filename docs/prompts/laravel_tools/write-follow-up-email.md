@@ -4,7 +4,7 @@
 **Status:** Approved for follow-up email sequence (FDR-021)
 **Owner:** Product owner
 **Used by:** Follow-up email copywriter agent
-**Related:** `docs/prompts/laravel_tools/write-first-contact-email.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`, `docs/ADRs/ADR-021-follow-up-email-sequence.md`, `docs/FDRs/ToDo/FDR-021-follow-up-email-sequence.md`
+**Related:** `docs/prompts/laravel_tools/write-first-contact-email.md`, `docs/prompts/references/cold-outreach-email-guidelines.md`, `docs/ADRs/ADR-021-follow-up-email-sequence.md`, `docs/FDRs/Done/FDR-021-follow-up-email-sequence.md`
 
 ## Purpose
 

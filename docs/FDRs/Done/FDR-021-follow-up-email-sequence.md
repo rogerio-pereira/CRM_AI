@@ -1,7 +1,7 @@
 # FDR-021: Follow-up email sequence
 
 **Feature:** 21  
-**Status:** Approved  
+**Status:** Implemented  
 **Reference:** [21 Follow-up email sequence](../../05%20-%20Feature%20List.md#f21-follow-up-email-sequence), [06 Follow-up management](../../05%20-%20Feature%20List.md#f06-follow-up-management), [05 Opportunity management and Kanban pipeline](../../05%20-%20Feature%20List.md#f05-opportunity-kanban-pipeline), [19 Opportunity notes](../../05%20-%20Feature%20List.md#f19-opportunity-notes), [ADR-021](../../ADRs/ADR-021-follow-up-email-sequence.md), [ADR-005](../../ADRs/ADR-005-fixed-sales-pipeline.md), [ADR-019](../../ADRs/ADR-019-human-controlled-proposal-delivery.md)
 
 ---
@@ -118,16 +118,16 @@ flowchart TD
 
 ## Acceptance criteria
 
-- [ ] `follow_ups.sequence_step` nullable 1–2; manual follow-ups remain null.
-- [ ] Introduction send creates `sequence_step = 1` reminder (+3 days 09:00).
-- [ ] Follow-ups index **Send follow-up** only for pending sequence rows whose opportunity is Contact Sent (`data-test` stable).
-- [ ] Click dispatches a job: copywriter → opportunity note with subject/body → SMTP → complete reminder.
-- [ ] FU1 dispatches generalized `ContactWithFollowUp` and creates the `sequence_step = 2` reminder.
-- [ ] FU2 does not dispatch that event; notes the send; moves the opportunity to **No Response**.
-- [ ] No Response is terminal, ordered after Lost and before Disqualified, `OpportunityStatus::Lost`, color token `neutral`.
-- [ ] No due-date auto-send. No bulk-delete of reminders on stage change.
-- [ ] Follow-up prompt documents the storytelling table (new insight per step; FU2 last-email; same CTA).
-- [ ] Feature + Pest Browser coverage for the flows above.
+- [x] `follow_ups.sequence_step` nullable 1–2; manual follow-ups remain null.
+- [x] Introduction send creates `sequence_step = 1` reminder (+3 days 09:00).
+- [x] Follow-ups index **Send follow-up** only for pending sequence rows whose opportunity is Contact Sent (`data-test` stable).
+- [x] Click dispatches a job: copywriter → opportunity note with subject/body → SMTP → complete reminder.
+- [x] FU1 dispatches generalized `ContactWithFollowUp` and creates the `sequence_step = 2` reminder.
+- [x] FU2 does not dispatch that event; notes the send; moves the opportunity to **No Response**.
+- [x] No Response is terminal, ordered after Lost and before Disqualified, `OpportunityStatus::Lost`, color token `neutral`.
+- [x] No due-date auto-send. No bulk-delete of reminders on stage change.
+- [x] Follow-up prompt documents the storytelling table (new insight per step; FU2 last-email; same CTA).
+- [x] Feature + Pest Browser coverage for the flows above.
 
 ---
 

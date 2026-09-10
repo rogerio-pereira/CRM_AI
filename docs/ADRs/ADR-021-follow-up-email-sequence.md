@@ -148,7 +148,7 @@ Prompt asset: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 ## References
 
 - [21 Follow-up email sequence](../05%20-%20Feature%20List.md#f21-follow-up-email-sequence)
-- [FDR-021](../FDRs/ToDo/FDR-021-follow-up-email-sequence.md)
+- [FDR-021](../FDRs/Done/FDR-021-follow-up-email-sequence.md)
 - [ADR-005 Fixed sales pipeline](ADR-005-fixed-sales-pipeline.md)
 - [ADR-019 Human-controlled proposal delivery](ADR-019-human-controlled-proposal-delivery.md)
 - [ADR-017 First-contact email job](ADR-017-wave-4-ai-qualification-schema.md)
