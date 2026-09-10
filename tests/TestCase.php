@@ -5,6 +5,7 @@ namespace Tests;
 use App\Ai\Discovery\ProspectingDiscoveryAgent;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Fortify\Features;
+use Tests\Support\FollowUpEmailFake;
 use Tests\Support\QualificationFake;
 use Tests\Support\RecommendationFake;
 
@@ -17,6 +18,7 @@ abstract class TestCase extends BaseTestCase
         QualificationFake::fakeSuccessful();
         RecommendationFake::fakeSuccessful();
         QualificationFake::fakeCopywriter();
+        FollowUpEmailFake::fake();
         ProspectingDiscoveryAgent::fake([
             [
                 'leads' => [],

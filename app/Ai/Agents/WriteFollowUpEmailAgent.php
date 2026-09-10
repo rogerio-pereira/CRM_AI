@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Ai\Agents;
+
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\File;
+use Laravel\Ai\Attributes\MaxSteps;
+use Laravel\Ai\Attributes\Timeout;
+use Laravel\Ai\Contracts\Agent;
+use Laravel\Ai\Contracts\HasStructuredOutput;
+use Laravel\Ai\Contracts\HasTools;
+use Laravel\Ai\Promptable;
+use Laravel\Ai\Providers\Tools\WebFetch;
+use RuntimeException;
+
+#[MaxSteps(4)]
+#[Timeout(90)]
+class WriteFollowUpEmailAgent implements Agent, HasStructuredOutput, HasTools
+{
+    use Promptable;
+
+    private const APPROVED_PROMPT_PATH = 'docs/prompts/laravel_tools/write-follow-up-email.md';
+
+    public function instructions(): string
+    {
+        $path = base_path(self::APPROVED_PROMPT_PATH);
+
+        if (! File::exists($path)) {
+            throw new RuntimeException('Follow-up email prompt file not found: '.$path);
+        }
+
+        $contents = File::get($path);
+        $prompt = trim((string) $contents);
+
+        if ($prompt === '') {
+            throw new RuntimeException('Follow-up email prompt file is empty: '.$path);
+        }
+
+        return $prompt;
+    }
+
+    /**
+     * @return iterable<int, WebFetch>
+     */
+    public function tools(): iterable
+    {
+        $webFetch = new WebFetch;
+
+        return [
+                $webFetch,
+            ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function schema(JsonSchema $schema): array
+    {
+        return [
+                'channel' => $schema->string()
+                                    ->required(),
+                'subject' => $schema->string()
+                                    ->required(),
+                'body' => $schema->string()
+                                ->required(),
+            ];
+    }
+}

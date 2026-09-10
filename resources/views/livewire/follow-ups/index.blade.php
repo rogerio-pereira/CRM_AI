@@ -94,32 +94,45 @@
                             </span>
                         </td>
                         <td class="px-4 text-end">
-                            <flux:dropdown position="bottom" align="end">
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="ellipsis-horizontal"
-                                    data-test="follow-ups-actions-{{ $followUp->id }}"
-                                />
-
-                                <flux:menu>
-                                    <flux:menu.item
-                                        wire:click="openEditModal({{ $followUp->id }})"
-                                        data-test="follow-ups-edit-{{ $followUp->id }}"
+                            <div class="inline-flex items-center justify-end gap-2">
+                                @if ($followUp->canSendSequenceEmail())
+                                    <flux:button
+                                        size="sm"
+                                        variant="primary"
+                                        wire:click="sendFollowUpEmail({{ $followUp->id }})"
+                                        data-test="follow-ups-send-email-{{ $followUp->id }}"
                                     >
-                                        {{ __('Edit') }}
-                                    </flux:menu.item>
+                                        {{ __('Send follow-up') }}
+                                    </flux:button>
+                                @endif
 
-                                    @if ($followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending)
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="ellipsis-horizontal"
+                                        data-test="follow-ups-actions-{{ $followUp->id }}"
+                                    />
+
+                                    <flux:menu>
                                         <flux:menu.item
-                                            wire:click="markComplete({{ $followUp->id }})"
-                                            data-test="follow-ups-complete-{{ $followUp->id }}"
+                                            wire:click="openEditModal({{ $followUp->id }})"
+                                            data-test="follow-ups-edit-{{ $followUp->id }}"
                                         >
-                                            {{ __('Mark complete') }}
+                                            {{ __('Edit') }}
                                         </flux:menu.item>
-                                    @endif
-                                </flux:menu>
-                            </flux:dropdown>
+
+                                        @if ($followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending)
+                                            <flux:menu.item
+                                                wire:click="markComplete({{ $followUp->id }})"
+                                                data-test="follow-ups-complete-{{ $followUp->id }}"
+                                            >
+                                                {{ __('Mark complete') }}
+                                            </flux:menu.item>
+                                        @endif
+                                    </flux:menu>
+                                </flux:dropdown>
+                            </div>
                         </td>
                     </tr>
                 @empty

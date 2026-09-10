@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\AgentType;
 use App\Jobs\RunFirstContactEmailAgentJob;
+use App\Jobs\RunFollowUpEmailAgentJob;
 use App\Jobs\RunProposalAssistantAgentJob;
 use App\Jobs\RunProspectingAgentJob;
 use App\Jobs\RunQualificationAgentJob;
@@ -47,6 +48,7 @@ class AiOrchestrationService
             AgentType::Qualification->value => RunQualificationAgentJob::class,
             AgentType::Recommendation->value => RunRecommendationAgentJob::class,
             AgentType::FirstContactEmail->value => RunFirstContactEmailAgentJob::class,
+            AgentType::FollowUpEmail->value => RunFollowUpEmailAgentJob::class,
             AgentType::ProposalAssistant->value => RunProposalAssistantAgentJob::class,
         ];
 

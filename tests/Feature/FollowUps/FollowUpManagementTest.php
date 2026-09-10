@@ -4,8 +4,11 @@ namespace Tests\Feature\FollowUps;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
+use App\Enums\FollowUpSequenceStep;
+use App\Enums\PipelineStage;
 use App\Events\FollowUpCreated;
 use App\Events\FollowUpUpdated;
+use App\Jobs\RunFollowUpEmailAgentJob;
 use App\Livewire\FollowUps\Index;
 use App\Models\Client;
 use App\Models\FollowUp;
@@ -15,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -60,6 +64,7 @@ class FollowUpManagementTest extends TestCase
             'priority' => FollowUpPriority::High->value,
             'reminder_status' => FollowUpReminderStatus::Pending->value,
             'notes' => 'Call back tomorrow',
+            'sequence_step' => null,
         ]);
 
         Event::assertDispatched(FollowUpCreated::class);
@@ -420,5 +425,100 @@ class FollowUpManagementTest extends TestCase
         $lowercaseSql = strtolower($sql);
 
         $this->assertStringContainsString('limit', $lowercaseSql);
+    }
+
+    public function test_send_follow_up_button_is_visible_only_for_pending_sequence_on_contact_sent(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $contactSent = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::ContactSent,
+                            ]);
+        $meetingScheduled = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::MeetingScheduled,
+                            ]);
+        $sequenceFollowUp = FollowUp::factory()
+                                ->for($contactSent->client)
+                                ->sequenceStep(FollowUpSequenceStep::First)
+                                ->create([
+                                    'opportunity_id' => $contactSent->id,
+                                ]);
+        $manualFollowUp = FollowUp::factory()
+                                ->for($contactSent->client)
+                                ->create([
+                                    'opportunity_id' => $contactSent->id,
+                                ]);
+        $wrongStageFollowUp = FollowUp::factory()
+                                ->for($meetingScheduled->client)
+                                ->sequenceStep(FollowUpSequenceStep::Second)
+                                ->create([
+                                    'opportunity_id' => $meetingScheduled->id,
+                                ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-test="follow-ups-send-email-'.$sequenceFollowUp->id.'"')
+            ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$manualFollowUp->id.'"')
+            ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$wrongStageFollowUp->id.'"')
+            ->assertSee(__('Send follow-up'));
+    }
+
+    public function test_send_follow_up_email_queues_the_copywriter_job(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->create([
+                                'stage' => PipelineStage::ContactSent,
+                            ]);
+        $followUp = FollowUp::factory()
+                        ->for($opportunity->client)
+                        ->sequenceStep(FollowUpSequenceStep::First)
+                        ->create([
+                            'opportunity_id' => $opportunity->id,
+                        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('sendFollowUpEmail', $followUp->id)
+            ->assertHasNoErrors();
+
+        Queue::assertPushed(RunFollowUpEmailAgentJob::class, function (RunFollowUpEmailAgentJob $job) use ($followUp, $user): bool {
+            $sameFollowUp = $job->payload['follow_up_id'] === $followUp->id;
+            $sameUser = $job->payload['user_id'] === $user->id;
+
+            if (! $sameFollowUp) {
+                return false;
+            }
+
+            return $sameUser;
+        });
+        $freshFollowUp = $followUp->fresh();
+
+        $this->assertNotNull($freshFollowUp);
+        $this->assertSame(FollowUpReminderStatus::Pending, $freshFollowUp->reminder_status);
+    }
+
+    public function test_send_follow_up_email_is_rejected_when_the_row_cannot_be_sent(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()
+                    ->create();
+        $followUp = FollowUp::factory()
+                        ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('sendFollowUpEmail', $followUp->id);
+
+        Queue::assertNothingPushed();
     }
 }

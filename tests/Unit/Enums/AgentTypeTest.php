@@ -24,6 +24,7 @@ class AgentTypeTest extends TestCase
             'qualification' => [AgentType::Qualification, 'Qualification'],
             'recommendation' => [AgentType::Recommendation, 'Recommendation'],
             'first contact email' => [AgentType::FirstContactEmail, 'First contact email'],
+            'follow-up email' => [AgentType::FollowUpEmail, 'Follow-up email'],
             'proposal assistant' => [AgentType::ProposalAssistant, 'Proposal assistant'],
         ];
     }

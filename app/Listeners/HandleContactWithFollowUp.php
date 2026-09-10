@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Enums\FollowUpPriority;
+use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
 use App\Models\Opportunity;
@@ -25,10 +26,26 @@ class HandleContactWithFollowUp
     {
         $opportunity = $event->opportunity;
         $userId = $event->userId;
+        $sentStep = $event->sentStep;
 
-        $this->moveToContactSent($opportunity, $userId);
-        $this->createFollowUp($opportunity);
-        $this->recordFirstEmailNote($opportunity, $userId);
+        if ($sentStep === ContactWithFollowUp::INTRODUCTION_STEP) {
+            $this->moveToContactSent($opportunity, $userId);
+            $this->recordFirstEmailNote($opportunity, $userId);
+            $this->createSequenceReminder(
+                $opportunity,
+                FollowUpSequenceStep::First,
+            );
+
+            return;
+        }
+
+        if ($sentStep === ContactWithFollowUp::FOLLOW_UP_ONE_STEP) {
+            $this->recordFollowUpOneSentNote($opportunity, $userId);
+            $this->createSequenceReminder(
+                $opportunity,
+                FollowUpSequenceStep::Second,
+            );
+        }
     }
 
     private function moveToContactSent(Opportunity $opportunity, ?int $userId): void
@@ -43,27 +60,50 @@ class HandleContactWithFollowUp
             );
     }
 
-    private function createFollowUp(Opportunity $opportunity): void
-    {
+    private function createSequenceReminder(
+        Opportunity $opportunity,
+        FollowUpSequenceStep $sequenceStep,
+    ): void {
         $dueAt = Carbon::now()
                     ->addDays(3)
                     ->setTime(9, 0);
         $priority = FollowUpPriority::Medium;
-        $notes = __('Follow up after first-contact email.');
+        $notes = $this->reminderNotes($sequenceStep);
 
         $this->followUps
             ->create([
                 'client_id' => $opportunity->client_id,
                 'opportunity_id' => $opportunity->id,
+                'sequence_step' => $sequenceStep,
                 'due_at' => $dueAt,
                 'priority' => $priority,
                 'notes' => $notes,
             ]);
     }
 
+    private function reminderNotes(FollowUpSequenceStep $sequenceStep): string
+    {
+        if ($sequenceStep === FollowUpSequenceStep::First) {
+            return __('Follow up after first-contact email.');
+        }
+
+        return __('Send the last follow-up email.');
+    }
+
     private function recordFirstEmailNote(Opportunity $opportunity, ?int $userId): void
     {
         $noteBody = __('First Email sent');
+        $noteAttributes = [
+            'opportunity_id' => $opportunity->id,
+            'user_id' => $userId,
+            'body' => $noteBody,
+        ];
+        OpportunityNote::create($noteAttributes);
+    }
+
+    private function recordFollowUpOneSentNote(Opportunity $opportunity, ?int $userId): void
+    {
+        $noteBody = __('Follow-up 1 sent');
         $noteAttributes = [
             'opportunity_id' => $opportunity->id,
             'user_id' => $userId,
