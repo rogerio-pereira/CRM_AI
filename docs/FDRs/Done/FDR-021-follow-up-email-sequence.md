@@ -44,12 +44,12 @@ Prompt: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 1. Keep using existing `follow_ups` reminders. Do not store FU1 vs FU2 on the row.
 2. Add pipeline stage `No Response` (`no_response`): terminal, Kanban order after Lost and before Disqualified, color token `neutral`, sets `OpportunityStatus::Lost`.
 
-### Introduction send (listener)
+### Introduction and follow-up 1 (listener)
 
-`HandleContactWithFollowUp` after the introduction:
+`HandleContactWithFollowUp`:
 
-- Keep move to Contact Sent and the “first email sent” note.
-- Create a normal reminder (+3 days at 09:00).
+- **Introduction:** move to Contact Sent, “first email sent” note, create a reminder (+3 days at 09:00).
+- **Follow-up 1** (already Contact Sent): “Follow-up 1 sent” note, create the last reminder.
 
 ### Follow-ups page
 
@@ -69,7 +69,7 @@ If the opportunity has left Contact Sent, hide the button; do not delete the rem
 3. Save the sent email (subject and body) as an opportunity note.
 4. Send SMTP to the client contact email (same stack as first-contact outreach).
 5. Mark the follow-up reminder completed.
-6. **First follow-up:** note “Follow-up 1 sent” → create the next reminder (+3 days at 09:00).
+6. **First follow-up:** dispatch `ContactWithFollowUp` → note “Follow-up 1 sent” → create the next reminder (+3 days at 09:00).
 7. **Second follow-up:** short note that follow-up 2 was sent → `moveToStage(NoResponse)`. Do not create another reminder.
 
 If the job runs and the opportunity is not in Contact Sent: do not send, do not change stage, leave the reminder unchanged.
@@ -82,6 +82,7 @@ flowchart TD
   fu1[Reminder]
   click1[Send follow-up]
   job1[Job write note SMTP]
+  ev1[ContactWithFollowUp]
   fu2[Next reminder]
   click2[Send follow-up]
   job2[Job write note SMTP]
@@ -90,7 +91,8 @@ flowchart TD
   intro --> fu1
   fu1 --> click1
   click1 --> job1
-  job1 --> fu2
+  job1 --> ev1
+  ev1 --> fu2
   fu2 --> click2
   click2 --> job2
   job2 --> nr
@@ -117,7 +119,7 @@ flowchart TD
 - [x] Introduction send creates a normal reminder (+3 days 09:00).
 - [x] Follow-ups index **Send follow-up** for pending rows whose opportunity is Contact Sent (`data-test` stable).
 - [x] Click dispatches a job: copywriter → opportunity note with subject/body → SMTP → complete reminder.
-- [x] FU1 writes **Follow-up 1 sent** and creates the next reminder.
+- [x] FU1 dispatches `ContactWithFollowUp`, which writes **Follow-up 1 sent** and creates the next reminder.
 - [x] FU2 does not dispatch `ContactWithFollowUp`; notes the send; moves the opportunity to **No Response**.
 - [x] No Response is terminal, ordered after Lost and before Disqualified, `OpportunityStatus::Lost`, color token `neutral`.
 - [x] No due-date auto-send. No bulk-delete of reminders on stage change.
