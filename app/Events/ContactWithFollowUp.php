@@ -17,6 +17,5 @@ class ContactWithFollowUp
     public function __construct(
         public Opportunity $opportunity,
         public ?int $userId,
-        public int $sentStep = 0,
     ) {}
 }

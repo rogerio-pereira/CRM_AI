@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Ai\Agents\WriteFollowUpEmailAgent;
+use App\Enums\FollowUpPriority;
 use App\Enums\PipelineStage;
-use App\Events\ContactWithFollowUp;
 use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
 use App\Models\FollowUp;
@@ -12,6 +12,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityNote;
 use App\Services\FollowUpService;
 use App\Services\OpportunityService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -50,10 +51,14 @@ class SendFollowUpEmailJob implements ShouldQueue
             return;
         }
 
-        $sequenceStep = $followUp->sequence_step;
+        $firstFollowUpSentNote = __('Follow-up 1 sent');
+        $firstFollowUpAlreadySent = OpportunityNote::where('opportunity_id', $opportunity->id)
+                                        ->where('body', $firstFollowUpSentNote)
+                                        ->exists();
+        $sequenceStep = 1;
 
-        if ($sequenceStep === null) {
-            return;
+        if ($firstFollowUpAlreadySent) {
+            $sequenceStep = 2;
         }
 
         $client = $opportunity->client;
@@ -86,7 +91,23 @@ class SendFollowUpEmailJob implements ShouldQueue
         $followUps->markComplete($followUp);
 
         if ($sequenceStep === 1) {
-            ContactWithFollowUp::dispatch($opportunity, $this->userId, 1);
+            OpportunityNote::create([
+                'opportunity_id' => $opportunity->id,
+                'user_id' => $this->userId,
+                'body' => $firstFollowUpSentNote,
+            ]);
+
+            $dueAt = Carbon::now()
+                        ->addDays(3)
+                        ->setTime(9, 0);
+
+            $followUps->create([
+                'client_id' => $opportunity->client_id,
+                'opportunity_id' => $opportunity->id,
+                'due_at' => $dueAt,
+                'priority' => FollowUpPriority::Medium,
+                'notes' => __('Send the last follow-up email.'),
+            ]);
 
             return;
         }
