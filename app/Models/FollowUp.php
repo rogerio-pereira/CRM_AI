@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use Carbon\Carbon;
 use Database\Factories\FollowUpFactory;
@@ -40,7 +39,7 @@ class FollowUp extends Model
     {
         return [
             'due_at' => 'datetime',
-            'sequence_step' => FollowUpSequenceStep::class,
+            'sequence_step' => 'integer',
             'priority' => FollowUpPriority::class,
             'reminder_status' => FollowUpReminderStatus::class,
             'completed_at' => 'datetime',

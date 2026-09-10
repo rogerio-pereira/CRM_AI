@@ -3,7 +3,6 @@
 namespace Tests\Unit\Models;
 
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -53,9 +52,9 @@ class FollowUpTest extends TestCase
                             ]);
         $sendable = FollowUp::factory()
                         ->for($contactSent->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $contactSent->id,
+                            'sequence_step' => 1,
                         ]);
         $manual = FollowUp::factory()
                         ->for($contactSent->client)
@@ -64,16 +63,16 @@ class FollowUpTest extends TestCase
                         ]);
         $wrongStage = FollowUp::factory()
                         ->for($meetingScheduled->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->create([
                             'opportunity_id' => $meetingScheduled->id,
+                            'sequence_step' => 1,
                         ]);
         $completed = FollowUp::factory()
                         ->for($contactSent->client)
-                        ->sequenceStep(FollowUpSequenceStep::First)
                         ->completed()
                         ->create([
                             'opportunity_id' => $contactSent->id,
+                            'sequence_step' => 1,
                         ]);
 
         $this->assertTrue($sendable->canSendSequenceEmail());

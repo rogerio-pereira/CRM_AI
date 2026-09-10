@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -56,15 +55,6 @@ class FollowUpFactory extends Factory
             return [
                 'reminder_status' => FollowUpReminderStatus::Completed,
                 'completed_at' => $completedAt,
-            ];
-        });
-    }
-
-    public function sequenceStep(FollowUpSequenceStep $step): static
-    {
-        return $this->state(function (array $attributes) use ($step): array {
-            return [
-                'sequence_step' => $step,
             ];
         });
     }
