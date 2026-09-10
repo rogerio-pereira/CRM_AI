@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\PipelineStage;
 use Carbon\Carbon;
 use Database\Factories\FollowUpFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -58,21 +57,6 @@ class FollowUp extends Model
     public function opportunity(): BelongsTo
     {
         return $this->belongsTo(Opportunity::class);
-    }
-
-    public function canSendSequenceEmail(): bool
-    {
-        if ($this->reminder_status !== FollowUpReminderStatus::Pending) {
-            return false;
-        }
-
-        $opportunity = $this->opportunity;
-
-        if ($opportunity === null) {
-            return false;
-        }
-
-        return $opportunity->stage === PipelineStage::ContactSent;
     }
 
     public function isOverdue(): bool

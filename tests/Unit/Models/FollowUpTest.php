@@ -3,9 +3,7 @@
 namespace Tests\Unit\Models;
 
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\PipelineStage;
 use App\Models\FollowUp;
-use App\Models\Opportunity;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,40 +36,5 @@ class FollowUpTest extends TestCase
             FollowUpReminderStatus::Pending->badgeClasses(),
             $followUp->statusBadgeClasses(),
         );
-    }
-
-    public function test_can_send_sequence_email_only_for_pending_rows_on_contact_sent(): void
-    {
-        $contactSent = Opportunity::factory()
-                            ->create([
-                                'stage' => PipelineStage::ContactSent,
-                            ]);
-        $meetingScheduled = Opportunity::factory()
-                            ->create([
-                                'stage' => PipelineStage::MeetingScheduled,
-                            ]);
-        $sendable = FollowUp::factory()
-                        ->for($contactSent->client)
-                        ->create([
-                            'opportunity_id' => $contactSent->id,
-                        ]);
-        $withoutOpportunity = FollowUp::factory()
-                                ->create();
-        $wrongStage = FollowUp::factory()
-                        ->for($meetingScheduled->client)
-                        ->create([
-                            'opportunity_id' => $meetingScheduled->id,
-                        ]);
-        $completed = FollowUp::factory()
-                        ->for($contactSent->client)
-                        ->completed()
-                        ->create([
-                            'opportunity_id' => $contactSent->id,
-                        ]);
-
-        $this->assertTrue($sendable->canSendSequenceEmail());
-        $this->assertFalse($withoutOpportunity->canSendSequenceEmail());
-        $this->assertFalse($wrongStage->canSendSequenceEmail());
-        $this->assertFalse($completed->canSendSequenceEmail());
     }
 }
