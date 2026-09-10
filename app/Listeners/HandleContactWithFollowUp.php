@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Enums\FollowUpPriority;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
 use App\Models\Opportunity;
@@ -26,49 +25,50 @@ class HandleContactWithFollowUp
     {
         $opportunity = $event->opportunity;
         $userId = $event->userId;
-        $sentStep = $event->sentStep;
 
-        if ($sentStep === ContactWithFollowUp::INTRODUCTION_STEP) {
-            $this->moveToContactSent($opportunity, $userId);
-            $this->recordFirstEmailNote($opportunity, $userId);
-            $this->createSequenceReminder(
+        if ($event->sentStep === 0) {
+            $this->opportunities
+                ->moveToStage(
+                    $opportunity,
+                    PipelineStage::ContactSent,
+                    $userId,
+                );
+            OpportunityNote::create([
+                'opportunity_id' => $opportunity->id,
+                'user_id' => $userId,
+                'body' => __('First Email sent'),
+            ]);
+            $this->createReminder(
                 $opportunity,
-                FollowUpSequenceStep::First,
+                1,
+                __('Follow up after first-contact email.'),
             );
 
             return;
         }
 
-        if ($sentStep === ContactWithFollowUp::FOLLOW_UP_ONE_STEP) {
-            $this->recordFollowUpOneSentNote($opportunity, $userId);
-            $this->createSequenceReminder(
+        if ($event->sentStep === 1) {
+            OpportunityNote::create([
+                'opportunity_id' => $opportunity->id,
+                'user_id' => $userId,
+                'body' => __('Follow-up 1 sent'),
+            ]);
+            $this->createReminder(
                 $opportunity,
-                FollowUpSequenceStep::Second,
+                2,
+                __('Send the last follow-up email.'),
             );
         }
     }
 
-    private function moveToContactSent(Opportunity $opportunity, ?int $userId): void
-    {
-        $targetStage = PipelineStage::ContactSent;
-
-        $this->opportunities
-            ->moveToStage(
-                $opportunity,
-                $targetStage,
-                $userId,
-            );
-    }
-
-    private function createSequenceReminder(
+    private function createReminder(
         Opportunity $opportunity,
-        FollowUpSequenceStep $sequenceStep,
+        int $sequenceStep,
+        string $notes,
     ): void {
         $dueAt = Carbon::now()
                     ->addDays(3)
                     ->setTime(9, 0);
-        $priority = FollowUpPriority::Medium;
-        $notes = $this->reminderNotes($sequenceStep);
 
         $this->followUps
             ->create([
@@ -76,39 +76,8 @@ class HandleContactWithFollowUp
                 'opportunity_id' => $opportunity->id,
                 'sequence_step' => $sequenceStep,
                 'due_at' => $dueAt,
-                'priority' => $priority,
+                'priority' => FollowUpPriority::Medium,
                 'notes' => $notes,
             ]);
-    }
-
-    private function reminderNotes(FollowUpSequenceStep $sequenceStep): string
-    {
-        if ($sequenceStep === FollowUpSequenceStep::First) {
-            return __('Follow up after first-contact email.');
-        }
-
-        return __('Send the last follow-up email.');
-    }
-
-    private function recordFirstEmailNote(Opportunity $opportunity, ?int $userId): void
-    {
-        $noteBody = __('First Email sent');
-        $noteAttributes = [
-            'opportunity_id' => $opportunity->id,
-            'user_id' => $userId,
-            'body' => $noteBody,
-        ];
-        OpportunityNote::create($noteAttributes);
-    }
-
-    private function recordFollowUpOneSentNote(Opportunity $opportunity, ?int $userId): void
-    {
-        $noteBody = __('Follow-up 1 sent');
-        $noteAttributes = [
-            'opportunity_id' => $opportunity->id,
-            'user_id' => $userId,
-            'body' => $noteBody,
-        ];
-        OpportunityNote::create($noteAttributes);
     }
 }

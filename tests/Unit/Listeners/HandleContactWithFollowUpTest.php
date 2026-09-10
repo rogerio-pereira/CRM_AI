@@ -4,7 +4,6 @@ namespace Tests\Unit\Listeners;
 
 use App\Enums\FollowUpPriority;
 use App\Enums\FollowUpReminderStatus;
-use App\Enums\FollowUpSequenceStep;
 use App\Enums\PipelineStage;
 use App\Events\ContactWithFollowUp;
 use App\Listeners\HandleContactWithFollowUp;
@@ -54,7 +53,7 @@ class HandleContactWithFollowUpTest extends TestCase
         $this->assertSame($opportunity->client_id, $followUp->client_id);
         $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
         $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
-        $this->assertSame(FollowUpSequenceStep::First, $followUp->sequence_step);
+        $this->assertSame(1, $followUp->sequence_step);
         $this->assertSame('Follow up after first-contact email.', $followUp->notes);
         $this->assertTrue($expectedDueAt->equalTo($followUp->due_at));
 
@@ -79,7 +78,7 @@ class HandleContactWithFollowUpTest extends TestCase
         $event = new ContactWithFollowUp(
             $opportunity,
             $user->id,
-            ContactWithFollowUp::FOLLOW_UP_ONE_STEP,
+            1,
         );
         $listener = app(HandleContactWithFollowUp::class);
 
@@ -94,7 +93,7 @@ class HandleContactWithFollowUpTest extends TestCase
                                 'stage' => PipelineStage::ContactSent->value,
         ]);
         $this->assertNotNull($followUp);
-        $this->assertSame(FollowUpSequenceStep::Second, $followUp->sequence_step);
+        $this->assertSame(2, $followUp->sequence_step);
         $this->assertSame(FollowUpPriority::Medium, $followUp->priority);
         $this->assertSame(FollowUpReminderStatus::Pending, $followUp->reminder_status);
         $this->assertSame('Send the last follow-up email.', $followUp->notes);
