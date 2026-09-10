@@ -90,5 +90,11 @@ class OpportunityValidationRulesTest extends TestCase
         ], $rules);
 
         $this->assertFalse($validator->fails());
+
+        $noResponseValidator = Validator::make([
+            'stage' => PipelineStage::NoResponse->value,
+        ], $rules);
+
+        $this->assertFalse($noResponseValidator->fails());
     }
 }

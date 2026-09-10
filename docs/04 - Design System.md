@@ -163,11 +163,15 @@ Use exactly these colors for the sales pipeline.
 | Lead | `neutral` | `#94A3B8` |
 | Qualification | `ai` | `#8B5CF6` |
 | Contact | `accent` | `#0EA5E9` |
+| Contact Sent | `accent` | `#0EA5E9` |
+| Meeting Scheduled | `accent` | `#0EA5E9` |
 | Proposal Generation | `ai` | `#8B5CF6` |
 | Proposal Analysis | `accent` | `#0EA5E9` |
 | Proposal Sent | `neutral` | `#94A3B8` |
 | Won | `success` | `#10B981` |
 | Lost | `danger` | `#EF4444` |
+| No Response | `neutral` | `#94A3B8` |
+| Disqualified | `danger` | `#EF4444` |
 
 ---
 
@@ -507,16 +511,20 @@ Kanban is the primary opportunity pipeline interface.
 
 ## Required Pipeline Stages
 
-Use exactly:
+Use exactly (order per [ADR-021](ADRs/ADR-021-follow-up-email-sequence.md)):
 
 1. Lead
 2. Qualification
 3. Contact
-4. Proposal Generation
-5. Proposal Analysis
-6. Proposal Sent
-7. Won
-8. Lost
+4. Contact Sent
+5. Meeting Scheduled
+6. Proposal Generation
+7. Proposal Analysis
+8. Proposal Sent
+9. Won
+10. Lost
+11. No Response
+12. Disqualified
 
 ## Column Style
 

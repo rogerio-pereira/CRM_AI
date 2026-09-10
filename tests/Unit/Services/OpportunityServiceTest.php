@@ -154,6 +154,31 @@ class OpportunityServiceTest extends TestCase
         Event::assertDispatched(OpportunityStageChanged::class);
     }
 
+    public function test_move_to_stage_sets_lost_status_for_no_response(): void
+    {
+        Event::fake([OpportunityStageChanged::class]);
+
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->service->moveToStage(
+            $opportunity,
+            PipelineStage::NoResponse,
+            $user->id,
+        );
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::NoResponse->value,
+                                'status' => OpportunityStatus::Lost->value,
+        ]);
+
+        Event::assertDispatched(OpportunityStageChanged::class);
+    }
+
     public function test_move_to_stage_keeps_open_status_for_contact_sent(): void
     {
         Event::fake([OpportunityStageChanged::class]);
@@ -225,9 +250,10 @@ class OpportunityServiceTest extends TestCase
         $wonOpportunities = $grouped[PipelineStage::Won->value];
         $qualificationOpportunities = $grouped[PipelineStage::Qualification->value];
 
-        $this->assertCount(11, $grouped);
+        $this->assertCount(12, $grouped);
         $this->assertArrayHasKey(PipelineStage::ContactSent->value, $grouped);
         $this->assertArrayHasKey(PipelineStage::MeetingScheduled->value, $grouped);
+        $this->assertArrayHasKey(PipelineStage::NoResponse->value, $grouped);
         $this->assertArrayHasKey(PipelineStage::Disqualified->value, $grouped);
         $this->assertTrue(
             $leadOpportunities->contains(

@@ -35,8 +35,10 @@ it('displays the kanban board and creates an opportunity', function () {
         ->assertPresent('[data-test="kanban-column-meeting-scheduled"][data-user-action-column="true"]')
         ->assertPresent('[data-test="kanban-column-proposal-analysis"][data-user-action-column="true"]')
         ->assertPresent('[data-test="kanban-column-disqualified"]')
+        ->assertPresent('[data-test="kanban-column-no-response"]')
         ->assertNotPresent('[data-test="kanban-column-lead"][data-user-action-column="true"]')
         ->assertNotPresent('[data-test="kanban-column-disqualified"][data-user-action-column="true"]')
+        ->assertNotPresent('[data-test="kanban-column-no-response"][data-user-action-column="true"]')
         ->click('@opportunities-create-button')
         ->fill('@opportunities-form-title', 'Browser Kanban Deal')
         ->select('@opportunities-form-client', (string) $client->id)
@@ -73,6 +75,29 @@ it('moves an opportunity via the action menu', function () {
 
     expect($opportunity->stage)
         ->toBe(PipelineStage::Qualification);
+});
+
+it('moves an opportunity to no response', function () {
+    $user = User::factory()
+                ->create();
+    $opportunity = Opportunity::factory()
+                        ->create([
+                            'title' => 'No Response Deal',
+                            'stage' => PipelineStage::ContactSent,
+                        ]);
+
+    $this->actingAs($user);
+
+    visit('/opportunities')
+        ->assertPresent('[data-test="kanban-column-no-response"]')
+        ->click('@kanban-card-actions-'.$opportunity->id)
+        ->select('@kanban-card-move-'.$opportunity->id, PipelineStage::NoResponse->value)
+        ->assertPresent('[data-test="kanban-column-no-response"] [data-test="kanban-card-'.$opportunity->id.'"]');
+
+    $opportunity->refresh();
+
+    expect($opportunity->stage)
+        ->toBe(PipelineStage::NoResponse);
 });
 
 it('keeps the kanban horizontal scroll after moving a card', function () {

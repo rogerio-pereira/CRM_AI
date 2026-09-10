@@ -418,6 +418,27 @@ class OpportunityManagementTest extends TestCase
         ]);
     }
 
+    public function test_moving_to_no_response_sets_lost_status(): void
+    {
+        $user = User::factory()
+                    ->create();
+        $opportunity = Opportunity::factory()
+                            ->open()
+                            ->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('moveToStage', $opportunity->id, PipelineStage::NoResponse->value)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('opportunities', [
+                                'id' => $opportunity->id,
+                                'stage' => PipelineStage::NoResponse->value,
+                                'status' => OpportunityStatus::Lost->value,
+        ]);
+    }
+
     public function test_moving_to_contact_sent_keeps_open_status(): void
     {
         $user = User::factory()

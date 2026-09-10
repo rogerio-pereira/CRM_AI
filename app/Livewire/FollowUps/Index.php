@@ -4,6 +4,7 @@ namespace App\Livewire\FollowUps;
 
 use App\Concerns\FollowUpValidationRules;
 use App\Enums\FollowUpPriority;
+use App\Jobs\SendFollowUpEmailJob;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
@@ -165,6 +166,20 @@ class Index extends Component
         $followUp = FollowUp::findOrFail($followUpId);
         $followUpService->markComplete($followUp);
         Toast::show(variant: 'success', text: __('Follow-up completed.'));
+    }
+
+    public function sendFollowUpEmail(int $followUpId, FollowUpService $followUpService): void
+    {
+        $followUp = FollowUp::findOrFail($followUpId);
+        $userId = auth()->id();
+        $followUpService->markComplete($followUp);
+
+        SendFollowUpEmailJob::dispatch($followUp->id, $userId);
+
+        Toast::show(
+            variant: 'success',
+            text: __('Follow-up email queued.'),
+        );
     }
 
     public function render(): View

@@ -1,11 +1,15 @@
 <?php
 
 use App\Enums\FollowUpReminderStatus;
+use App\Enums\PipelineStage;
+use App\Mail\FirstContactOutreachMail;
 use App\Models\Client;
 use App\Models\FollowUp;
 use App\Models\Opportunity;
+use App\Models\OpportunityNote;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 it('displays the follow-ups page and creates a follow-up', function () {
     $user = User::factory()
@@ -79,4 +83,60 @@ it('highlights overdue follow-ups in the table', function () {
 
     visit('/follow-ups')
         ->assertPresent('[data-test="follow-ups-row-'.$followUp->id.'"][data-overdue-row="true"]');
+});
+
+it('sends a sequenced follow-up email from the index', function () {
+    Mail::fake();
+
+    $user = User::factory()
+                ->create();
+    $client = Client::factory()
+                    ->create([
+                        'company_name' => 'Send Follow Up Co',
+                        'contact_email' => 'pat@sendfollowup.test',
+                    ]);
+    $opportunity = Opportunity::factory()
+                        ->for($client)
+                        ->qualificationQualified()
+                        ->withAiInsights()
+                        ->create([
+                            'title' => 'Follow-up Send Deal',
+                            'stage' => PipelineStage::ContactSent,
+                        ]);
+    $followUp = FollowUp::factory()
+                    ->for($client)
+                    ->create([
+                        'opportunity_id' => $opportunity->id,
+                    ]);
+
+    $this->actingAs($user);
+
+    visit('/follow-ups')
+        ->assertPresent('[data-test="follow-ups-send-email-'.$followUp->id.'"]')
+        ->click('@follow-ups-send-email-'.$followUp->id)
+        ->assertSee('Follow-up email queued.');
+
+    $followUp->refresh();
+    $nextFollowUp = FollowUp::where('opportunity_id', $opportunity->id)
+                        ->where('id', '!=', $followUp->id)
+                        ->first();
+    $emailNote = OpportunityNote::where('opportunity_id', $opportunity->id)
+                    ->where('body', 'like', '%🔁 A new way to turn local quotes into booked work%')
+                    ->first();
+
+    expect($followUp->reminder_status)
+        ->toBe(FollowUpReminderStatus::Completed);
+    expect($nextFollowUp)
+        ->not
+        ->toBeNull();
+    expect($emailNote)
+        ->not
+        ->toBeNull();
+
+    Mail::assertSent(FirstContactOutreachMail::class);
+
+    visit('/opportunities')
+        ->click('@kanban-card-open-'.$opportunity->id)
+        ->assertPresent('[data-test="opportunities-detail-notes"]')
+        ->assertSee('🔁 A new way to turn local quotes into booked work');
 });

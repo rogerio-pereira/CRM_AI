@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Accepted (amended 2026-09-10)
+
+The **fixed, not admin-configurable** rule in this ADR still stands. The **ordered stage list** is superseded by [ADR-021](ADR-021-follow-up-email-sequence.md) (Contact Sent, Meeting Scheduled, No Response, Disqualified, plus the original eight).
 
 ## Context
 
@@ -39,6 +41,7 @@ References:
 
 - [HLD §5 Sales Pipeline](../02%20HLD.md#5-sales-pipeline)
 - [Design System §5 Pipeline Stage Colors](../04%20-%20Design%20System.md#5-pipeline-stage-colors)
+- [ADR-021 Follow-up email sequence](ADR-021-follow-up-email-sequence.md) — current ordered stages
 
 ## Consequences
 
@@ -48,3 +51,4 @@ References:
   - Cannot customize stages per team without a future feature.
 - **Neutral:**
   - Stage change events feed [feature 14](../05%20-%20Feature%20List.md#f14-pipeline-stage-automation) automation.
+  - 2026-09-10: current ordered stages and **No Response** live in [ADR-021](ADR-021-follow-up-email-sequence.md).

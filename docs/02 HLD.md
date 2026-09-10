@@ -197,14 +197,20 @@ The initial pipeline is fixed and not dynamically configurable.
 
 ## Pipeline Stages
 
+Fixed order ([ADR-021](ADRs/ADR-021-follow-up-email-sequence.md); not admin-configurable):
+
 1. Lead
 2. Qualification
-3. Contact 
-4. Proposal Generation
-5. Proposal Analysis
-6. Proposal Sent
-7. Won
-8. Lost
+3. Contact
+4. Contact Sent
+5. Meeting Scheduled
+6. Proposal Generation
+7. Proposal Analysis
+8. Proposal Sent
+9. Won
+10. Lost
+11. No Response
+12. Disqualified
 
 ---
 
@@ -222,6 +228,13 @@ The initial pipeline is fixed and not dynamically configurable.
 - Human-driven interaction stage.
 - Conversations happen outside the platform.
 - External AI chat agents may assist communication.
+
+### Contact Sent
+- Entered after the human sends the introduction email.
+- Sequence follow-up reminders are created here; sending those emails stays a human click ([ADR-021](ADRs/ADR-021-follow-up-email-sequence.md)).
+
+### Meeting Scheduled
+- Human-driven; discovery (or equivalent) is on the calendar.
 
 ### Proposal Generation
 - Ensure the opportunity has its single proposal record.
@@ -242,6 +255,12 @@ The initial pipeline is fixed and not dynamically configurable.
 
 ### Lost
 - Opportunity lost.
+
+### No Response
+- Terminal. Entered after the human sends follow-up 2 with no reply. Not a lost negotiation and not a disqualification.
+
+### Disqualified
+- Terminal skip / unfit (including prospecting skips).
 
 ---
 
