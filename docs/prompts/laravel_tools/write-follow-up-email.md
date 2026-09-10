@@ -14,7 +14,9 @@ This is a real send (queued after the click). It is not an internal draft panel.
 
 ## Input
 
-You receive one JSON dossier with `client`, `opportunity`, `ai_insights`, `ai_recommendations` (which may be null), `opportunity_notes`, `sequence_step` (`1` or `2`), and `previous_emails` (subject and body already sent on this opportunity, including the introduction).
+You receive one JSON dossier with `client`, `opportunity`, `ai_insights`, `ai_recommendations` (which may be null), `opportunity_notes`, `sequence_step` (`1` or `2`), and `previous_emails` (the introduction `contact_example`).
+
+`sequence_step` is set by the application. Do not infer it from notes.
 
 Use all of it.
 
