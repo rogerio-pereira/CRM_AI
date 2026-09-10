@@ -24,7 +24,6 @@ class FollowUp extends Model
     protected $fillable = [
         'client_id',
         'opportunity_id',
-        'sequence_step',
         'due_at',
         'priority',
         'notes',
@@ -39,7 +38,6 @@ class FollowUp extends Model
     {
         return [
             'due_at' => 'datetime',
-            'sequence_step' => 'integer',
             'priority' => FollowUpPriority::class,
             'reminder_status' => FollowUpReminderStatus::class,
             'completed_at' => 'datetime',
@@ -65,10 +63,6 @@ class FollowUp extends Model
     public function canSendSequenceEmail(): bool
     {
         if ($this->reminder_status !== FollowUpReminderStatus::Pending) {
-            return false;
-        }
-
-        if ($this->sequence_step === null) {
             return false;
         }
 

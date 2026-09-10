@@ -25,7 +25,6 @@ class FollowUpFactory extends Factory
         return [
             'client_id' => Client::factory(),
             'opportunity_id' => null,
-            'sequence_step' => null,
             'due_at' => fake()->dateTimeBetween('now', '+2 weeks'),
             'priority' => FollowUpPriority::Medium,
             'notes' => fake()->optional()->sentence(),
