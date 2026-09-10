@@ -97,7 +97,7 @@
                             <div class="inline-flex items-center justify-end gap-2">
                                 @if (
                                     $followUp->reminder_status === \App\Enums\FollowUpReminderStatus::Pending
-                                    && $followUp->opportunity?->stage === \App\Enums\PipelineStage::ContactSent
+                                    && $followUp->opportunity_id !== null
                                 )
                                     <flux:button
                                         size="sm"

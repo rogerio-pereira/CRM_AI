@@ -425,7 +425,7 @@ class FollowUpManagementTest extends TestCase
         $this->assertStringContainsString('limit', $lowercaseSql);
     }
 
-    public function test_send_follow_up_button_is_visible_only_for_pending_rows_on_contact_sent(): void
+    public function test_send_follow_up_button_is_visible_for_pending_rows_with_an_opportunity(): void
     {
         $user = User::factory()
                     ->create();
@@ -442,17 +442,20 @@ class FollowUpManagementTest extends TestCase
                                 ->create([
                                     'opportunity_id' => $contactSent->id,
                                 ]);
-        $wrongStageFollowUp = FollowUp::factory()
+        $laterStageFollowUp = FollowUp::factory()
                                 ->for($meetingScheduled->client)
                                 ->create([
                                     'opportunity_id' => $meetingScheduled->id,
                                 ]);
+        $withoutOpportunity = FollowUp::factory()
+                                ->create();
 
         $this->actingAs($user);
 
         Livewire::test(Index::class)
             ->assertSeeHtml('data-test="follow-ups-send-email-'.$sendableFollowUp->id.'"')
-            ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$wrongStageFollowUp->id.'"')
+            ->assertSeeHtml('data-test="follow-ups-send-email-'.$laterStageFollowUp->id.'"')
+            ->assertDontSeeHtml('data-test="follow-ups-send-email-'.$withoutOpportunity->id.'"')
             ->assertSee(__('Send follow-up'));
     }
 
@@ -496,7 +499,7 @@ class FollowUpManagementTest extends TestCase
         $this->assertNotNull($freshFollowUp->completed_at);
     }
 
-    public function test_send_follow_up_email_is_rejected_when_the_row_cannot_be_sent(): void
+    public function test_send_follow_up_email_queues_even_without_an_opportunity(): void
     {
         Queue::fake();
 
@@ -510,6 +513,8 @@ class FollowUpManagementTest extends TestCase
         Livewire::test(Index::class)
             ->call('sendFollowUpEmail', $followUp->id);
 
-        Queue::assertNothingPushed();
+        Queue::assertPushed(SendFollowUpEmailJob::class, function (SendFollowUpEmailJob $job) use ($followUp): bool {
+            return $job->followUpId === $followUp->id;
+        });
     }
 }
