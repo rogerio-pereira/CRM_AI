@@ -22,31 +22,18 @@ class HandleContactWithFollowUp
     {
         $opportunity = $event->opportunity;
         $userId = $event->userId;
+        $noteMessage = __('Follow-up 1 sent');
+        $followUpMessage = __('Send the last follow-up email.');
 
         if ($opportunity->stage !== PipelineStage::ContactSent) {
             $this->moveToContactSent($opportunity, $userId);
-            $this->recordNote(
-                $opportunity,
-                $userId,
-                __('First Email sent'),
-            );
-            $this->createReminder(
-                $opportunity,
-                __('Follow up after first-contact email.'),
-            );
 
-            return;
+            $noteMessage = __('First Email sent');
+            $followUpMessage = __('Follow up after first-contact email.');
         }
 
-        $this->recordNote(
-            $opportunity,
-            $userId,
-            __('Follow-up 1 sent'),
-        );
-        $this->createReminder(
-            $opportunity,
-            __('Send the last follow-up email.'),
-        );
+        $this->recordNote($opportunity, $userId, $noteMessage);
+        $this->createReminder($opportunity, $followUpMessage);
     }
 
     private function moveToContactSent(Opportunity $opportunity, ?int $userId): void
