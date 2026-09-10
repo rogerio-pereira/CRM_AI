@@ -8,7 +8,6 @@ enum AgentType: string
     case Qualification = 'qualification';
     case Recommendation = 'recommendation';
     case FirstContactEmail = 'first_contact_email';
-    case FollowUpEmail = 'follow_up_email';
     case ProposalAssistant = 'proposal_assistant';
 
     public function label(): string
@@ -18,7 +17,6 @@ enum AgentType: string
             self::Qualification => __('Qualification'),
             self::Recommendation => __('Recommendation'),
             self::FirstContactEmail => __('First contact email'),
-            self::FollowUpEmail => __('Follow-up email'),
             self::ProposalAssistant => __('Proposal assistant'),
         };
     }
