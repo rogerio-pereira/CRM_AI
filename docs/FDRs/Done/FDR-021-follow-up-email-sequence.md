@@ -44,35 +44,25 @@ Prompt: `docs/prompts/laravel_tools/write-follow-up-email.md`.
 1. Keep using existing `follow_ups` reminders. Do not store FU1 vs FU2 on the row.
 2. Add pipeline stage `No Response` (`no_response`): terminal, Kanban order after Lost and before Disqualified, color token `neutral`, sets `OpportunityStatus::Lost`.
 
-### Introduction and follow-up 1 (listener)
+### Introduction (listener)
 
-`HandleContactWithFollowUp`:
-
-- **Introduction:** move to Contact Sent, “first email sent” note, create a reminder (+3 days at 09:00).
-- **Follow-up 1** (already Contact Sent): “Follow-up 1 sent” note, create the last reminder.
+`HandleContactWithFollowUp` after the introduction: move to Contact Sent, “first email sent” note, create a reminder (+3 days at 09:00).
 
 ### Follow-ups page
 
-On `[follow-ups.index](../../../app/Livewire/FollowUps/Index.php)`, each row may show **Send follow-up** when:
-
-- the follow-up is Pending
-- the opportunity is in Contact Sent
+On `[follow-ups.index](../../../app/Livewire/FollowUps/Index.php)`, each pending row with an opportunity may show **Send follow-up**. Any pipeline stage is allowed (Contact Sent drip, later stages such as waiting for a signed contract).
 
 Use `data-test="follow-ups-send-email"` (include the follow-up id in the selector, e.g. `follow-ups-send-email-{id}`).
-
-If the opportunity has left Contact Sent, hide the button; do not delete the reminder.
 
 ### Send click (no preview)
 
 1. Dispatch a queued job.
 2. The job checks whether the note **Follow-up 1 sent** already exists. That decides `sequence_step` `1` or `2` for the copywriter. The copywriter does not infer the step from notes.
 3. Save the sent email (subject and body) as an opportunity note.
-4. Send SMTP to the client contact email (same stack as first-contact outreach).
+4. Send SMTP to the client contact email (same mail stack as first-contact outreach).
 5. Mark the follow-up reminder completed.
-6. **First follow-up:** dispatch `ContactWithFollowUp` → note “Follow-up 1 sent” → create the next reminder (+3 days at 09:00).
-7. **Second follow-up:** short note that follow-up 2 was sent → `moveToStage(NoResponse)`. Do not create another reminder.
-
-If the job runs and the opportunity is not in Contact Sent: do not send, do not change stage, leave the reminder unchanged.
+6. **First follow-up:** note “Follow-up 1 sent” → create the next reminder (+3 days at 09:00).
+7. **Second follow-up:** short note that follow-up 2 was sent. If the opportunity is still Contact Sent, `moveToStage(NoResponse)`. Do not create another reminder. Later stages keep their current column.
 
 Failed SMTP: do not complete the reminder, do not create the next reminder, do not move to No Response.
 
@@ -82,7 +72,6 @@ flowchart TD
   fu1[Reminder]
   click1[Send follow-up]
   job1[Job write note SMTP]
-  ev1[ContactWithFollowUp]
   fu2[Next reminder]
   click2[Send follow-up]
   job2[Job write note SMTP]
@@ -91,8 +80,7 @@ flowchart TD
   intro --> fu1
   fu1 --> click1
   click1 --> job1
-  job1 --> ev1
-  ev1 --> fu2
+  job1 --> fu2
   fu2 --> click2
   click2 --> job2
   job2 --> nr
@@ -103,9 +91,9 @@ flowchart TD
 ## How to test
 
 - **Introduction:** Send first-contact email; opportunity is Contact Sent; note exists; pending follow-up due +3 days at 09:00.
-- **Send FU1:** Button visible on that row; click queues job; note contains subject/body; SMTP sent; reminder completed; note “Follow-up 1 sent”; new pending follow-up.
-- **Send FU2:** SMTP + notes; opportunity moves to No Response; status Lost; no third reminder; `ContactWithFollowUp` not dispatched.
-- **Wrong stage:** Opportunity in Meeting Scheduled (or any stage other than Contact Sent): button hidden; if a job is forced, it does not send.
+- **Send FU1:** Button visible on a pending row with an opportunity at any stage; click queues job; note contains subject/body; SMTP sent; reminder completed; note “Follow-up 1 sent”; new pending follow-up.
+- **Send FU2:** SMTP + notes; if still Contact Sent, opportunity moves to No Response and status Lost; no third reminder. Later stages stay in their column.
+- **Later stage:** Opportunity in Meeting Scheduled (or Proposal Sent waiting on a signature): button visible; job sends; stage unchanged.
 - **SMTP failure:** Reminder stays pending; stage unchanged.
 - **Copywriter:** FU2 output states it is the last email; FU1 does not claim that; subjects are not `Re:`; previously used insights are not reused (feature test with fake agent).
 - **Kanban:** No Response column exists, is terminal, sits between Lost and Disqualified.
@@ -117,10 +105,10 @@ flowchart TD
 ## Acceptance criteria
 
 - [x] Introduction send creates a normal reminder (+3 days 09:00).
-- [x] Follow-ups index **Send follow-up** for pending rows whose opportunity is Contact Sent (`data-test` stable).
+- [x] Follow-ups index **Send follow-up** for pending rows with an opportunity (`data-test` stable).
 - [x] Click dispatches a job: copywriter → opportunity note with subject/body → SMTP → complete reminder.
-- [x] FU1 dispatches `ContactWithFollowUp`, which writes **Follow-up 1 sent** and creates the next reminder.
-- [x] FU2 does not dispatch `ContactWithFollowUp`; notes the send; moves the opportunity to **No Response**.
+- [x] FU1 writes **Follow-up 1 sent** and creates the next reminder.
+- [x] FU2 notes the send; moves to **No Response** only when the opportunity is still Contact Sent.
 - [x] No Response is terminal, ordered after Lost and before Disqualified, `OpportunityStatus::Lost`, color token `neutral`.
 - [x] No due-date auto-send. No bulk-delete of reminders on stage change.
 - [x] Follow-up prompt documents the storytelling table (new insight per step; FU2 last-email; same CTA).
