@@ -25,6 +25,8 @@ Do not fill a numbered template. Do not write a free how-to.
 
 Do not bait with one topic and switch. Do not claim a branded email raises prices. Do not claim a new website will create customers just because it is custom. Do not switch to lead flow, content, email, or automation when the dossier opening is the website.
 
+When a website URL is available, look at the live page before you name a defect. Do not invent “not mobile” or “add a clickable phone number” if those things already work.
+
 ------------------------------------------------------------------------
 
 # Subject

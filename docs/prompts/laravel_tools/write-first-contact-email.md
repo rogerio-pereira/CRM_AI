@@ -1,6 +1,6 @@
 # Write First Contact Email Tool
 
-**Version:** 1.8
+**Version:** 1.9
 **Status:** Approved for Wave 4 implementation
 **Owner:** Product owner
 **Used by:** First Contact Email Agent
@@ -23,6 +23,22 @@ When `ai_recommendations` is present, prefer its summary, pain points, opportuni
 Never reuse a previous email. The dossier does not include `contact_example`. Write a fresh draft from the current client, opportunity, insights, recommendations, and opportunity_notes as if this is the first email for this opportunity.
 
 Pick **one** opening. Follow the highest-priority opportunity in the dossier. When a website opening exists, write about the website. Do not switch the email to lead generation, content, email, or automation as the opening when a site opening exists.
+
+## Look before you write
+
+When `client.website` is present, fetch that page before you write the observation or the quick win.
+
+The observation must be something you confirmed on that page, or something explicitly evidenced in the dossier (`pain_points[].evidence`, sources). If the dossier claims a defect and the live page shows the opposite, trust the page. Do not invent.
+
+Do not use generic website-audit tips unless you confirmed they are missing on the fetched page:
+
+- “make it mobile” / “make it responsive”
+- “add a clickable phone number”
+- “add a form / hours / map / quote button”
+
+If the site already works on a phone, do not say it does not. If the phone number is already a tap-to-call link, do not suggest adding one.
+
+One observation. One thread. Do not start with one website issue and switch to a second unrelated tip.
 
 ## Role
 
@@ -136,6 +152,8 @@ Rules:
 - Use it as proof you looked, then move to how you can help.
 
 If you noticed they rely on referrals, do not suggest an email signature. If you noticed missed quotes, do not suggest a blog post. The quick win is a taste of the same help you are offering.
+
+Do not use a DIY website checklist as the quick win. A clickable phone number, a mobile layout, or a quote form is only valid if you confirmed that gap on the fetched page and it is the **same** problem as the subject.
 
 These rules are for you, the writer. Never say them in the email. Do not write lines like “this is not a full system,” “this will not replace our work,” or “it only shows the gap.”
 
