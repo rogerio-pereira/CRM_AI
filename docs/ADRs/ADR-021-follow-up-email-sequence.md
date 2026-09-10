@@ -31,31 +31,25 @@ Do **not** store “follow-up 1” or “follow-up 2” on the reminder row. `fo
 
 Whether the next send is FU1 or FU2 is decided at send time: if the opportunity already has the note **Follow-up 1 sent**, this send is the last email; otherwise it is the first follow-up. The copywriter receives that step as `sequence_step` in its dossier. It does not infer the step from notes.
 
-### 3. `ContactWithFollowUp` handles introduction and follow-up 1
+### 3. `ContactWithFollowUp` is introduction only
 
-Keep the existing event:
+Keep the existing event for the first-contact send: move to Contact Sent, note first email sent, create a reminder (+3 days at 09:00).
 
-- **Introduction** (opportunity not yet Contact Sent): move to Contact Sent, note first email sent, create a reminder (+3 days at 09:00).
-- **Follow-up 1** (opportunity already Contact Sent): note **Follow-up 1 sent**, create the last reminder.
-
-Follow-up 2 **does not** dispatch this event. After a successful FU2 send: persist the email as a note, write that follow-up 2 was sent, and `moveToStage(NoResponse)`. Do not create a third reminder.
+Follow-up sends do **not** dispatch this event. After a successful FU1 send the job writes **Follow-up 1 sent** and creates the next reminder. After FU2: persist the email as a note, write that follow-up 2 was sent, and `moveToStage(NoResponse)` only if the opportunity is still in Contact Sent. Do not create a third reminder.
 
 ### 4. Send follow-up job
 
-The Follow-ups index button is visible only when all of these are true:
-
-- `reminder_status` is Pending
-- the linked opportunity exists and is in `Contact Sent`
+The Follow-ups index button is visible when the row is Pending and has an opportunity. Follow-up email can go out at any pipeline stage (contract waiting for a signature, later stages, and the original Contact Sent drip).
 
 Click:
 
 1. Mark the follow-up reminder completed, then dispatch `SendFollowUpEmailJob` (Horizon / Redis). Do **not** add an `AgentType`, orchestration wrapper, or extra domain agent.
 2. The job decides FU1 vs FU2 from the **Follow-up 1 sent** note, calls `WriteFollowUpEmailAgent` with that `sequence_step`, persists subject and body as an opportunity note, and sends SMTP (same mail stack as first-contact outreach).
-3. If FU1: dispatch `ContactWithFollowUp`. If FU2: note + move to **No Response**.
+3. If FU1: note **Follow-up 1 sent** and create the next reminder. If FU2 and the opportunity is still Contact Sent: note + move to **No Response**. Later stages stay put.
 
 There is **no** draft preview or regenerate on this path (unlike first-contact). The click is the human confirmation to write and send.
 
-If the opportunity is no longer `Contact Sent` when the job runs, refuse: do not send, do not move stage, leave the reminder as the user left it. Do **not** bulk-delete sequence reminders when the stage changes.
+Do **not** bulk-delete sequence reminders when the stage changes.
 
 ### 5. Pipeline: No Response is a terminal stage
 
