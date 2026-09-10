@@ -8,12 +8,14 @@ use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
+use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Promptable;
+use Laravel\Ai\Providers\Tools\WebFetch;
 use RuntimeException;
 
-#[MaxSteps(2)]
-#[Timeout(60)]
-class WriteFirstContactEmailAgent implements Agent, HasStructuredOutput
+#[MaxSteps(4)]
+#[Timeout(90)]
+class WriteFirstContactEmailAgent implements Agent, HasStructuredOutput, HasTools
 {
     use Promptable;
 
@@ -35,6 +37,18 @@ class WriteFirstContactEmailAgent implements Agent, HasStructuredOutput
         }
 
         return $prompt;
+    }
+
+    /**
+     * @return iterable<int, WebFetch>
+     */
+    public function tools(): iterable
+    {
+        $webFetch = new WebFetch;
+
+        return [
+                $webFetch,
+            ];
     }
 
     /**
