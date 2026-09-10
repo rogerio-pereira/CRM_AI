@@ -5,6 +5,7 @@ namespace Tests\Unit\Ai\Agents;
 use App\Ai\Agents\WriteFirstContactEmailAgent;
 use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 use Illuminate\Support\Facades\File;
+use Laravel\Ai\Providers\Tools\WebFetch;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -39,12 +40,27 @@ class WriteFirstContactEmailAgentTest extends TestCase
         $this->assertStringContainsString('Never reuse a previous email', $instructions);
         $this->assertStringContainsString('does not include `contact_example`', $instructions);
         $this->assertStringContainsString('A branded or custom-domain email raises prices', $instructions);
+        $this->assertStringContainsString('When `client.website` is present, fetch that page', $instructions);
+        $this->assertStringContainsString('If the dossier claims a defect and the live page shows the opposite, trust the page', $instructions);
+        $this->assertStringContainsString('add a clickable phone number', $instructions);
+        $this->assertStringContainsString('One observation. One thread.', $instructions);
         $this->assertStringContainsString('[Front Porch Creative](https://frontporchcreative.io)', $instructions);
         $this->assertStringNotContainsString('linkedin.com/in/rogerio-pereira', $instructions);
         $this->assertStringNotContainsString('[frontporchcreative.io](https://frontporchcreative.io)', $instructions);
         $this->assertStringNotContainsString('Allowed: 👋 👀 💡', $instructions);
         $this->assertStringNotContainsString('Hi Sarah', $instructions);
         $this->assertStringNotContainsString('A simple way to bring in more local conversations', $instructions);
+    }
+
+    public function test_agent_exposes_web_fetch_tool(): void
+    {
+        $agent = new WriteFirstContactEmailAgent;
+        $toolsIterator = $agent->tools();
+        $tools = iterator_to_array($toolsIterator);
+        $webFetch = $tools[0] ?? null;
+
+        $this->assertCount(1, $tools);
+        $this->assertInstanceOf(WebFetch::class, $webFetch);
     }
 
     public function test_schema_requires_channel_subject_and_body(): void

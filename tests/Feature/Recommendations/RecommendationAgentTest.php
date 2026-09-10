@@ -292,6 +292,8 @@ class RecommendationAgentTest extends TestCase
         $this->assertStringContainsString('independent outbound salesperson', $promptText);
         $this->assertStringContainsString('human opportunity notes', $promptText);
         $this->assertStringContainsString('opportunity_notes', $promptText);
+        $this->assertStringContainsString('Do not invent website defects', $promptText);
+        $this->assertStringContainsString('Do not recommend “make it mobile” or “add a clickable phone number”', $promptText);
         $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
     }
 

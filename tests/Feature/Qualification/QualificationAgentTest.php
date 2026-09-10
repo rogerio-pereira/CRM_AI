@@ -829,6 +829,10 @@ class QualificationAgentTest extends TestCase
         $this->assertStringContainsString('Do not make email the top opportunity when a website opening exists', $promptText);
         $this->assertStringContainsString('You may omit `outreach_strategy.contact_example`', $promptText);
         $this->assertStringContainsString('A later first-contact email job writes the example after recommendation finishes', $promptText);
+        $this->assertStringContainsString('Observed evidence only', $promptText);
+        $this->assertStringContainsString('Do not invent website defects from a generic audit checklist', $promptText);
+        $this->assertStringContainsString('Do not claim the site is not mobile-friendly if it works on a phone', $promptText);
+        $this->assertStringContainsString('These are signals to look for, not default claims', $promptText);
         $this->assertStringNotContainsString('Do not apply a global service ranking', $promptText);
         $this->assertStringNotContainsString('Do not treat website work as the required commercial opening', $promptText);
     }
